@@ -17,12 +17,23 @@ import {
   Calendar,
   ArrowUp,
   ArrowDown,
-  Minus
+  Minus,
+  Download
 } from 'lucide-react'
+import { downloadExecutiveReportPDF } from '@/lib/pdfExport'
 
 export default function ExecutiveReports() {
   const { projects, blockers, deploymentMetrics, getExecutiveSummary } = useStore()
   const summary = getExecutiveSummary()
+
+  const handleDownloadPDF = async () => {
+    try {
+      await downloadExecutiveReportPDF(projects, blockers, deploymentMetrics, summary)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Error generating PDF. Please try again.')
+    }
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -120,6 +131,13 @@ export default function ExecutiveReports() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download PDF</span>
+              </button>
               <div className="text-right">
                 <p className="text-sm text-gray-500">Generated on</p>
                 <p className="text-lg font-semibold text-gray-900">
