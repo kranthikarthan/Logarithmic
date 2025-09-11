@@ -37,6 +37,7 @@ export function Sidebar() {
     { name: 'Inbox', href: '/inbox', icon: Inbox },
     { name: 'My Issues', href: '/my-issues', icon: CircleDot },
     { name: 'Views', href: '/views', icon: BarChart3 },
+    { name: 'Executive Reports', href: '/executive-reports', icon: Calendar },
   ]
 
   const bottomNavigation = [
