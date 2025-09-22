@@ -1,0 +1,587 @@
+# Kubernetes Operators for Bank Interoperability Layer
+
+# Custom Resource Definition for Interoperability Services
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: interoperabilityservices.interop.bank.com
+spec:
+  group: interop.bank.com
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              serviceName:
+                type: string
+                description: "Name of the service"
+              migrationState:
+                type: string
+                enum: [onprem, cloud, hybrid]
+                description: "Current migration state of the service"
+              protocol:
+                type: string
+                enum: [REST, SOAP, MQ, gRPC]
+                description: "Protocol used by the service"
+              schema:
+                type: string
+                enum: [JSON, XML, YAML, ProtocolBuffers]
+                description: "Schema format used by the service"
+              endpoint:
+                type: string
+                description: "Service endpoint URL"
+              environment:
+                type: string
+                enum: [onprem, cloud]
+                description: "Environment where service is deployed"
+              dependencies:
+                type: array
+                items:
+                  type: string
+                description: "List of service dependencies"
+              routingRules:
+                type: object
+                properties:
+                  dataSensitivity:
+                    type: string
+                    enum: [public, internal, confidential, restricted]
+                  latencyRequirements:
+                    type: string
+                    enum: [real_time, near_real_time, batch]
+                  loadBalancingStrategy:
+                    type: string
+                    enum: [round_robin, weighted, least_connections, ip_hash]
+              healthCheck:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  path:
+                    type: string
+                  interval:
+                    type: string
+                  timeout:
+                    type: string
+                  retries:
+                    type: integer
+              scaling:
+                type: object
+                properties:
+                  minReplicas:
+                    type: integer
+                  maxReplicas:
+                    type: integer
+                  targetCPUUtilization:
+                    type: integer
+                  targetMemoryUtilization:
+                    type: integer
+              monitoring:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  metricsPath:
+                    type: string
+                  logLevel:
+                    type: string
+                    enum: [DEBUG, INFO, WARN, ERROR]
+            required:
+            - serviceName
+            - migrationState
+            - protocol
+            - schema
+            - endpoint
+            - environment
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum: [Pending, Running, Failed, Terminated]
+              message:
+                type: string
+              lastTransitionTime:
+                type: string
+                format: date-time
+              replicas:
+                type: integer
+              readyReplicas:
+                type: integer
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    reason:
+                      type: string
+                    message:
+                      type: string
+    subresources:
+      status: {}
+      scale:
+        specReplicasPath: .spec.scaling.minReplicas
+        statusReplicasPath: .status.replicas
+
+---
+# Custom Resource Definition for Routing Rules
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: routingrules.interop.bank.com
+spec:
+  group: interop.bank.com
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              priority:
+                type: integer
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    operator:
+                      type: string
+                      enum: [equals, not_equals, contains, not_contains, regex, exists]
+                    value:
+                      type: string
+              actions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [route, transform, validate, authenticate, authorize]
+                    target:
+                      type: string
+                    parameters:
+                      type: object
+              enabled:
+                type: boolean
+            required:
+            - name
+            - conditions
+            - actions
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum: [Active, Inactive, Error]
+              lastApplied:
+                type: string
+                format: date-time
+              appliedCount:
+                type: integer
+
+---
+# Custom Resource Definition for Saga Definitions
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sagadefinitions.interop.bank.com
+spec:
+  group: interop.bank.com
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              steps:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    service:
+                      type: string
+                    protocol:
+                      type: string
+                    schema:
+                      type: string
+                    endpoint:
+                      type: string
+                    payload:
+                      type: object
+                    timeout:
+                      type: string
+                    retryPolicy:
+                      type: object
+                      properties:
+                        maxRetries:
+                          type: integer
+                        backoff:
+                          type: string
+                        maxBackoff:
+                          type: string
+                    dependsOn:
+                      type: array
+                      items:
+                        type: string
+                    compensation:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        service:
+                          type: string
+                        endpoint:
+                          type: string
+                        payload:
+                          type: object
+                        timeout:
+                          type: string
+              enabled:
+                type: boolean
+            required:
+            - name
+            - steps
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum: [Active, Inactive, Error]
+              lastExecuted:
+                type: string
+                format: date-time
+              executionCount:
+                type: integer
+              successCount:
+                type: integer
+              failureCount:
+                type: integer
+
+---
+# Interoperability Operator Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interoperability-operator
+  namespace: interop-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: interoperability-operator
+  template:
+    metadata:
+      labels:
+        app: interoperability-operator
+    spec:
+      serviceAccountName: interoperability-operator
+      containers:
+      - name: operator
+        image: bank/interoperability-operator:v1.0.0
+        ports:
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: WATCH_NAMESPACE
+          value: ""
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: "interoperability-operator"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+---
+# Service Account for Interoperability Operator
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: interoperability-operator
+  namespace: interop-system
+
+---
+# ClusterRole for Interoperability Operator
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: interoperability-operator
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "persistentvolumeclaims", "events", "configmaps", "secrets"]
+  verbs: ["*"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+  verbs: ["*"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
+  verbs: ["get", "create"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["interop.bank.com"]
+  resources: ["interoperabilityservices", "routingrules", "sagadefinitions"]
+  verbs: ["*"]
+- apiGroups: ["interop.bank.com"]
+  resources: ["interoperabilityservices/status", "routingrules/status", "sagadefinitions/status"]
+  verbs: ["update", "patch"]
+
+---
+# ClusterRoleBinding for Interoperability Operator
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: interoperability-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: interoperability-operator
+subjects:
+- kind: ServiceAccount
+  name: interoperability-operator
+  namespace: interop-system
+
+---
+# Service for Interoperability Operator
+apiVersion: v1
+kind: Service
+metadata:
+  name: interoperability-operator
+  namespace: interop-system
+  labels:
+    app: interoperability-operator
+spec:
+  selector:
+    app: interoperability-operator
+  ports:
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+
+---
+# ServiceMonitor for Prometheus monitoring
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: interoperability-operator
+  namespace: interop-system
+  labels:
+    app: interoperability-operator
+spec:
+  selector:
+    matchLabels:
+      app: interoperability-operator
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# Example Interoperability Service
+apiVersion: interop.bank.com/v1
+kind: InteroperabilityService
+metadata:
+  name: customer-service
+  namespace: interop-system
+spec:
+  serviceName: customer-service
+  migrationState: hybrid
+  protocol: REST
+  schema: JSON
+  endpoint: https://customer-service.bank.com/api
+  environment: onprem
+  dependencies:
+  - authentication-service
+  - authorization-service
+  routingRules:
+    dataSensitivity: confidential
+    latencyRequirements: near_real_time
+    loadBalancingStrategy: weighted
+  healthCheck:
+    enabled: true
+    path: /health
+    interval: 30s
+    timeout: 5s
+    retries: 3
+  scaling:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  monitoring:
+    enabled: true
+    metricsPath: /metrics
+    logLevel: INFO
+
+---
+# Example Routing Rule
+apiVersion: interop.bank.com/v1
+kind: RoutingRule
+metadata:
+  name: confidential-data-routing
+  namespace: interop-system
+spec:
+  name: confidential-data-routing
+  description: "Route confidential data to on-premises services"
+  priority: 100
+  conditions:
+  - field: "dataSensitivity"
+    operator: "equals"
+    value: "confidential"
+  - field: "dataSensitivity"
+    operator: "equals"
+    value: "restricted"
+  actions:
+  - type: route
+    target: "onprem"
+    parameters:
+      loadBalancingStrategy: "least_connections"
+  - type: authenticate
+    target: "authentication-service"
+  - type: authorize
+    target: "authorization-service"
+  enabled: true
+
+---
+# Example Saga Definition
+apiVersion: interop.bank.com/v1
+kind: SagaDefinition
+metadata:
+  name: payment-processing-saga
+  namespace: interop-system
+spec:
+  name: payment-processing-saga
+  description: "Saga for processing payments with validation and compensation"
+  steps:
+  - id: validate-customer
+    name: "Validate Customer"
+    service: "customer-service"
+    protocol: "REST"
+    schema: "JSON"
+    endpoint: "https://customer-service.bank.com/api/validate"
+    payload:
+      customerId: "{{request.customerId}}"
+    timeout: "30s"
+    retryPolicy:
+      maxRetries: 3
+      backoff: "1s"
+      maxBackoff: "10s"
+  - id: process-payment
+    name: "Process Payment"
+    service: "payment-service"
+    protocol: "SOAP"
+    schema: "XML"
+    endpoint: "https://payment-service.bank.com/soap/process"
+    payload:
+      amount: "{{request.amount}}"
+      currency: "{{request.currency}}"
+      customerId: "{{step1.result.customerId}}"
+    timeout: "60s"
+    retryPolicy:
+      maxRetries: 5
+      backoff: "2s"
+      maxBackoff: "30s"
+    dependsOn:
+    - "validate-customer"
+    compensation:
+      id: "refund-payment"
+      service: "payment-service"
+      endpoint: "https://payment-service.bank.com/soap/refund"
+      payload:
+        transactionId: "{{step2.result.transactionId}}"
+      timeout: "30s"
+  - id: update-account
+    name: "Update Account Balance"
+    service: "account-service"
+    protocol: "gRPC"
+    schema: "ProtocolBuffers"
+    endpoint: "account-service.bank.com:443"
+    payload:
+      accountId: "{{request.accountId}}"
+      amount: "{{request.amount}}"
+      transactionId: "{{step2.result.transactionId}}"
+    timeout: "45s"
+    retryPolicy:
+      maxRetries: 3
+      backoff: "1s"
+      maxBackoff: "15s"
+    dependsOn:
+    - "process-payment"
+    compensation:
+      id: "revert-account-update"
+      service: "account-service"
+      endpoint: "account-service.bank.com:443"
+      payload:
+        accountId: "{{request.accountId}}"
+        transactionId: "{{step2.result.transactionId}}"
+      timeout: "30s"
+  enabled: true
+
+---
+# Namespace for Interoperability System
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: interop-system
+  labels:
+    name: interop-system
+    app.kubernetes.io/name: interoperability-layer
+    app.kubernetes.io/version: v1.0.0
