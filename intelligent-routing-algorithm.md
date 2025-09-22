@@ -1,64 +1,138 @@
-# Intelligent Routing Algorithm for Bank Interoperability Layer
+# Enhanced Intelligent Routing Algorithm for Bank Interoperability Layer
 
 ## Algorithm Overview
 
-The intelligent routing algorithm uses a multi-factor decision matrix to determine optimal request distribution between on-premise and cloud environments.
+The enhanced intelligent routing algorithm integrates Temporal.io workflow engine, Apache Kafka event streaming, and advanced security technologies to provide enterprise-grade request distribution between on-premise and cloud environments.
 
 ### Core Algorithm Components
 
-1. **Request Classification Engine**
-2. **Load Balancing Intelligence**
-3. **Dependency Resolution Engine**
-4. **Protocol & Schema Adapter**
-5. **Saga Orchestrator**
-6. **Event-Driven Coordinator**
+1. **Request Classification Engine** (Enhanced with ML)
+2. **Load Balancing Intelligence** (Kafka-based metrics)
+3. **Dependency Resolution Engine** (Temporal.io workflows)
+4. **Protocol & Schema Adapter** (Kong Gateway integration)
+5. **Saga Orchestrator** (Temporal.io powered)
+6. **Event-Driven Coordinator** (Kafka + Schema Registry)
+7. **Security & Compliance Engine** (Vault + Istio)
+8. **Monitoring & Observability** (OpenTelemetry + Jaeger)
 
-## Intelligent Routing Algorithm
+## Enhanced Intelligent Routing Algorithm
 
 ```java
-public class IntelligentRouter {
+@Component
+public class EnhancedIntelligentRouter {
+    
+    @Autowired
+    private TemporalWorkflowService temporalService;
+    
+    @Autowired
+    private KafkaEventPublisher kafkaPublisher;
+    
+    @Autowired
+    private VaultService vaultService;
+    
+    @Autowired
+    private IstioSecurityService istioService;
+    
+    @Autowired
+    private OpenTelemetryService telemetryService;
     
     public RoutingDecision routeRequest(IncomingRequest request) {
-        // Step 1: Analyze request characteristics
-        RequestProfile profile = analyzeRequest(request);
+        // Start distributed tracing
+        Span span = telemetryService.startSpan("intelligent-routing");
         
-        // Step 2: Determine optimal routing strategy
-        RoutingStrategy strategy = determineStrategy(profile);
-        
-        // Step 3: Calculate load distribution
-        LoadDistribution distribution = calculateLoadDistribution(strategy);
-        
-        // Step 4: Apply dependency constraints
-        DependencyGraph dependencies = resolveDependencies(request);
-        
-        // Step 5: Generate execution plan
-        return generateExecutionPlan(profile, strategy, distribution, dependencies);
+        try {
+            // Step 1: Analyze request characteristics with ML
+            RequestProfile profile = analyzeRequestWithML(request);
+            
+            // Step 2: Apply security and compliance checks
+            SecurityContext securityContext = applySecurityChecks(request, profile);
+            
+            // Step 3: Determine optimal routing strategy with Temporal.io
+            RoutingStrategy strategy = determineStrategyWithTemporal(profile, securityContext);
+            
+            // Step 4: Calculate load distribution with Kafka metrics
+            LoadDistribution distribution = calculateLoadDistributionWithKafka(strategy);
+            
+            // Step 5: Apply dependency constraints with Temporal workflows
+            DependencyGraph dependencies = resolveDependenciesWithTemporal(request);
+            
+            // Step 6: Generate execution plan with security context
+            RoutingDecision decision = generateSecureExecutionPlan(profile, strategy, distribution, dependencies, securityContext);
+            
+            // Step 7: Publish routing decision to Kafka
+            kafkaPublisher.publishRoutingDecision(decision);
+            
+            return decision;
+            
+        } finally {
+            span.end();
+        }
     }
     
-    private RequestProfile analyzeRequest(IncomingRequest request) {
+    private RequestProfile analyzeRequestWithML(IncomingRequest request) {
+        // Enhanced ML-based analysis
+        MLRequestAnalyzer analyzer = new MLRequestAnalyzer();
+        
         return RequestProfile.builder()
             .requestType(request.getType())
             .dataSize(request.getPayloadSize())
-            .complexity(calculateComplexity(request))
-            .sensitivityLevel(determineSensitivity(request))
+            .complexity(analyzer.calculateComplexity(request))
+            .sensitivityLevel(analyzer.determineSensitivity(request))
             .protocolType(request.getProtocol())
             .schemaType(request.getSchema())
             .dependencies(extractDependencies(request))
+            .riskScore(analyzer.calculateRiskScore(request))
+            .complianceLevel(analyzer.determineComplianceLevel(request))
+            .mlPredictions(analyzer.getPredictions(request))
             .build();
     }
     
-    private RoutingStrategy determineStrategy(RequestProfile profile) {
-        // Multi-factor decision matrix
-        double onPremScore = calculateOnPremScore(profile);
-        double cloudScore = calculateCloudScore(profile);
+    private SecurityContext applySecurityChecks(IncomingRequest request, RequestProfile profile) {
+        // Apply Vault-based security checks
+        String encryptionKey = vaultService.getEncryptionKey(profile.getSensitivityLevel());
+        String accessToken = vaultService.getAccessToken(request.getUserId());
         
-        if (onPremScore > cloudScore + THRESHOLD) {
-            return RoutingStrategy.ON_PREM_ONLY;
-        } else if (cloudScore > onPremScore + THRESHOLD) {
-            return RoutingStrategy.CLOUD_ONLY;
-        } else {
-            return RoutingStrategy.HYBRID;
-        }
+        // Apply Istio security policies
+        SecurityPolicy policy = istioService.getSecurityPolicy(profile.getRequestType());
+        
+        return SecurityContext.builder()
+            .encryptionKey(encryptionKey)
+            .accessToken(accessToken)
+            .securityPolicy(policy)
+            .complianceChecks(performComplianceChecks(request, profile))
+            .build();
+    }
+    
+    private RoutingStrategy determineStrategyWithTemporal(RequestProfile profile, SecurityContext securityContext) {
+        // Use Temporal.io workflow for complex decision making
+        TemporalWorkflow workflow = temporalService.createWorkflow("routing-decision-workflow");
+        
+        // Multi-factor decision matrix with ML enhancement
+        double onPremScore = calculateEnhancedOnPremScore(profile, securityContext);
+        double cloudScore = calculateEnhancedCloudScore(profile, securityContext);
+        
+        // Apply Temporal.io workflow logic
+        return workflow.execute(profile, securityContext, onPremScore, cloudScore);
+    }
+    
+    private LoadDistribution calculateLoadDistributionWithKafka(RoutingStrategy strategy) {
+        // Get real-time metrics from Kafka
+        KafkaMetricsCollector metricsCollector = new KafkaMetricsCollector();
+        Map<String, Double> serviceLoads = metricsCollector.getServiceLoads();
+        Map<String, Double> queueDepths = metricsCollector.getQueueDepths();
+        
+        return LoadDistribution.builder()
+            .onPremiseLoad(serviceLoads.get("onpremise"))
+            .cloudLoad(serviceLoads.get("cloud"))
+            .queueDepths(queueDepths)
+            .recommendedDistribution(calculateOptimalDistribution(serviceLoads, queueDepths))
+            .build();
+    }
+    
+    private DependencyGraph resolveDependenciesWithTemporal(IncomingRequest request) {
+        // Use Temporal.io for complex dependency resolution
+        TemporalWorkflow dependencyWorkflow = temporalService.createWorkflow("dependency-resolution-workflow");
+        return dependencyWorkflow.execute(request);
     }
 }
 ```

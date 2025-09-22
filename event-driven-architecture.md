@@ -1,8 +1,41 @@
-# Event-Driven Architecture for Bank Interoperability
+# Enhanced Event-Driven Architecture with Kafka and Advanced Technologies for Bank Interoperability
 
-## Event-Driven Components
+## Enhanced Event-Driven Components
 
-### 1. Event Definitions
+### 1. Kafka Integration and Schema Registry
+```java
+@Configuration
+@EnableKafka
+public class KafkaConfig {
+    
+    @Bean
+    public ProducerFactory<String, Object> producerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.RETRIES_CONFIG, 3);
+        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        props.put("schema.registry.url", "http://schema-registry:8081");
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+    
+    @Bean
+    public ConsumerFactory<String, Object> consumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9092");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "interoperability-group");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put("schema.registry.url", "http://schema-registry:8081");
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+}
+```
+
+### 2. Enhanced Event Definitions with Avro Schemas
 ```java
 // Base Event Class
 public abstract class InteroperabilityEvent {

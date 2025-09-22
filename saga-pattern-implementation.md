@@ -1,12 +1,42 @@
-# Saga Pattern Implementation for Bank Interoperability
+# Enhanced Saga Pattern Implementation with Temporal.io for Bank Interoperability
 
-## Saga Pattern Overview
+## Enhanced Saga Pattern Overview
 
-The Saga pattern ensures data consistency across distributed services by managing long-running transactions through a sequence of local transactions with compensating actions.
+The enhanced Saga pattern integrates Temporal.io workflow engine, Apache Kafka event streaming, and advanced security technologies to ensure data consistency across distributed services with enterprise-grade reliability and observability.
 
-## Core Saga Components
+## Enhanced Core Saga Components
 
-### 1. Saga Context
+### 1. Temporal.io Workflow Integration
+```java
+@WorkflowInterface
+public interface BankInteroperabilityWorkflow {
+    @WorkflowMethod
+    String processBankingRequest(BankingRequest request, SecurityContext securityContext);
+}
+
+@Component
+public class BankInteroperabilityWorkflowImpl implements BankInteroperabilityWorkflow {
+    
+    @Override
+    public String processBankingRequest(BankingRequest request, SecurityContext securityContext) {
+        // Step 1: Validate request with security context
+        String validationResult = activities.validateRequestWithSecurity(request, securityContext);
+        
+        // Step 2: Execute on-premise steps
+        String onPremResult = activities.executeOnPremiseSteps(request, securityContext);
+        
+        // Step 3: Execute cloud steps
+        String cloudResult = activities.executeCloudSteps(request, securityContext);
+        
+        // Step 4: Finalize transaction
+        String finalResult = activities.finalizeTransaction(request, onPremResult, cloudResult);
+        
+        return finalResult;
+    }
+}
+```
+
+### 2. Enhanced Saga Context with Temporal.io
 ```java
 @Entity
 @Table(name = "saga_context")

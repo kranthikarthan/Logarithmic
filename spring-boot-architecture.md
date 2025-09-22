@@ -1,33 +1,80 @@
-# Spring Boot Microservices Architecture for Bank Interoperability
+# Enhanced Spring Boot Microservices Architecture for Bank Interoperability
 
-## Core Microservices
+## Enhanced Core Microservices
 
-### 1. Gateway Service (API Gateway)
+### 1. Enhanced Gateway Service (Kong + Istio Integration)
 ```java
 @RestController
 @RequestMapping("/api/v1")
-public class InteroperabilityGateway {
+@Slf4j
+public class EnhancedInteroperabilityGateway {
     
     @Autowired
-    private IntelligentRouter intelligentRouter;
+    private EnhancedIntelligentRouter intelligentRouter;
     
     @Autowired
-    private SagaOrchestrator sagaOrchestrator;
+    private TemporalSagaOrchestrator sagaOrchestrator;
+    
+    @Autowired
+    private VaultService vaultService;
+    
+    @Autowired
+    private OpenTelemetryService telemetryService;
+    
+    @Autowired
+    private KafkaEventPublisher kafkaPublisher;
     
     @PostMapping("/process")
+    @PreAuthorize("@securityService.hasPermission(#request.requestType, 'PROCESS')")
     public ResponseEntity<ProcessResponse> processRequest(
-            @RequestBody IncomingRequest request) {
+            @RequestBody @Valid IncomingRequest request,
+            HttpServletRequest httpRequest) {
         
-        // Route request intelligently
-        RoutingDecision decision = intelligentRouter.routeRequest(request);
+        // Start distributed tracing
+        Span span = telemetryService.startSpan("gateway-process-request");
         
-        // Start saga orchestration
-        String sagaId = sagaOrchestrator.startSaga(request, decision);
+        try {
+            // Apply security context
+            SecurityContext securityContext = applySecurityContext(request, httpRequest);
+            
+            // Route request intelligently with enhanced algorithm
+            RoutingDecision decision = intelligentRouter.routeRequest(request);
+            
+            // Start Temporal.io saga orchestration
+            String sagaId = sagaOrchestrator.startTemporalSaga(request, decision, securityContext);
+            
+            // Publish event to Kafka
+            kafkaPublisher.publishRequestProcessedEvent(request, decision, sagaId);
+            
+            return ResponseEntity.ok(ProcessResponse.builder()
+                .sagaId(sagaId)
+                .status("PROCESSING")
+                .securityContext(securityContext)
+                .traceId(span.getSpanContext().getTraceId())
+                .build());
+                
+        } catch (Exception e) {
+            span.recordException(e);
+            kafkaPublisher.publishRequestFailedEvent(request, e);
+            throw new InteroperabilityException("Request processing failed", e);
+        } finally {
+            span.end();
+        }
+    }
+    
+    private SecurityContext applySecurityContext(IncomingRequest request, HttpServletRequest httpRequest) {
+        // Get encryption key from Vault
+        String encryptionKey = vaultService.getEncryptionKey(request.getSensitivityLevel());
         
-        return ResponseEntity.ok(ProcessResponse.builder()
-            .sagaId(sagaId)
-            .status("PROCESSING")
-            .build());
+        // Apply Istio mTLS context
+        String clientCert = httpRequest.getHeader("X-Client-Certificate");
+        
+        return SecurityContext.builder()
+            .encryptionKey(encryptionKey)
+            .clientCertificate(clientCert)
+            .requestId(UUID.randomUUID().toString())
+            .timestamp(Instant.now())
+            .build();
     }
 }
 ```
