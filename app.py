@@ -254,6 +254,198 @@ def api_issue_details(issue_key):
     else:
         return jsonify({'error': 'Issue not found'}), 404
 
+@app.route('/api/test-steps/<execution_key>')
+def api_test_steps(execution_key):
+    """Get test steps for a test execution"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # In a real implementation, this would fetch test steps from the execution
+        # For demo purposes, we'll return mock data
+        mock_steps = [
+            {
+                'id': 1,
+                'test_key': 'TEST-001',
+                'summary': 'Login with valid credentials',
+                'status': 'TODO',
+                'assignee': None,
+                'duration': None,
+                'comment': None
+            },
+            {
+                'id': 2,
+                'test_key': 'TEST-002',
+                'summary': 'Navigate to dashboard',
+                'status': 'PASS',
+                'assignee': 'John Doe',
+                'duration': '2m 30s',
+                'comment': 'Test passed successfully'
+            },
+            {
+                'id': 3,
+                'test_key': 'TEST-003',
+                'summary': 'Create new test case',
+                'status': 'FAIL',
+                'assignee': 'Jane Smith',
+                'duration': '1m 45s',
+                'comment': 'Button not found'
+            }
+        ]
+        
+        return jsonify({'test_steps': mock_steps})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-steps/<execution_key>/<int:step_id>', methods=['PUT'])
+def update_test_step(execution_key, step_id):
+    """Update a test step status"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        status = data.get('status')
+        assignee = data.get('assignee')
+        comment = data.get('comment')
+        
+        # In a real implementation, this would update the test step in Jira
+        # For demo purposes, we'll return success
+        
+        return jsonify({
+            'success': True,
+            'message': 'Test step updated successfully',
+            'step_id': step_id,
+            'status': status,
+            'assignee': assignee,
+            'comment': comment
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/execution-progress/<execution_key>')
+def api_execution_progress(execution_key):
+    """Get execution progress statistics"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # Mock progress data - in real implementation, calculate from actual data
+        progress_data = {
+            'total': 10,
+            'passed': 6,
+            'failed': 2,
+            'todo': 2,
+            'blocked': 0,
+            'aborted': 0,
+            'percentage': 80
+        }
+        
+        return jsonify(progress_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/coverage-report')
+def api_coverage_report():
+    """Get test coverage report"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Mock coverage data - in real implementation, calculate from actual test data
+        coverage_data = {
+            'overall_coverage': 75,
+            'test_cases_total': 100,
+            'test_cases_executed': 75,
+            'test_cases_passed': 60,
+            'test_cases_failed': 15,
+            'coverage_by_component': {
+                'Authentication': 90,
+                'Dashboard': 80,
+                'User Management': 70,
+                'Reports': 60
+            }
+        }
+        
+        return jsonify(coverage_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/dashboard-metrics')
+def api_dashboard_metrics():
+    """Get dashboard metrics"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # Get counts for dashboard
+        test_cases = jira_client.get_test_cases()
+        test_executions = jira_client.get_test_executions()
+        test_plans = jira_client.get_test_plans()
+        
+        metrics = {
+            'test_cases_count': len(test_cases.get('issues', [])),
+            'test_executions_count': len(test_executions.get('issues', [])),
+            'test_plans_count': len(test_plans.get('issues', [])),
+            'coverage_percentage': 75,  # Mock data
+            'active_executions': len([e for e in test_executions.get('issues', []) 
+                                    if e.get('fields', {}).get('status', {}).get('name') in ['In Progress', 'To Do']]),
+            'recent_activity': [
+                {
+                    'type': 'test_execution',
+                    'key': 'TEST-EXEC-001',
+                    'summary': 'Login Test Execution',
+                    'status': 'Completed',
+                    'timestamp': datetime.now().isoformat()
+                },
+                {
+                    'type': 'test_case',
+                    'key': 'TEST-002',
+                    'summary': 'User Registration Test',
+                    'status': 'Created',
+                    'timestamp': (datetime.now() - timedelta(hours=2)).isoformat()
+                }
+            ]
+        }
+        
+        return jsonify(metrics)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/execute-all-tests/<execution_key>', methods=['POST'])
+def execute_all_tests(execution_key):
+    """Execute all tests in an execution"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # In real implementation, this would update all test steps to 'EXECUTING'
+        return jsonify({
+            'success': True,
+            'message': 'All tests marked as executing',
+            'execution_key': execution_key
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reset-all-tests/<execution_key>', methods=['POST'])
+def reset_all_tests(execution_key):
+    """Reset all tests in an execution"""
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # In real implementation, this would reset all test steps to 'TODO'
+        return jsonify({
+            'success': True,
+            'message': 'All tests reset to To Do',
+            'execution_key': execution_key
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/export/test-cases')
 def export_test_cases():
     """Export test cases to Excel"""

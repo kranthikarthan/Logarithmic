@@ -244,35 +244,47 @@ function displayExecutionDetails(execution) {
 }
 
 function loadTestSteps(executionKey) {
-    // In a real implementation, this would fetch test steps from the execution
-    // For demo purposes, we'll simulate test steps
-    const mockTestSteps = [
-        {
-            key: 'TEST-001',
-            summary: 'Login with valid credentials',
-            status: 'TODO',
-            assignee: null,
-            duration: null
-        },
-        {
-            key: 'TEST-002', 
-            summary: 'Navigate to dashboard',
-            status: 'PASS',
-            assignee: 'John Doe',
-            duration: '2m 30s'
-        },
-        {
-            key: 'TEST-003',
-            summary: 'Create new test case',
-            status: 'FAIL',
-            assignee: 'Jane Smith',
-            duration: '1m 45s'
-        }
-    ];
-    
-    testSteps = mockTestSteps;
-    displayTestSteps();
-    updateProgress();
+    fetch(`/api/test-steps/${executionKey}`)
+        .then(response => response.json())
+        .then(data => {
+            testSteps = data.test_steps || [];
+            displayTestSteps();
+            updateProgress();
+        })
+        .catch(error => {
+            console.error('Error loading test steps:', error);
+            // Fallback to mock data
+            const mockTestSteps = [
+                {
+                    id: 1,
+                    test_key: 'TEST-001',
+                    summary: 'Login with valid credentials',
+                    status: 'TODO',
+                    assignee: null,
+                    duration: null
+                },
+                {
+                    id: 2,
+                    test_key: 'TEST-002', 
+                    summary: 'Navigate to dashboard',
+                    status: 'PASS',
+                    assignee: 'John Doe',
+                    duration: '2m 30s'
+                },
+                {
+                    id: 3,
+                    test_key: 'TEST-003',
+                    summary: 'Create new test case',
+                    status: 'FAIL',
+                    assignee: 'Jane Smith',
+                    duration: '1m 45s'
+                }
+            ];
+            
+            testSteps = mockTestSteps;
+            displayTestSteps();
+            updateProgress();
+        });
 }
 
 function displayTestSteps() {
@@ -354,40 +366,98 @@ function saveTestStep() {
     const comment = document.getElementById('modal-test-comment').value;
     
     if (index !== null) {
-        testSteps[index].status = status;
-        testSteps[index].assignee = assignee;
-        testSteps[index].comment = comment;
+        const step = testSteps[index];
         
-        displayTestSteps();
-        updateProgress();
-        
-        const modal = bootstrap.Modal.getInstance(document.getElementById('testStepModal'));
-        modal.hide();
-        
-        showAlert('Test step updated successfully', 'success');
+        // Update via API
+        fetch(`/api/test-steps/${currentExecution?.key || 'TEST-EXEC-001'}/${step.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                status: status,
+                assignee: assignee,
+                comment: comment
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update local data
+                testSteps[index].status = status;
+                testSteps[index].assignee = assignee;
+                testSteps[index].comment = comment;
+                
+                displayTestSteps();
+                updateProgress();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('testStepModal'));
+                modal.hide();
+                
+                showAlert('Test step updated successfully', 'success');
+            } else {
+                showAlert('Failed to update test step', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating test step:', error);
+            showAlert('Failed to update test step', 'danger');
+        });
     }
 }
 
 function executeAllTests() {
-    testSteps.forEach(step => {
-        if (step.status === 'TODO') {
-            step.status = 'EXECUTING';
+    const executionKey = currentExecution?.key || 'TEST-EXEC-001';
+    
+    fetch(`/api/execute-all-tests/${executionKey}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            testSteps.forEach(step => {
+                if (step.status === 'TODO') {
+                    step.status = 'EXECUTING';
+                }
+            });
+            displayTestSteps();
+            updateProgress();
+            showAlert(data.message, 'success');
+        } else {
+            showAlert('Failed to execute all tests', 'danger');
         }
+    })
+    .catch(error => {
+        console.error('Error executing all tests:', error);
+        showAlert('Failed to execute all tests', 'danger');
     });
-    displayTestSteps();
-    updateProgress();
-    showAlert('All tests marked as executing', 'info');
 }
 
 function resetAllTests() {
-    testSteps.forEach(step => {
-        step.status = 'TODO';
-        step.assignee = null;
-        step.duration = null;
+    const executionKey = currentExecution?.key || 'TEST-EXEC-001';
+    
+    fetch(`/api/reset-all-tests/${executionKey}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            testSteps.forEach(step => {
+                step.status = 'TODO';
+                step.assignee = null;
+                step.duration = null;
+            });
+            displayTestSteps();
+            updateProgress();
+            showAlert(data.message, 'success');
+        } else {
+            showAlert('Failed to reset all tests', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error resetting all tests:', error);
+        showAlert('Failed to reset all tests', 'danger');
     });
-    displayTestSteps();
-    updateProgress();
-    showAlert('All tests reset to To Do', 'info');
 }
 
 function startExecution() {

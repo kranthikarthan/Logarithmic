@@ -234,7 +234,27 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadDashboardData() {
-    // Load test cases count
+    // Load dashboard metrics from the new endpoint
+    fetch('/api/dashboard-metrics')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test-cases-count').textContent = data.test_cases_count || 0;
+            document.getElementById('test-executions-count').textContent = data.test_executions_count || 0;
+            document.getElementById('test-plans-count').textContent = data.test_plans_count || 0;
+            document.getElementById('coverage-percentage').textContent = (data.coverage_percentage || 0) + '%';
+            
+            // Update recent activity
+            updateRecentActivity(data.recent_activity || []);
+        })
+        .catch(error => {
+            console.error('Error loading dashboard metrics:', error);
+            // Fallback to individual API calls
+            loadDashboardDataFallback();
+        });
+}
+
+function loadDashboardDataFallback() {
+    // Fallback method using individual API calls
     fetch('/api/test-cases')
         .then(response => response.json())
         .then(data => {
@@ -242,7 +262,6 @@ function loadDashboardData() {
         })
         .catch(error => console.error('Error loading test cases:', error));
     
-    // Load test executions count
     fetch('/api/test-executions')
         .then(response => response.json())
         .then(data => {
@@ -250,13 +269,37 @@ function loadDashboardData() {
         })
         .catch(error => console.error('Error loading test executions:', error));
     
-    // Load test plans count
     fetch('/api/test-plans')
         .then(response => response.json())
         .then(data => {
             document.getElementById('test-plans-count').textContent = data.issues ? data.issues.length : 0;
         })
         .catch(error => console.error('Error loading test plans:', error));
+}
+
+function updateRecentActivity(activities) {
+    const container = document.getElementById('recent-activity');
+    if (!container) return;
+    
+    if (activities.length === 0) {
+        container.innerHTML = '<p class="text-muted">No recent activity</p>';
+        return;
+    }
+    
+    container.innerHTML = activities.map(activity => `
+        <div class="d-flex align-items-center mb-2">
+            <div class="flex-shrink-0">
+                <i class="fas fa-${activity.type === 'test_execution' ? 'play-circle' : 'list-check'} text-primary"></i>
+            </div>
+            <div class="flex-grow-1 ms-2">
+                <div class="fw-bold">${activity.key}</div>
+                <small class="text-muted">${activity.summary}</small>
+            </div>
+            <div class="flex-shrink-0">
+                <span class="badge bg-${activity.status === 'Completed' ? 'success' : 'info'}">${activity.status}</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 function loadProjects() {
