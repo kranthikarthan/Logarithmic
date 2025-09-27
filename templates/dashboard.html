@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Xray Test Management Tool{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-tachometer-alt"></i> Test Management Dashboard</h2>
+        <p class="text-muted">Welcome to your standalone Xray test management tool</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-list-check fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Test Cases</h5>
+                <p class="card-text" id="test-cases-count">Loading...</p>
+                <button class="btn btn-outline-primary" onclick="loadTestCases()">
+                    <i class="fas fa-eye"></i> View All
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-play-circle fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Test Executions</h5>
+                <p class="card-text" id="test-executions-count">Loading...</p>
+                <button class="btn btn-outline-success" onclick="loadTestExecutions()">
+                    <i class="fas fa-eye"></i> View All
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-clipboard-list fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Test Plans</h5>
+                <p class="card-text" id="test-plans-count">Loading...</p>
+                <button class="btn btn-outline-info" onclick="loadTestPlans()">
+                    <i class="fas fa-eye"></i> View All
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-download fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Export Data</h5>
+                <p class="card-text">Download reports</p>
+                <button class="btn btn-outline-warning" onclick="showExportOptions()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> Quick Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="project-filter" class="form-label">Project</label>
+                    <select class="form-select" id="project-filter" onchange="updateProjectFilter()">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="jql-filter" class="form-label">Custom JQL Query</label>
+                    <input type="text" class="form-control" id="jql-filter" 
+                           placeholder="issuetype = 'Test' AND status = 'Open'">
+                    <div class="form-text">Enter a JQL query to filter results</div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-activity">
+                    <p class="text-muted">Loading recent activity...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Display Area -->
+<div class="row mt-4" id="data-display" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 id="data-title">Data</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportCurrentData()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="hideDataDisplay()">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="data-table">
+                        <thead id="data-table-head">
+                        </thead>
+                        <tbody id="data-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="export-format" class="form-label">Export Format</label>
+                    <select class="form-select" id="export-format">
+                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="csv">CSV</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="export-type" class="form-label">Data Type</label>
+                    <select class="form-select" id="export-type">
+                        <option value="test-cases">Test Cases</option>
+                        <option value="test-executions">Test Executions</option>
+                        <option value="test-plans">Test Plans</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="performExport()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Global variables
+let currentData = [];
+let currentDataType = '';
+
+// Load dashboard data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    loadProjects();
+});
+
+function loadDashboardData() {
+    // Load test cases count
+    fetch('/api/test-cases')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test-cases-count').textContent = data.issues ? data.issues.length : 0;
+        })
+        .catch(error => console.error('Error loading test cases:', error));
+    
+    // Load test executions count
+    fetch('/api/test-executions')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test-executions-count').textContent = data.issues ? data.issues.length : 0;
+        })
+        .catch(error => console.error('Error loading test executions:', error));
+    
+    // Load test plans count
+    fetch('/api/test-plans')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test-plans-count').textContent = data.issues ? data.issues.length : 0;
+        })
+        .catch(error => console.error('Error loading test plans:', error));
+}
+
+function loadProjects() {
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(projects => {
+            const select = document.getElementById('project-filter');
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.key;
+                option.textContent = `${project.key} - ${project.name}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading projects:', error));
+}
+
+function loadTestCases() {
+    currentDataType = 'test-cases';
+    const project = document.getElementById('project-filter').value;
+    const jql = document.getElementById('jql-filter').value;
+    
+    let url = '/api/test-cases?';
+    if (project) url += `project=${project}&`;
+    if (jql) url += `jql=${encodeURIComponent(jql)}&`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            currentData = data.issues || [];
+            displayData('Test Cases', currentData);
+        })
+        .catch(error => console.error('Error loading test cases:', error));
+}
+
+function loadTestExecutions() {
+    currentDataType = 'test-executions';
+    const project = document.getElementById('project-filter').value;
+    const jql = document.getElementById('jql-filter').value;
+    
+    let url = '/api/test-executions?';
+    if (project) url += `project=${project}&`;
+    if (jql) url += `jql=${encodeURIComponent(jql)}&`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            currentData = data.issues || [];
+            displayData('Test Executions', currentData);
+        })
+        .catch(error => console.error('Error loading test executions:', error));
+}
+
+function loadTestPlans() {
+    currentDataType = 'test-plans';
+    const project = document.getElementById('project-filter').value;
+    const jql = document.getElementById('jql-filter').value;
+    
+    let url = '/api/test-plans?';
+    if (project) url += `project=${project}&`;
+    if (jql) url += `jql=${encodeURIComponent(jql)}&`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            currentData = data.issues || [];
+            displayData('Test Plans', currentData);
+        })
+        .catch(error => console.error('Error loading test plans:', error));
+}
+
+function displayData(title, data) {
+    document.getElementById('data-title').textContent = title;
+    document.getElementById('data-display').style.display = 'block';
+    
+    const tableHead = document.getElementById('data-table-head');
+    const tableBody = document.getElementById('data-table-body');
+    
+    // Clear existing content
+    tableHead.innerHTML = '';
+    tableBody.innerHTML = '';
+    
+    if (data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="100%" class="text-center text-muted">No data found</td></tr>';
+        return;
+    }
+    
+    // Create table headers
+    const headers = ['Key', 'Summary', 'Status', 'Assignee', 'Reporter', 'Created', 'Priority'];
+    const headerRow = document.createElement('tr');
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+    });
+    tableHead.appendChild(headerRow);
+    
+    // Create table rows
+    data.forEach(issue => {
+        const row = document.createElement('tr');
+        const fields = issue.fields || {};
+        
+        const cells = [
+            `<a href="#" onclick="viewIssueDetails('${issue.key}')">${issue.key}</a>`,
+            fields.summary || '',
+            fields.status ? fields.status.name : '',
+            fields.assignee ? fields.assignee.displayName : '',
+            fields.reporter ? fields.reporter.displayName : '',
+            new Date(fields.created).toLocaleDateString(),
+            fields.priority ? fields.priority.name : ''
+        ];
+        
+        cells.forEach(cellContent => {
+            const td = document.createElement('td');
+            td.innerHTML = cellContent;
+            row.appendChild(td);
+        });
+        
+        tableBody.appendChild(row);
+    });
+}
+
+function viewIssueDetails(issueKey) {
+    fetch(`/api/issue/${issueKey}`)
+        .then(response => response.json())
+        .then(issue => {
+            // Create a modal to display issue details
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${issue.key}: ${issue.fields.summary}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Basic Information</h6>
+                                    <p><strong>Status:</strong> ${issue.fields.status.name}</p>
+                                    <p><strong>Priority:</strong> ${issue.fields.priority ? issue.fields.priority.name : 'N/A'}</p>
+                                    <p><strong>Assignee:</strong> ${issue.fields.assignee ? issue.fields.assignee.displayName : 'Unassigned'}</p>
+                                    <p><strong>Reporter:</strong> ${issue.fields.reporter ? issue.fields.reporter.displayName : 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Dates</h6>
+                                    <p><strong>Created:</strong> ${new Date(issue.fields.created).toLocaleString()}</p>
+                                    <p><strong>Updated:</strong> ${new Date(issue.fields.updated).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            ${issue.fields.description ? `
+                                <div class="mt-3">
+                                    <h6>Description</h6>
+                                    <div class="border p-3">${issue.fields.description}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+            
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        })
+        .catch(error => console.error('Error loading issue details:', error));
+}
+
+function applyFilters() {
+    // Reload current data type with filters
+    if (currentDataType === 'test-cases') {
+        loadTestCases();
+    } else if (currentDataType === 'test-executions') {
+        loadTestExecutions();
+    } else if (currentDataType === 'test-plans') {
+        loadTestPlans();
+    }
+}
+
+function updateProjectFilter() {
+    // This function can be used to update other filters based on project selection
+}
+
+function hideDataDisplay() {
+    document.getElementById('data-display').style.display = 'none';
+}
+
+function showExportOptions() {
+    const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+    modal.show();
+}
+
+function performExport() {
+    const format = document.getElementById('export-format').value;
+    const type = document.getElementById('export-type').value;
+    
+    if (format === 'excel' && type === 'test-cases') {
+        window.location.href = '/export/test-cases';
+    } else {
+        alert('Export functionality for this format/type combination is not yet implemented.');
+    }
+}
+
+function exportCurrentData() {
+    if (currentDataType === 'test-cases') {
+        window.location.href = '/export/test-cases';
+    } else {
+        alert('Export functionality for this data type is not yet implemented.');
+    }
+}
+</script>
+{% endblock %}
