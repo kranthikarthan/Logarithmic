@@ -14,12 +14,75 @@ from datetime import datetime, timedelta
 import pandas as pd
 from dotenv import load_dotenv
 import base64
+import re
+from functools import wraps
+import time
+from collections import defaultdict
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
+
+# Security: Use environment variable for secret key, generate random if not set
+import secrets
+app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
+
+# Security decorators
+def require_auth(f):
+    """Decorator to require authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'jira_connected' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+def validate_input(data, required_fields=None, max_lengths=None):
+    """Validate input data"""
+    if required_fields:
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return False, f"Missing required field: {field}"
+    
+    if max_lengths:
+        for field, max_len in max_lengths.items():
+            if field in data and len(str(data[field])) > max_len:
+                return False, f"Field {field} exceeds maximum length of {max_len}"
+    
+    return True, None
+
+def sanitize_jql(jql):
+    """Sanitize JQL input to prevent injection"""
+    if not jql:
+        return jql
+    
+    # Remove potentially dangerous characters
+    dangerous_chars = [';', '--', '/*', '*/', 'xp_', 'sp_']
+    for char in dangerous_chars:
+        jql = jql.replace(char, '')
+    
+    return jql.strip()
+
+# Simple in-memory cache for performance
+cache = defaultdict(dict)
+CACHE_TTL = 300  # 5 minutes
+
+def get_cached_data(key, ttl=CACHE_TTL):
+    """Get data from cache if not expired"""
+    if key in cache:
+        data, timestamp = cache[key]
+        if time.time() - timestamp < ttl:
+            return data
+    return None
+
+def set_cached_data(key, data):
+    """Set data in cache with timestamp"""
+    cache[key] = (data, time.time())
+
+def clear_cache():
+    """Clear all cached data"""
+    cache.clear()
 
 class JiraXrayClient:
     """Client for interacting with Jira and Xray APIs"""
@@ -142,8 +205,17 @@ class JiraXrayClient:
             print(f"Error fetching issue {issue_key}: {e}")
             return None
 
-# Global client instance
-jira_client = None
+def get_jira_client():
+    """Get Jira client from session or create new one"""
+    if 'jira_connected' not in session:
+        return None
+    
+    # Create client from session data
+    return JiraXrayClient(
+        session['jira_url'],
+        session['username'],
+        session.get('api_token')  # Store token securely in session
+    )
 
 @app.route('/')
 def index():
@@ -173,15 +245,16 @@ def login():
             flash('Please fill in all fields', 'error')
             return render_template('login.html')
         
-        global jira_client
-        jira_client = JiraXrayClient(jira_url, username, api_token)
+        # Create temporary client for testing
+        temp_client = JiraXrayClient(jira_url, username, api_token)
         
         # Test connection
-        success, user_info = jira_client.test_connection()
+        success, user_info = temp_client.test_connection()
         if success:
             session['jira_connected'] = True
             session['jira_url'] = jira_url
             session['username'] = username
+            session['api_token'] = api_token  # Store token in session
             session['user_info'] = user_info
             flash('Successfully connected to Jira!', 'success')
             return redirect(url_for('index'))
@@ -200,63 +273,84 @@ def logout():
 @app.route('/api/projects')
 def api_projects():
     """API endpoint to get projects"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
-    projects = jira_client.get_projects()
-    return jsonify(projects)
+    try:
+        projects = jira_client.get_projects()
+        return jsonify(projects)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/test-cases')
 def api_test_cases():
     """API endpoint to get test cases"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
-    project_key = request.args.get('project')
-    jql = request.args.get('jql')
-    
-    test_cases = jira_client.get_test_cases(project_key, jql)
-    return jsonify(test_cases)
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        test_cases = jira_client.get_test_cases(project_key, jql)
+        return jsonify(test_cases)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/test-executions')
 def api_test_executions():
     """API endpoint to get test executions"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
-    project_key = request.args.get('project')
-    jql = request.args.get('jql')
-    
-    test_executions = jira_client.get_test_executions(project_key, jql)
-    return jsonify(test_executions)
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        test_executions = jira_client.get_test_executions(project_key, jql)
+        return jsonify(test_executions)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/test-plans')
 def api_test_plans():
     """API endpoint to get test plans"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
-    project_key = request.args.get('project')
-    jql = request.args.get('jql')
-    
-    test_plans = jira_client.get_test_plans(project_key, jql)
-    return jsonify(test_plans)
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        test_plans = jira_client.get_test_plans(project_key, jql)
+        return jsonify(test_plans)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/issue/<issue_key>')
 def api_issue_details(issue_key):
     """API endpoint to get issue details"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
-    issue = jira_client.get_issue_details(issue_key)
-    if issue:
-        return jsonify(issue)
-    else:
-        return jsonify({'error': 'Issue not found'}), 404
+    try:
+        issue = jira_client.get_issue_details(issue_key)
+        if issue:
+            return jsonify(issue)
+        else:
+            return jsonify({'error': 'Issue not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/test-steps/<execution_key>')
 def api_test_steps(execution_key):
     """Get test steps for a test execution"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
@@ -374,12 +468,20 @@ def api_coverage_report():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/dashboard-metrics')
+@require_auth
 def api_dashboard_metrics():
-    """Get dashboard metrics"""
+    """Get dashboard metrics with caching"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
     try:
+        # Check cache first
+        cache_key = f"dashboard_metrics_{session['username']}"
+        cached_data = get_cached_data(cache_key)
+        if cached_data:
+            return jsonify(cached_data)
+        
         # Get counts for dashboard
         test_cases = jira_client.get_test_cases()
         test_executions = jira_client.get_test_executions()
@@ -410,6 +512,8 @@ def api_dashboard_metrics():
             ]
         }
         
+        # Cache the results
+        set_cached_data(cache_key, metrics)
         return jsonify(metrics)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -492,4 +596,6 @@ def export_test_cases():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Security: Disable debug mode in production
+    debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
