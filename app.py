@@ -153,6 +153,14 @@ def index():
     
     return render_template('dashboard.html')
 
+@app.route('/test-execution')
+def test_execution():
+    """Test execution page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('test-execution.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page for Jira credentials"""

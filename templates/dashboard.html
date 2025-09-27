@@ -1,64 +1,113 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Xray Test Management Tool{% endblock %}
+{% block title %}Xray Test Management Dashboard{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2><i class="fas fa-tachometer-alt"></i> Test Management Dashboard</h2>
-        <p class="text-muted">Welcome to your standalone Xray test management tool</p>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-vial"></i> Xray Test Management</h2>
+                <p class="text-muted mb-0">Test Management Dashboard</p>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="createTestPlan()">
+                    <i class="fas fa-plus"></i> Create Test Plan
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="createTestExecution()">
+                    <i class="fas fa-play"></i> Create Test Execution
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Xray-style Overview Cards -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card text-center">
+        <div class="card xray-card">
             <div class="card-body">
-                <i class="fas fa-list-check fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Test Cases</h5>
-                <p class="card-text" id="test-cases-count">Loading...</p>
-                <button class="btn btn-outline-primary" onclick="loadTestCases()">
-                    <i class="fas fa-eye"></i> View All
-                </button>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-list-check fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Test Cases</h6>
+                        <h4 class="mb-0" id="test-cases-count">Loading...</h4>
+                        <small class="text-muted">Total test cases</small>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="loadTestCases()">
+                        <i class="fas fa-eye"></i> View Test Cases
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-md-3">
-        <div class="card text-center">
+        <div class="card xray-card">
             <div class="card-body">
-                <i class="fas fa-play-circle fa-3x text-success mb-3"></i>
-                <h5 class="card-title">Test Executions</h5>
-                <p class="card-text" id="test-executions-count">Loading...</p>
-                <button class="btn btn-outline-success" onclick="loadTestExecutions()">
-                    <i class="fas fa-eye"></i> View All
-                </button>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-play-circle fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Test Executions</h6>
+                        <h4 class="mb-0" id="test-executions-count">Loading...</h4>
+                        <small class="text-muted">Active executions</small>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-success w-100" onclick="loadTestExecutions()">
+                        <i class="fas fa-play"></i> View Executions
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-md-3">
-        <div class="card text-center">
+        <div class="card xray-card">
             <div class="card-body">
-                <i class="fas fa-clipboard-list fa-3x text-info mb-3"></i>
-                <h5 class="card-title">Test Plans</h5>
-                <p class="card-text" id="test-plans-count">Loading...</p>
-                <button class="btn btn-outline-info" onclick="loadTestPlans()">
-                    <i class="fas fa-eye"></i> View All
-                </button>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clipboard-list fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Test Plans</h6>
+                        <h4 class="mb-0" id="test-plans-count">Loading...</h4>
+                        <small class="text-muted">Active plans</small>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-info w-100" onclick="loadTestPlans()">
+                        <i class="fas fa-clipboard"></i> View Plans
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-md-3">
-        <div class="card text-center">
+        <div class="card xray-card">
             <div class="card-body">
-                <i class="fas fa-download fa-3x text-warning mb-3"></i>
-                <h5 class="card-title">Export Data</h5>
-                <p class="card-text">Download reports</p>
-                <button class="btn btn-outline-warning" onclick="showExportOptions()">
-                    <i class="fas fa-download"></i> Export
-                </button>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-line fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Coverage</h6>
+                        <h4 class="mb-0" id="coverage-percentage">0%</h4>
+                        <small class="text-muted">Test coverage</small>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-warning w-100" onclick="showCoverageReport()">
+                        <i class="fas fa-chart-bar"></i> View Report
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -425,6 +474,47 @@ function exportCurrentData() {
     } else {
         alert('Export functionality for this data type is not yet implemented.');
     }
+}
+
+// Xray-specific functions
+function createTestPlan() {
+    // Navigate to test execution page for now
+    window.location.href = '/test-execution';
+}
+
+function createTestExecution() {
+    // Navigate to test execution page
+    window.location.href = '/test-execution';
+}
+
+function createTestCase() {
+    alert('Create Test Case functionality coming soon');
+}
+
+function importTestCases() {
+    alert('Import Test Cases functionality coming soon');
+}
+
+function loadActiveExecutions() {
+    // Filter for active executions
+    const jql = "issuetype = 'Test Execution' AND status in ('In Progress', 'To Do')";
+    document.getElementById('jql-filter').value = jql;
+    loadTestExecutions();
+}
+
+function loadActivePlans() {
+    // Filter for active plans
+    const jql = "issuetype = 'Test Plan' AND status in ('In Progress', 'To Do')";
+    document.getElementById('jql-filter').value = jql;
+    loadTestPlans();
+}
+
+function showReports() {
+    alert('Reports functionality coming soon');
+}
+
+function showCoverageReport() {
+    alert('Coverage report functionality coming soon');
 }
 </script>
 {% endblock %}

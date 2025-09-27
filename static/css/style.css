@@ -1,7 +1,229 @@
-/* Custom styles for Xray Test Management Tool */
+/* Xray Test Management Tool - Custom Styles */
 
 body {
     background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Xray-specific styling */
+.xray-card {
+    border-left: 4px solid #007bff;
+    transition: all 0.3s ease;
+}
+
+.xray-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.xray-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.xray-navbar {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.xray-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+}
+
+/* Test execution specific styles */
+.test-execution-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.execution-progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    overflow: hidden;
+}
+
+.execution-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+    transition: width 0.3s ease;
+}
+
+/* Test step status indicators */
+.status-todo {
+    background-color: #6c757d;
+    color: white;
+}
+
+.status-executing {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.status-pass {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-fail {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-aborted {
+    background-color: #343a40;
+    color: white;
+}
+
+.status-blocked {
+    background-color: #17a2b8;
+    color: white;
+}
+
+/* Xray-style buttons */
+.btn-xray {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    color: white;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+}
+
+.btn-xray:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-xray-outline {
+    border: 2px solid #007bff;
+    color: #007bff;
+    background: transparent;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+}
+
+.btn-xray-outline:hover {
+    background: #007bff;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Test case cards */
+.test-case-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.test-case-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.test-case-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* Coverage indicators */
+.coverage-excellent {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.coverage-good {
+    color: #20c997;
+    font-weight: bold;
+}
+
+.coverage-fair {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.coverage-poor {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Execution timeline */
+.execution-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.execution-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.75rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #007bff;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+/* Responsive adjustments for Xray UI */
+@media (max-width: 768px) {
+    .xray-card {
+        margin-bottom: 1rem;
+    }
+    
+    .execution-progress {
+        height: 6px;
+    }
+    
+    .btn-group .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
+
+/* Dark mode for Xray UI */
+@media (prefers-color-scheme: dark) {
+    .xray-card {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .test-case-card {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .execution-timeline::before {
+        background: #4a5568;
+    }
 }
 
 .navbar-brand {
