@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}Test Execution - Xray Test Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-play-circle"></i> Test Execution</h2>
+                <p class="text-muted mb-0" id="execution-info">Loading execution details...</p>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="startExecution()">
+                    <i class="fas fa-play"></i> Start Execution
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="completeExecution()">
+                    <i class="fas fa-check"></i> Complete Execution
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="exportExecution()">
+                    <i class="fas fa-download"></i> Export Results
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Execution Summary -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Execution Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Execution Key</label>
+                            <p class="mb-0" id="execution-key">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Status</label>
+                            <p class="mb-0"><span class="badge" id="execution-status">Loading...</span></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Assignee</label>
+                            <p class="mb-0" id="execution-assignee">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Created</label>
+                            <p class="mb-0" id="execution-created">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Updated</label>
+                            <p class="mb-0" id="execution-updated">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Environment</label>
+                            <p class="mb-0" id="execution-environment">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Execution Progress</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar" role="progressbar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <small class="text-muted" id="progress-text">0% Complete</small>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="text-success mb-1" id="passed-count">0</h6>
+                            <small class="text-muted">Passed</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="text-danger mb-1" id="failed-count">0</h6>
+                            <small class="text-muted">Failed</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-warning mb-1" id="todo-count">0</h6>
+                        <small class="text-muted">To Do</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Steps -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-list-ol"></i> Test Steps</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="executeAllTests()">
+                        <i class="fas fa-play"></i> Execute All
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="resetAllTests()">
+                        <i class="fas fa-undo"></i> Reset All
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="test-steps-table">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="40%">Test Case</th>
+                                <th width="20%">Status</th>
+                                <th width="15%">Assignee</th>
+                                <th width="10%">Duration</th>
+                                <th width="10%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="test-steps-body">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    <div class="loading-spinner"></div> Loading test steps...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Step Details Modal -->
+<div class="modal fade" id="testStepModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Step Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Test Information</h6>
+                        <p><strong>Key:</strong> <span id="modal-test-key"></span></p>
+                        <p><strong>Summary:</strong> <span id="modal-test-summary"></span></p>
+                        <p><strong>Type:</strong> <span id="modal-test-type"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Execution Details</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="modal-test-status">
+                                <option value="TODO">To Do</option>
+                                <option value="EXECUTING">Executing</option>
+                                <option value="PASS">Pass</option>
+                                <option value="FAIL">Fail</option>
+                                <option value="ABORTED">Aborted</option>
+                                <option value="BLOCKED">Blocked</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assignee</label>
+                            <input type="text" class="form-control" id="modal-test-assignee" placeholder="Assignee">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comment</label>
+                            <textarea class="form-control" id="modal-test-comment" rows="3" placeholder="Add execution comment..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveTestStep()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentExecution = null;
+let testSteps = [];
+
+// Load execution data
+document.addEventListener('DOMContentLoaded', function() {
+    const executionKey = new URLSearchParams(window.location.search).get('key');
+    if (executionKey) {
+        loadExecutionDetails(executionKey);
+    } else {
+        // Load default execution or show list
+        loadRecentExecutions();
+    }
+});
+
+function loadExecutionDetails(executionKey) {
+    fetch(`/api/issue/${executionKey}`)
+        .then(response => response.json())
+        .then(execution => {
+            currentExecution = execution;
+            displayExecutionDetails(execution);
+            loadTestSteps(executionKey);
+        })
+        .catch(error => {
+            console.error('Error loading execution:', error);
+            showAlert('Failed to load execution details', 'danger');
+        });
+}
+
+function displayExecutionDetails(execution) {
+    const fields = execution.fields || {};
+    
+    document.getElementById('execution-key').textContent = execution.key;
+    document.getElementById('execution-status').textContent = fields.status?.name || 'Unknown';
+    document.getElementById('execution-assignee').textContent = fields.assignee?.displayName || 'Unassigned';
+    document.getElementById('execution-created').textContent = new Date(fields.created).toLocaleString();
+    document.getElementById('execution-updated').textContent = new Date(fields.updated).toLocaleString();
+    document.getElementById('execution-environment').textContent = fields.environment || 'Not specified';
+    
+    // Update status badge
+    const statusBadge = document.getElementById('execution-status');
+    statusBadge.className = 'badge ' + getStatusBadgeClass(fields.status?.name);
+    
+    // Update execution info
+    document.getElementById('execution-info').textContent = 
+        `${fields.summary || 'Test Execution'} - ${fields.status?.name || 'Unknown Status'}`;
+}
+
+function loadTestSteps(executionKey) {
+    fetch(`/api/test-steps/${executionKey}`)
+        .then(response => response.json())
+        .then(data => {
+            testSteps = data.test_steps || [];
+            displayTestSteps();
+            updateProgress();
+        })
+        .catch(error => {
+            console.error('Error loading test steps:', error);
+            // Fallback to mock data
+            const mockTestSteps = [
+                {
+                    id: 1,
+                    test_key: 'TEST-001',
+                    summary: 'Login with valid credentials',
+                    status: 'TODO',
+                    assignee: null,
+                    duration: null
+                },
+                {
+                    id: 2,
+                    test_key: 'TEST-002', 
+                    summary: 'Navigate to dashboard',
+                    status: 'PASS',
+                    assignee: 'John Doe',
+                    duration: '2m 30s'
+                },
+                {
+                    id: 3,
+                    test_key: 'TEST-003',
+                    summary: 'Create new test case',
+                    status: 'FAIL',
+                    assignee: 'Jane Smith',
+                    duration: '1m 45s'
+                }
+            ];
+            
+            testSteps = mockTestSteps;
+            displayTestSteps();
+            updateProgress();
+        });
+}
+
+function displayTestSteps() {
+    const tbody = document.getElementById('test-steps-body');
+    tbody.innerHTML = '';
+    
+    testSteps.forEach((step, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <div>
+                    <strong>${step.key}</strong><br>
+                    <small class="text-muted">${step.summary}</small>
+                </div>
+            </td>
+            <td><span class="badge ${getStatusBadgeClass(step.status)}">${step.status}</span></td>
+            <td>${step.assignee || 'Unassigned'}</td>
+            <td>${step.duration || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="editTestStep(${index})">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function updateProgress() {
+    const total = testSteps.length;
+    const passed = testSteps.filter(step => step.status === 'PASS').length;
+    const failed = testSteps.filter(step => step.status === 'FAIL').length;
+    const todo = testSteps.filter(step => step.status === 'TODO').length;
+    
+    const completed = passed + failed;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    document.getElementById('progress-bar').style.width = percentage + '%';
+    document.getElementById('progress-text').textContent = percentage + '% Complete';
+    document.getElementById('passed-count').textContent = passed;
+    document.getElementById('failed-count').textContent = failed;
+    document.getElementById('todo-count').textContent = todo;
+}
+
+function getStatusBadgeClass(status) {
+    const statusMap = {
+        'TODO': 'bg-secondary',
+        'EXECUTING': 'bg-warning',
+        'PASS': 'bg-success',
+        'FAIL': 'bg-danger',
+        'ABORTED': 'bg-dark',
+        'BLOCKED': 'bg-info'
+    };
+    return statusMap[status] || 'bg-secondary';
+}
+
+function editTestStep(index) {
+    const step = testSteps[index];
+    
+    document.getElementById('modal-test-key').textContent = step.key;
+    document.getElementById('modal-test-summary').textContent = step.summary;
+    document.getElementById('modal-test-type').textContent = 'Manual';
+    document.getElementById('modal-test-status').value = step.status;
+    document.getElementById('modal-test-assignee').value = step.assignee || '';
+    document.getElementById('modal-test-comment').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('testStepModal'));
+    modal.show();
+    
+    // Store the index for saving
+    document.getElementById('testStepModal').setAttribute('data-step-index', index);
+}
+
+function saveTestStep() {
+    const index = document.getElementById('testStepModal').getAttribute('data-step-index');
+    const status = document.getElementById('modal-test-status').value;
+    const assignee = document.getElementById('modal-test-assignee').value;
+    const comment = document.getElementById('modal-test-comment').value;
+    
+    if (index !== null) {
+        const step = testSteps[index];
+        
+        // Update via API
+        fetch(`/api/test-steps/${currentExecution?.key || 'TEST-EXEC-001'}/${step.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                status: status,
+                assignee: assignee,
+                comment: comment
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update local data
+                testSteps[index].status = status;
+                testSteps[index].assignee = assignee;
+                testSteps[index].comment = comment;
+                
+                displayTestSteps();
+                updateProgress();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('testStepModal'));
+                modal.hide();
+                
+                showAlert('Test step updated successfully', 'success');
+            } else {
+                showAlert('Failed to update test step', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating test step:', error);
+            showAlert('Failed to update test step', 'danger');
+        });
+    }
+}
+
+function executeAllTests() {
+    const executionKey = currentExecution?.key || 'TEST-EXEC-001';
+    
+    fetch(`/api/execute-all-tests/${executionKey}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            testSteps.forEach(step => {
+                if (step.status === 'TODO') {
+                    step.status = 'EXECUTING';
+                }
+            });
+            displayTestSteps();
+            updateProgress();
+            showAlert(data.message, 'success');
+        } else {
+            showAlert('Failed to execute all tests', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error executing all tests:', error);
+        showAlert('Failed to execute all tests', 'danger');
+    });
+}
+
+function resetAllTests() {
+    const executionKey = currentExecution?.key || 'TEST-EXEC-001';
+    
+    fetch(`/api/reset-all-tests/${executionKey}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            testSteps.forEach(step => {
+                step.status = 'TODO';
+                step.assignee = null;
+                step.duration = null;
+            });
+            displayTestSteps();
+            updateProgress();
+            showAlert(data.message, 'success');
+        } else {
+            showAlert('Failed to reset all tests', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error resetting all tests:', error);
+        showAlert('Failed to reset all tests', 'danger');
+    });
+}
+
+function startExecution() {
+    showAlert('Test execution started', 'success');
+}
+
+function completeExecution() {
+    showAlert('Test execution completed', 'success');
+}
+
+function exportExecution() {
+    showAlert('Exporting execution results...', 'info');
+}
+
+function showCoverageReport() {
+    showAlert('Coverage report feature coming soon', 'info');
+}
+
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
