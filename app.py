@@ -390,6 +390,22 @@ def defect_management():
     
     return render_template('defect-management.html')
 
+@app.route('/test-data-management')
+def test_data_management():
+    """Test data management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('test-data-management.html')
+
+@app.route('/scheduling-environments')
+def scheduling_environments():
+    """Scheduling and environments page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('scheduling-environments.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page for Jira credentials"""
@@ -867,6 +883,346 @@ def api_test_failure_analysis():
         }
         
         return jsonify(failure_analysis)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-data-sets')
+def api_test_data_sets():
+    """API endpoint to get test data sets"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Mock test data sets
+        test_data_sets = {
+            'data_sets': [
+                {
+                    'id': 'tds-001',
+                    'name': 'User Credentials',
+                    'description': 'Valid and invalid user credentials for authentication testing',
+                    'data_type': 'credentials',
+                    'created': '2024-01-10T09:00:00Z',
+                    'updated': '2024-01-15T14:30:00Z',
+                    'records_count': 25,
+                    'fields': ['username', 'password', 'role', 'status'],
+                    'sample_data': [
+                        {'username': 'admin', 'password': 'admin123', 'role': 'admin', 'status': 'active'},
+                        {'username': 'user1', 'password': 'user123', 'role': 'user', 'status': 'active'},
+                        {'username': 'locked', 'password': 'locked123', 'role': 'user', 'status': 'locked'}
+                    ]
+                },
+                {
+                    'id': 'tds-002',
+                    'name': 'Product Catalog',
+                    'description': 'Product data for e-commerce testing',
+                    'data_type': 'products',
+                    'created': '2024-01-12T10:15:00Z',
+                    'updated': '2024-01-15T16:45:00Z',
+                    'records_count': 100,
+                    'fields': ['product_id', 'name', 'price', 'category', 'in_stock'],
+                    'sample_data': [
+                        {'product_id': 'P001', 'name': 'Laptop', 'price': 999.99, 'category': 'Electronics', 'in_stock': True},
+                        {'product_id': 'P002', 'name': 'Mouse', 'price': 29.99, 'category': 'Accessories', 'in_stock': True},
+                        {'product_id': 'P003', 'name': 'Keyboard', 'price': 79.99, 'category': 'Accessories', 'in_stock': False}
+                    ]
+                },
+                {
+                    'id': 'tds-003',
+                    'name': 'API Test Data',
+                    'description': 'API endpoints and test payloads',
+                    'data_type': 'api',
+                    'created': '2024-01-14T11:30:00Z',
+                    'updated': '2024-01-15T13:20:00Z',
+                    'records_count': 50,
+                    'fields': ['endpoint', 'method', 'payload', 'expected_status'],
+                    'sample_data': [
+                        {'endpoint': '/api/users', 'method': 'GET', 'payload': '{}', 'expected_status': 200},
+                        {'endpoint': '/api/users', 'method': 'POST', 'payload': '{"name":"John","email":"john@test.com"}', 'expected_status': 201},
+                        {'endpoint': '/api/users/1', 'method': 'PUT', 'payload': '{"name":"John Updated"}', 'expected_status': 200}
+                    ]
+                }
+            ],
+            'total_sets': 3,
+            'total_records': 175
+        }
+        
+        return jsonify(test_data_sets)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-data-sets/<data_set_id>')
+def api_test_data_set_details(data_set_id):
+    """API endpoint to get detailed test data set information"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # Mock detailed data set
+        data_set = {
+            'id': data_set_id,
+            'name': 'User Credentials',
+            'description': 'Valid and invalid user credentials for authentication testing',
+            'data_type': 'credentials',
+            'created': '2024-01-10T09:00:00Z',
+            'updated': '2024-01-15T14:30:00Z',
+            'records_count': 25,
+            'fields': [
+                {'name': 'username', 'type': 'string', 'required': True, 'description': 'User login name'},
+                {'name': 'password', 'type': 'string', 'required': True, 'description': 'User password'},
+                {'name': 'role', 'type': 'enum', 'required': True, 'values': ['admin', 'user', 'guest'], 'description': 'User role'},
+                {'name': 'status', 'type': 'enum', 'required': True, 'values': ['active', 'inactive', 'locked'], 'description': 'Account status'}
+            ],
+            'data_records': [
+                {'id': 1, 'username': 'admin', 'password': 'admin123', 'role': 'admin', 'status': 'active'},
+                {'id': 2, 'username': 'user1', 'password': 'user123', 'role': 'user', 'status': 'active'},
+                {'id': 3, 'username': 'user2', 'password': 'user456', 'role': 'user', 'status': 'active'},
+                {'id': 4, 'username': 'locked', 'password': 'locked123', 'role': 'user', 'status': 'locked'},
+                {'id': 5, 'username': 'inactive', 'password': 'inactive123', 'role': 'user', 'status': 'inactive'}
+            ],
+            'usage_stats': {
+                'tests_using': 15,
+                'last_used': '2024-01-15T10:30:00Z',
+                'execution_count': 45
+            }
+        }
+        
+        return jsonify(data_set)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/parameterized-tests')
+def api_parameterized_tests():
+    """API endpoint to get parameterized test configurations"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Mock parameterized tests
+        parameterized_tests = {
+            'tests': [
+                {
+                    'id': 'pt-001',
+                    'name': 'Login Parameterized Test',
+                    'description': 'Test login functionality with different user credentials',
+                    'test_type': 'parameterized',
+                    'data_set_id': 'tds-001',
+                    'parameters': ['username', 'password', 'expected_result'],
+                    'test_steps': [
+                        'Navigate to login page',
+                        'Enter username: {username}',
+                        'Enter password: {password}',
+                        'Click login button',
+                        'Verify result: {expected_result}'
+                    ],
+                    'iterations': 5,
+                    'status': 'active'
+                },
+                {
+                    'id': 'pt-002',
+                    'name': 'Product Search Test',
+                    'description': 'Test product search with different search terms',
+                    'test_type': 'parameterized',
+                    'data_set_id': 'tds-002',
+                    'parameters': ['search_term', 'category', 'expected_count'],
+                    'test_steps': [
+                        'Navigate to search page',
+                        'Enter search term: {search_term}',
+                        'Select category: {category}',
+                        'Click search button',
+                        'Verify result count: {expected_count}'
+                    ],
+                    'iterations': 10,
+                    'status': 'active'
+                }
+            ],
+            'total_tests': 2,
+            'total_iterations': 15
+        }
+        
+        return jsonify(parameterized_tests)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-schedules')
+def api_test_schedules():
+    """API endpoint to get test schedules"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Mock test schedules
+        schedules = {
+            'schedules': [
+                {
+                    'id': 'sched-001',
+                    'name': 'Daily Smoke Tests',
+                    'description': 'Run smoke tests every day at 6 AM',
+                    'test_suite': 'smoke',
+                    'environment': 'staging',
+                    'schedule_type': 'recurring',
+                    'cron_expression': '0 6 * * *',
+                    'next_run': '2024-01-16T06:00:00Z',
+                    'status': 'active',
+                    'created_by': 'admin',
+                    'created_at': '2024-01-10T09:00:00Z'
+                },
+                {
+                    'id': 'sched-002',
+                    'name': 'Weekly Regression Tests',
+                    'description': 'Run full regression suite every Sunday at 2 AM',
+                    'test_suite': 'regression',
+                    'environment': 'production',
+                    'schedule_type': 'recurring',
+                    'cron_expression': '0 2 * * 0',
+                    'next_run': '2024-01-21T02:00:00Z',
+                    'status': 'active',
+                    'created_by': 'admin',
+                    'created_at': '2024-01-08T14:30:00Z'
+                },
+                {
+                    'id': 'sched-003',
+                    'name': 'One-time API Tests',
+                    'description': 'Run API tests after deployment',
+                    'test_suite': 'api',
+                    'environment': 'staging',
+                    'schedule_type': 'one-time',
+                    'scheduled_time': '2024-01-16T10:00:00Z',
+                    'status': 'pending',
+                    'created_by': 'developer',
+                    'created_at': '2024-01-15T16:45:00Z'
+                }
+            ],
+            'total_schedules': 3,
+            'active_schedules': 2,
+            'pending_schedules': 1
+        }
+        
+        return jsonify(schedules)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/environments')
+def api_environments():
+    """API endpoint to get test environments"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Mock environments
+        environments = {
+            'environments': [
+                {
+                    'id': 'env-001',
+                    'name': 'Development',
+                    'description': 'Development environment for feature testing',
+                    'url': 'https://dev.company.com',
+                    'status': 'active',
+                    'type': 'development',
+                    'config': {
+                        'database': 'dev_db',
+                        'api_version': 'v1.0',
+                        'features_enabled': ['feature_a', 'feature_b']
+                    },
+                    'last_deployment': '2024-01-15T14:30:00Z',
+                    'health_status': 'healthy'
+                },
+                {
+                    'id': 'env-002',
+                    'name': 'Staging',
+                    'description': 'Staging environment for integration testing',
+                    'url': 'https://staging.company.com',
+                    'status': 'active',
+                    'type': 'staging',
+                    'config': {
+                        'database': 'staging_db',
+                        'api_version': 'v1.1',
+                        'features_enabled': ['feature_a', 'feature_b', 'feature_c']
+                    },
+                    'last_deployment': '2024-01-15T16:45:00Z',
+                    'health_status': 'healthy'
+                },
+                {
+                    'id': 'env-003',
+                    'name': 'Production',
+                    'description': 'Production environment',
+                    'url': 'https://company.com',
+                    'status': 'active',
+                    'type': 'production',
+                    'config': {
+                        'database': 'prod_db',
+                        'api_version': 'v1.0',
+                        'features_enabled': ['feature_a']
+                    },
+                    'last_deployment': '2024-01-14T10:00:00Z',
+                    'health_status': 'healthy'
+                },
+                {
+                    'id': 'env-004',
+                    'name': 'Performance',
+                    'description': 'Performance testing environment',
+                    'url': 'https://perf.company.com',
+                    'status': 'maintenance',
+                    'type': 'performance',
+                    'config': {
+                        'database': 'perf_db',
+                        'api_version': 'v1.1',
+                        'features_enabled': ['feature_a', 'feature_b', 'feature_c', 'feature_d']
+                    },
+                    'last_deployment': '2024-01-12T09:15:00Z',
+                    'health_status': 'degraded'
+                }
+            ],
+            'total_environments': 4,
+            'active_environments': 3,
+            'maintenance_environments': 1
+        }
+        
+        return jsonify(environments)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/create-schedule', methods=['POST'])
+def api_create_schedule():
+    """API endpoint to create a new test schedule"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        description = data.get('description')
+        test_suite = data.get('test_suite')
+        environment = data.get('environment')
+        schedule_type = data.get('schedule_type')
+        cron_expression = data.get('cron_expression')
+        scheduled_time = data.get('scheduled_time')
+        
+        if not all([name, test_suite, environment, schedule_type]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Mock schedule creation
+        schedule_id = f"sched-{int(time.time())}"
+        
+        return jsonify({
+            'success': True,
+            'schedule_id': schedule_id,
+            'message': f'Test schedule "{name}" created successfully',
+            'next_run': cron_expression if schedule_type == 'recurring' else scheduled_time
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

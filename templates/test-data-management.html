@@ -1,0 +1,770 @@
+{% extends "base.html" %}
+
+{% block title %}Test Data Management - Xray Test Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-database"></i> Test Data Management</h2>
+                <p class="text-muted mb-0">Manage test data sets and parameterized testing</p>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="createDataSet()">
+                    <i class="fas fa-plus"></i> Create Data Set
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="importData()">
+                    <i class="fas fa-upload"></i> Import Data
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="createParameterizedTest()">
+                    <i class="fas fa-cogs"></i> Create Parameterized Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Data Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-database fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Data Sets</h6>
+                        <h4 class="mb-0" id="data-sets-count">Loading...</h4>
+                        <small class="text-muted">Total data sets</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-list fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Records</h6>
+                        <h4 class="mb-0" id="records-count">Loading...</h4>
+                        <small class="text-muted">Total records</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-cogs fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Parameterized Tests</h6>
+                        <h4 class="mb-0" id="parameterized-tests-count">Loading...</h4>
+                        <small class="text-muted">Active tests</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-play fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Iterations</h6>
+                        <h4 class="mb-0" id="iterations-count">Loading...</h4>
+                        <small class="text-muted">Test iterations</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Sets and Parameterized Tests Tabs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="data-sets-tab" data-bs-toggle="tab" data-bs-target="#data-sets" type="button" role="tab">
+                    <i class="fas fa-database"></i> Data Sets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="parameterized-tests-tab" data-bs-toggle="tab" data-bs-target="#parameterized-tests" type="button" role="tab">
+                    <i class="fas fa-cogs"></i> Parameterized Tests
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="data-analysis-tab" data-bs-toggle="tab" data-bs-target="#data-analysis" type="button" role="tab">
+                    <i class="fas fa-chart-bar"></i> Data Analysis
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="dataTabsContent">
+            <!-- Data Sets Tab -->
+            <div class="tab-pane fade show active" id="data-sets" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-database"></i> Test Data Sets</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshDataSets()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="exportDataSets()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Records</th>
+                                        <th>Fields</th>
+                                        <th>Last Updated</th>
+                                        <th>Usage</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="data-sets-table">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <div class="loading-spinner"></div> Loading data sets...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Parameterized Tests Tab -->
+            <div class="tab-pane fade" id="parameterized-tests" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-cogs"></i> Parameterized Tests</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshParameterizedTests()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="executeParameterizedTests()">
+                                <i class="fas fa-play"></i> Execute All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Test Name</th>
+                                        <th>Data Set</th>
+                                        <th>Parameters</th>
+                                        <th>Iterations</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parameterized-tests-table">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            <div class="loading-spinner"></div> Loading parameterized tests...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Analysis Tab -->
+            <div class="tab-pane fade" id="data-analysis" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-chart-pie"></i> Data Set Usage</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="data-usage-chart">
+                                    <p class="text-muted">Loading usage statistics...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-chart-line"></i> Test Execution Trends</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="execution-trends-chart">
+                                    <p class="text-muted">Loading execution trends...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Data Set Modal -->
+<div class="modal fade" id="createDataSetModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Test Data Set</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Data Set Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Data Set Name</label>
+                            <input type="text" class="form-control" id="data-set-name" placeholder="Enter data set name...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="data-set-description" rows="3" placeholder="Describe the data set..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data Type</label>
+                            <select class="form-select" id="data-set-type">
+                                <option value="credentials">Credentials</option>
+                                <option value="products">Products</option>
+                                <option value="api">API Data</option>
+                                <option value="user_data">User Data</option>
+                                <option value="configuration">Configuration</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Data Fields</h6>
+                        <div id="data-fields-container">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Field name" name="field_name">
+                                    <select class="form-select" name="field_type">
+                                        <option value="string">String</option>
+                                        <option value="number">Number</option>
+                                        <option value="boolean">Boolean</option>
+                                        <option value="enum">Enum</option>
+                                    </select>
+                                    <button class="btn btn-outline-danger" type="button" onclick="removeField(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary" onclick="addField()">
+                            <i class="fas fa-plus"></i> Add Field
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6>Sample Data</h6>
+                    <div class="mb-3">
+                        <label class="form-label">CSV Data</label>
+                        <textarea class="form-control" id="csv-data" rows="5" placeholder="field1,field2,field3&#10;value1,value2,value3&#10;value4,value5,value6"></textarea>
+                        <div class="form-text">Enter CSV data with headers in the first row</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveDataSet()">
+                    <i class="fas fa-save"></i> Create Data Set
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Parameterized Test Modal -->
+<div class="modal fade" id="createParameterizedTestModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Parameterized Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Test Configuration</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Test Name</label>
+                            <input type="text" class="form-control" id="param-test-name" placeholder="Enter test name...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="param-test-description" rows="3" placeholder="Describe the parameterized test..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data Set</label>
+                            <select class="form-select" id="param-test-dataset">
+                                <option value="">Select a data set...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Test Steps</h6>
+                        <div id="test-steps-container">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Test step description" name="test_step">
+                                    <button class="btn btn-outline-danger" type="button" onclick="removeStep(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary" onclick="addStep()">
+                            <i class="fas fa-plus"></i> Add Step
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveParameterizedTest()">
+                    <i class="fas fa-save"></i> Create Parameterized Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Set Details Modal -->
+<div class="modal fade" id="dataSetDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Data Set Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="data-set-details-content">
+                    <p class="text-muted">Loading data set details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editDataSet()">
+                    <i class="fas fa-edit"></i> Edit Data Set
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let dataSets = [];
+let parameterizedTests = [];
+
+// Load test data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDataSets();
+    loadParameterizedTests();
+});
+
+function loadDataSets() {
+    fetch('/api/test-data-sets')
+        .then(response => response.json())
+        .then(data => {
+            dataSets = data.data_sets || [];
+            updateOverviewCards(data);
+            displayDataSets();
+        })
+        .catch(error => {
+            console.error('Error loading data sets:', error);
+            showAlert('Failed to load data sets', 'danger');
+        });
+}
+
+function loadParameterizedTests() {
+    fetch('/api/parameterized-tests')
+        .then(response => response.json())
+        .then(data => {
+            parameterizedTests = data.tests || [];
+            updateOverviewCards(data);
+            displayParameterizedTests();
+            populateDataSetSelect();
+        })
+        .catch(error => {
+            console.error('Error loading parameterized tests:', error);
+            showAlert('Failed to load parameterized tests', 'danger');
+        });
+}
+
+function updateOverviewCards(data) {
+    document.getElementById('data-sets-count').textContent = data.total_sets || dataSets.length;
+    document.getElementById('records-count').textContent = data.total_records || 0;
+    document.getElementById('parameterized-tests-count').textContent = data.total_tests || parameterizedTests.length;
+    document.getElementById('iterations-count').textContent = data.total_iterations || 0;
+}
+
+function displayDataSets() {
+    const tbody = document.getElementById('data-sets-table');
+    
+    if (dataSets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No data sets found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataSets.map(dataSet => `
+        <tr>
+            <td>
+                <strong>${dataSet.name}</strong><br>
+                <small class="text-muted">${dataSet.description}</small>
+            </td>
+            <td><span class="badge bg-info">${dataSet.data_type}</span></td>
+            <td><span class="badge bg-secondary">${dataSet.records_count}</span></td>
+            <td>${dataSet.fields.join(', ')}</td>
+            <td>${new Date(dataSet.updated).toLocaleDateString()}</td>
+            <td><span class="badge bg-success">${Math.floor(Math.random() * 10)} tests</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewDataSetDetails('${dataSet.id}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="editDataSet('${dataSet.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteDataSet('${dataSet.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function displayParameterizedTests() {
+    const tbody = document.getElementById('parameterized-tests-table');
+    
+    if (parameterizedTests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No parameterized tests found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = parameterizedTests.map(test => `
+        <tr>
+            <td>
+                <strong>${test.name}</strong><br>
+                <small class="text-muted">${test.description}</small>
+            </td>
+            <td><span class="badge bg-info">${test.data_set_id}</span></td>
+            <td>${test.parameters.join(', ')}</td>
+            <td><span class="badge bg-warning">${test.iterations}</span></td>
+            <td><span class="badge ${getStatusBadgeClass(test.status)}">${test.status}</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewParameterizedTest('${test.id}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="executeParameterizedTest('${test.id}')">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteParameterizedTest('${test.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function createDataSet() {
+    const modal = new bootstrap.Modal(document.getElementById('createDataSetModal'));
+    modal.show();
+}
+
+function addField() {
+    const container = document.getElementById('data-fields-container');
+    const fieldDiv = document.createElement('div');
+    fieldDiv.className = 'mb-3';
+    fieldDiv.innerHTML = `
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Field name" name="field_name">
+            <select class="form-select" name="field_type">
+                <option value="string">String</option>
+                <option value="number">Number</option>
+                <option value="boolean">Boolean</option>
+                <option value="enum">Enum</option>
+            </select>
+            <button class="btn btn-outline-danger" type="button" onclick="removeField(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(fieldDiv);
+}
+
+function removeField(button) {
+    button.closest('.mb-3').remove();
+}
+
+function saveDataSet() {
+    const name = document.getElementById('data-set-name').value;
+    const description = document.getElementById('data-set-description').value;
+    const type = document.getElementById('data-set-type').value;
+    const csvData = document.getElementById('csv-data').value;
+    
+    if (!name || !description) {
+        showAlert('Please fill in required fields', 'warning');
+        return;
+    }
+    
+    // In a real implementation, this would create the data set
+    showAlert('Data set created successfully!', 'success');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createDataSetModal'));
+    modal.hide();
+    
+    // Clear form
+    document.getElementById('data-set-name').value = '';
+    document.getElementById('data-set-description').value = '';
+    document.getElementById('data-set-type').value = 'credentials';
+    document.getElementById('csv-data').value = '';
+    
+    // Refresh data
+    loadDataSets();
+}
+
+function createParameterizedTest() {
+    const modal = new bootstrap.Modal(document.getElementById('createParameterizedTestModal'));
+    modal.show();
+}
+
+function addStep() {
+    const container = document.getElementById('test-steps-container');
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'mb-3';
+    stepDiv.innerHTML = `
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Test step description" name="test_step">
+            <button class="btn btn-outline-danger" type="button" onclick="removeStep(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(stepDiv);
+}
+
+function removeStep(button) {
+    button.closest('.mb-3').remove();
+}
+
+function populateDataSetSelect() {
+    const select = document.getElementById('param-test-dataset');
+    select.innerHTML = '<option value="">Select a data set...</option>';
+    dataSets.forEach(dataSet => {
+        const option = document.createElement('option');
+        option.value = dataSet.id;
+        option.textContent = dataSet.name;
+        select.appendChild(option);
+    });
+}
+
+function saveParameterizedTest() {
+    const name = document.getElementById('param-test-name').value;
+    const description = document.getElementById('param-test-description').value;
+    const dataSetId = document.getElementById('param-test-dataset').value;
+    
+    if (!name || !description || !dataSetId) {
+        showAlert('Please fill in all required fields', 'warning');
+        return;
+    }
+    
+    // In a real implementation, this would create the parameterized test
+    showAlert('Parameterized test created successfully!', 'success');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createParameterizedTestModal'));
+    modal.hide();
+    
+    // Clear form
+    document.getElementById('param-test-name').value = '';
+    document.getElementById('param-test-description').value = '';
+    document.getElementById('param-test-dataset').value = '';
+    
+    // Refresh data
+    loadParameterizedTests();
+}
+
+function viewDataSetDetails(dataSetId) {
+    fetch(`/api/test-data-sets/${dataSetId}`)
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('data-set-details-content');
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Data Set Information</h6>
+                        <p><strong>Name:</strong> ${data.name}</p>
+                        <p><strong>Type:</strong> ${data.data_type}</p>
+                        <p><strong>Records:</strong> ${data.records_count}</p>
+                        <p><strong>Description:</strong> ${data.description}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Usage Statistics</h6>
+                        <p><strong>Tests Using:</strong> ${data.usage_stats.tests_using}</p>
+                        <p><strong>Last Used:</strong> ${new Date(data.usage_stats.last_used).toLocaleString()}</p>
+                        <p><strong>Execution Count:</strong> ${data.usage_stats.execution_count}</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h6>Data Fields</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Field Name</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.fields.map(field => `
+                                    <tr>
+                                        <td>${field.name}</td>
+                                        <td><span class="badge bg-info">${field.type}</span></td>
+                                        <td>${field.required ? 'Yes' : 'No'}</td>
+                                        <td>${field.description}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h6>Sample Data</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    ${Object.keys(data.data_records[0] || {}).map(key => `<th>${key}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data_records.slice(0, 5).map(record => `
+                                    <tr>
+                                        ${Object.values(record).map(value => `<td>${value}</td>`).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('dataSetDetailsModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error loading data set details:', error);
+            showAlert('Failed to load data set details', 'danger');
+        });
+}
+
+function refreshDataSets() {
+    loadDataSets();
+    showAlert('Data sets refreshed', 'success');
+}
+
+function refreshParameterizedTests() {
+    loadParameterizedTests();
+    showAlert('Parameterized tests refreshed', 'success');
+}
+
+function exportDataSets() {
+    showAlert('Exporting data sets...', 'info');
+}
+
+function executeParameterizedTests() {
+    showAlert('Executing all parameterized tests...', 'info');
+}
+
+function executeParameterizedTest(testId) {
+    showAlert(`Executing parameterized test ${testId}...`, 'info');
+}
+
+function viewParameterizedTest(testId) {
+    showAlert(`Viewing parameterized test ${testId}`, 'info');
+}
+
+function editDataSet(dataSetId) {
+    showAlert(`Editing data set ${dataSetId}`, 'info');
+}
+
+function deleteDataSet(dataSetId) {
+    if (confirm('Are you sure you want to delete this data set?')) {
+        showAlert(`Data set ${dataSetId} deleted`, 'success');
+        loadDataSets();
+    }
+}
+
+function deleteParameterizedTest(testId) {
+    if (confirm('Are you sure you want to delete this parameterized test?')) {
+        showAlert(`Parameterized test ${testId} deleted`, 'success');
+        loadParameterizedTests();
+    }
+}
+
+function importData() {
+    showAlert('Import data functionality coming soon', 'info');
+}
+
+// Utility functions
+function getStatusBadgeClass(status) {
+    const classMap = {
+        'active': 'bg-success',
+        'inactive': 'bg-secondary',
+        'running': 'bg-warning',
+        'completed': 'bg-info'
+    };
+    return classMap[status] || 'bg-secondary';
+}
+
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
