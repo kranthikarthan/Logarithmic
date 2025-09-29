@@ -194,6 +194,58 @@ class JiraXrayClient:
             print(f"Error fetching test plans: {e}")
             return {'issues': []}
     
+    def get_requirements(self, project_key=None, jql=None):
+        """Get requirements from Jira (Epic, Story, or custom requirement issue types)"""
+        try:
+            if not jql:
+                if project_key:
+                    jql = f'project = "{project_key}" AND issuetype in ("Epic", "Story", "Requirement")'
+                else:
+                    jql = 'issuetype in ("Epic", "Story", "Requirement")'
+            
+            params = {
+                'jql': jql,
+                'maxResults': 1000,
+                'fields': 'summary,description,status,assignee,reporter,created,updated,labels,components,fixVersions,priority,issuetype,parent'
+            }
+            
+            response = self.session.get(f"{self.jira_url}/rest/api/3/search", params=params)
+            if response.status_code == 200:
+                return response.json()
+            return {'issues': []}
+        except Exception as e:
+            print(f"Error fetching requirements: {e}")
+            return {'issues': []}
+    
+    def get_issue_links(self, issue_key):
+        """Get linked issues for traceability"""
+        try:
+            response = self.session.get(f"{self.jira_url}/rest/api/3/issue/{issue_key}?fields=issuelinks")
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error fetching issue links for {issue_key}: {e}")
+            return None
+    
+    def create_issue_link(self, inward_issue, outward_issue, link_type="relates"):
+        """Create a link between issues for traceability"""
+        try:
+            link_data = {
+                "type": {"name": link_type},
+                "inwardIssue": {"key": inward_issue},
+                "outwardIssue": {"key": outward_issue}
+            }
+            
+            response = self.session.post(
+                f"{self.jira_url}/rest/api/3/issueLink",
+                json=link_data
+            )
+            return response.status_code in [200, 201]
+        except Exception as e:
+            print(f"Error creating issue link: {e}")
+            return False
+    
     def get_issue_details(self, issue_key):
         """Get detailed information about a specific issue"""
         try:
@@ -232,6 +284,14 @@ def test_execution():
         return redirect(url_for('login'))
     
     return render_template('test-execution.html')
+
+@app.route('/requirements-traceability')
+def requirements_traceability():
+    """Requirements traceability page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('requirements-traceability.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -328,6 +388,62 @@ def api_test_plans():
         
         test_plans = jira_client.get_test_plans(project_key, jql)
         return jsonify(test_plans)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/requirements')
+def api_requirements():
+    """API endpoint to get requirements"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        requirements = jira_client.get_requirements(project_key, jql)
+        return jsonify(requirements)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/issue/<issue_key>/links')
+def api_issue_links(issue_key):
+    """API endpoint to get issue links for traceability"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        links = jira_client.get_issue_links(issue_key)
+        if links:
+            return jsonify(links)
+        else:
+            return jsonify({'error': 'Issue not found or no links'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/issue-links', methods=['POST'])
+def api_create_issue_link():
+    """API endpoint to create issue links for traceability"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        inward_issue = data.get('inward_issue')
+        outward_issue = data.get('outward_issue')
+        link_type = data.get('link_type', 'relates')
+        
+        if not inward_issue or not outward_issue:
+            return jsonify({'error': 'Both inward_issue and outward_issue are required'}), 400
+        
+        success = jira_client.create_issue_link(inward_issue, outward_issue, link_type)
+        if success:
+            return jsonify({'success': True, 'message': 'Issue link created successfully'})
+        else:
+            return jsonify({'error': 'Failed to create issue link'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -442,19 +558,30 @@ def api_execution_progress(execution_key):
 @app.route('/api/coverage-report')
 def api_coverage_report():
     """Get test coverage report"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
     
     try:
         project_key = request.args.get('project')
         
+        # Get requirements and test cases for coverage calculation
+        requirements = jira_client.get_requirements(project_key)
+        test_cases = jira_client.get_test_cases(project_key)
+        
+        # Calculate coverage based on linked issues
+        requirements_list = requirements.get('issues', [])
+        test_cases_list = test_cases.get('issues', [])
+        
         # Mock coverage data - in real implementation, calculate from actual test data
         coverage_data = {
             'overall_coverage': 75,
-            'test_cases_total': 100,
+            'test_cases_total': len(test_cases_list),
             'test_cases_executed': 75,
             'test_cases_passed': 60,
             'test_cases_failed': 15,
+            'requirements_total': len(requirements_list),
+            'requirements_covered': 60,
             'coverage_by_component': {
                 'Authentication': 90,
                 'Dashboard': 80,
@@ -464,6 +591,63 @@ def api_coverage_report():
         }
         
         return jsonify(coverage_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/traceability-matrix')
+def api_traceability_matrix():
+    """Get requirements traceability matrix"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Get requirements and test cases
+        requirements = jira_client.get_requirements(project_key)
+        test_cases = jira_client.get_test_cases(project_key)
+        
+        # Build traceability matrix
+        matrix = []
+        requirements_list = requirements.get('issues', [])
+        test_cases_list = test_cases.get('issues', [])
+        
+        for req in requirements_list:
+            req_key = req.get('key')
+            req_summary = req.get('fields', {}).get('summary', '')
+            req_status = req.get('fields', {}).get('status', {}).get('name', '')
+            
+            # Find linked test cases (in real implementation, check actual links)
+            linked_tests = []
+            for test in test_cases_list:
+                # Mock linking - in real implementation, check issue links
+                if req_key in test.get('fields', {}).get('summary', ''):
+                    linked_tests.append({
+                        'key': test.get('key'),
+                        'summary': test.get('fields', {}).get('summary', ''),
+                        'status': test.get('fields', {}).get('status', {}).get('name', ''),
+                        'execution_status': 'Not Executed'  # Would be calculated from executions
+                    })
+            
+            matrix.append({
+                'requirement_key': req_key,
+                'requirement_summary': req_summary,
+                'requirement_status': req_status,
+                'linked_tests': linked_tests,
+                'coverage_status': 'Covered' if linked_tests else 'Not Covered',
+                'test_count': len(linked_tests)
+            })
+        
+        return jsonify({
+            'matrix': matrix,
+            'summary': {
+                'total_requirements': len(requirements_list),
+                'covered_requirements': len([m for m in matrix if m['linked_tests']]),
+                'total_test_cases': len(test_cases_list),
+                'coverage_percentage': round((len([m for m in matrix if m['linked_tests']]) / len(requirements_list)) * 100, 2) if requirements_list else 0
+            }
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -486,12 +670,27 @@ def api_dashboard_metrics():
         test_cases = jira_client.get_test_cases()
         test_executions = jira_client.get_test_executions()
         test_plans = jira_client.get_test_plans()
+        requirements = jira_client.get_requirements()
+        
+        # Calculate requirements coverage
+        requirements_list = requirements.get('issues', [])
+        test_cases_list = test_cases.get('issues', [])
+        
+        # Mock coverage calculation - in real implementation, check actual links
+        covered_requirements = len([r for r in requirements_list if any(
+            r.get('key') in test.get('fields', {}).get('summary', '') 
+            for test in test_cases_list
+        )])
+        
+        coverage_percentage = round((covered_requirements / len(requirements_list)) * 100, 2) if requirements_list else 0
         
         metrics = {
-            'test_cases_count': len(test_cases.get('issues', [])),
+            'test_cases_count': len(test_cases_list),
             'test_executions_count': len(test_executions.get('issues', [])),
             'test_plans_count': len(test_plans.get('issues', [])),
-            'coverage_percentage': 75,  # Mock data
+            'requirements_count': len(requirements_list),
+            'covered_requirements_count': covered_requirements,
+            'coverage_percentage': coverage_percentage,
             'active_executions': len([e for e in test_executions.get('issues', []) 
                                     if e.get('fields', {}).get('status', {}).get('name') in ['In Progress', 'To Do']]),
             'recent_activity': [

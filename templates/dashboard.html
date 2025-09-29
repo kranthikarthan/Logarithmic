@@ -17,6 +17,9 @@
                 <button type="button" class="btn btn-outline-success" onclick="createTestExecution()">
                     <i class="fas fa-play"></i> Create Test Execution
                 </button>
+                <button type="button" class="btn btn-outline-info" onclick="openRequirementsTraceability()">
+                    <i class="fas fa-sitemap"></i> Requirements Traceability
+                </button>
             </div>
         </div>
     </div>
@@ -95,17 +98,17 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <i class="fas fa-chart-line fa-2x text-warning"></i>
+                        <i class="fas fa-sitemap fa-2x text-info"></i>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="card-title mb-1">Coverage</h6>
-                        <h4 class="mb-0" id="coverage-percentage">0%</h4>
-                        <small class="text-muted">Test coverage</small>
+                        <h6 class="card-title mb-1">Requirements</h6>
+                        <h4 class="mb-0" id="requirements-count">Loading...</h4>
+                        <small class="text-muted">Total requirements</small>
                     </div>
                 </div>
                 <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-warning w-100" onclick="showCoverageReport()">
-                        <i class="fas fa-chart-bar"></i> View Report
+                    <button class="btn btn-sm btn-outline-info w-100" onclick="openRequirementsTraceability()">
+                        <i class="fas fa-sitemap"></i> View Traceability
                     </button>
                 </div>
             </div>
@@ -241,7 +244,7 @@ function loadDashboardData() {
             document.getElementById('test-cases-count').textContent = data.test_cases_count || 0;
             document.getElementById('test-executions-count').textContent = data.test_executions_count || 0;
             document.getElementById('test-plans-count').textContent = data.test_plans_count || 0;
-            document.getElementById('coverage-percentage').textContent = (data.coverage_percentage || 0) + '%';
+            document.getElementById('requirements-count').textContent = data.requirements_count || 0;
             
             // Update recent activity
             updateRecentActivity(data.recent_activity || []);
@@ -558,6 +561,10 @@ function showReports() {
 
 function showCoverageReport() {
     alert('Coverage report functionality coming soon');
+}
+
+function openRequirementsTraceability() {
+    window.location.href = '/requirements-traceability';
 }
 </script>
 {% endblock %}
