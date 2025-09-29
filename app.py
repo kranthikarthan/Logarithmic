@@ -772,6 +772,11 @@ def signup_post():
     flash('Signup functionality coming soon!', 'info')
     return redirect(url_for('login'))
 
+@app.route('/ai-test-generator')
+def ai_test_generator():
+    """AI Test Generator page"""
+    return render_template('ai-test-generator.html')
+
 @app.route('/health')
 def health():
     """Health check endpoint for Docker"""
@@ -780,6 +785,309 @@ def health():
         'timestamp': datetime.now().isoformat(),
         'version': '1.0.0'
     })
+
+# AI Test Generation Endpoints
+@app.route('/api/ai/generate-test-cases', methods=['POST'])
+def ai_generate_test_cases():
+    """Generate test cases from user story using AI"""
+    try:
+        from ai_test_generator import AITestGenerator, UserStory, TestCaseType, TestPriority
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'description', 'acceptance_criteria', 'business_value', 'user_persona']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Create user story object
+        user_story = UserStory(
+            title=data['title'],
+            description=data['description'],
+            acceptance_criteria=data['acceptance_criteria'],
+            business_value=data['business_value'],
+            user_persona=data['user_persona'],
+            epic=data.get('epic'),
+            story_points=data.get('story_points')
+        )
+        
+        # Parse test types
+        test_types = []
+        for test_type in data.get('test_types', ['functional', 'ui']):
+            try:
+                test_types.append(TestCaseType(test_type))
+            except ValueError:
+                continue
+        
+        if not test_types:
+            test_types = [TestCaseType.FUNCTIONAL, TestCaseType.UI]
+        
+        # Initialize AI generator
+        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AI API key not configured'}), 500
+        
+        provider = data.get('provider', 'openai')
+        generator = AITestGenerator(api_key=api_key, provider=provider)
+        
+        # Generate test cases
+        test_cases = generator.generate_test_cases_from_story(
+            user_story=user_story,
+            test_types=test_types,
+            num_cases=data.get('num_cases', 5),
+            additional_prompts=data.get('additional_prompts', [])
+        )
+        
+        # Convert to JSON-serializable format
+        result = []
+        for tc in test_cases:
+            result.append({
+                'title': tc.title,
+                'description': tc.description,
+                'steps': tc.steps,
+                'expected_result': tc.expected_result,
+                'test_type': tc.test_type.value,
+                'priority': tc.priority.value,
+                'tags': tc.tags,
+                'preconditions': tc.preconditions,
+                'test_data': tc.test_data,
+                'acceptance_criteria': tc.acceptance_criteria
+            })
+        
+        return jsonify({
+            'success': True,
+            'test_cases': result,
+            'count': len(result)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/improve-test-case', methods=['POST'])
+def ai_improve_test_case():
+    """Improve an existing test case using AI"""
+    try:
+        from ai_test_generator import AITestGenerator, TestCase, TestCaseType, TestPriority
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        if 'test_case' not in data or 'improvement_prompts' not in data:
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        tc_data = data['test_case']
+        
+        # Create test case object
+        test_case = TestCase(
+            title=tc_data.get('title', ''),
+            description=tc_data.get('description', ''),
+            steps=tc_data.get('steps', []),
+            expected_result=tc_data.get('expected_result', ''),
+            test_type=TestCaseType(tc_data.get('test_type', 'functional')),
+            priority=TestPriority(tc_data.get('priority', 'medium')),
+            tags=tc_data.get('tags', []),
+            preconditions=tc_data.get('preconditions', []),
+            test_data=tc_data.get('test_data', {}),
+            acceptance_criteria=tc_data.get('acceptance_criteria', [])
+        )
+        
+        # Initialize AI generator
+        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AI API key not configured'}), 500
+        
+        provider = data.get('provider', 'openai')
+        generator = AITestGenerator(api_key=api_key, provider=provider)
+        
+        # Improve test case
+        improved_case = generator.improve_test_case(
+            test_case=test_case,
+            improvement_prompts=data['improvement_prompts']
+        )
+        
+        # Convert to JSON-serializable format
+        result = {
+            'title': improved_case.title,
+            'description': improved_case.description,
+            'steps': improved_case.steps,
+            'expected_result': improved_case.expected_result,
+            'test_type': improved_case.test_type.value,
+            'priority': improved_case.priority.value,
+            'tags': improved_case.tags,
+            'preconditions': improved_case.preconditions,
+            'test_data': improved_case.test_data,
+            'acceptance_criteria': improved_case.acceptance_criteria
+        }
+        
+        return jsonify({
+            'success': True,
+            'improved_test_case': result
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/generate-bdd-scenarios', methods=['POST'])
+def ai_generate_bdd_scenarios():
+    """Generate BDD scenarios from user story using AI"""
+    try:
+        from ai_test_generator import AITestGenerator, UserStory
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'description', 'acceptance_criteria', 'business_value', 'user_persona']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Create user story object
+        user_story = UserStory(
+            title=data['title'],
+            description=data['description'],
+            acceptance_criteria=data['acceptance_criteria'],
+            business_value=data['business_value'],
+            user_persona=data['user_persona'],
+            epic=data.get('epic'),
+            story_points=data.get('story_points')
+        )
+        
+        # Initialize AI generator
+        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AI API key not configured'}), 500
+        
+        provider = data.get('provider', 'openai')
+        generator = AITestGenerator(api_key=api_key, provider=provider)
+        
+        # Generate BDD scenarios
+        scenarios = generator.generate_bdd_scenarios(
+            user_story=user_story,
+            additional_context=data.get('additional_context')
+        )
+        
+        return jsonify({
+            'success': True,
+            'scenarios': scenarios,
+            'count': len(scenarios)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/generate-test-data', methods=['POST'])
+def ai_generate_test_data():
+    """Generate test data for a test case using AI"""
+    try:
+        from ai_test_generator import AITestGenerator, TestCase, TestCaseType, TestPriority
+        
+        data = request.get_json()
+        
+        if 'test_case' not in data:
+            return jsonify({'error': 'Missing test_case field'}), 400
+        
+        tc_data = data['test_case']
+        
+        # Create test case object
+        test_case = TestCase(
+            title=tc_data.get('title', ''),
+            description=tc_data.get('description', ''),
+            steps=tc_data.get('steps', []),
+            expected_result=tc_data.get('expected_result', ''),
+            test_type=TestCaseType(tc_data.get('test_type', 'functional')),
+            priority=TestPriority(tc_data.get('priority', 'medium')),
+            tags=tc_data.get('tags', []),
+            preconditions=tc_data.get('preconditions', []),
+            test_data=tc_data.get('test_data', {}),
+            acceptance_criteria=tc_data.get('acceptance_criteria', [])
+        )
+        
+        # Initialize AI generator
+        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AI API key not configured'}), 500
+        
+        provider = data.get('provider', 'openai')
+        generator = AITestGenerator(api_key=api_key, provider=provider)
+        
+        # Generate test data
+        test_data = generator.generate_test_data(
+            test_case=test_case,
+            data_types=data.get('data_types', ['valid', 'invalid', 'boundary', 'edge'])
+        )
+        
+        return jsonify({
+            'success': True,
+            'test_data': test_data
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/analyze-coverage', methods=['POST'])
+def ai_analyze_coverage():
+    """Analyze test coverage for a user story using AI"""
+    try:
+        from ai_test_generator import AITestGenerator, UserStory, TestCase, TestCaseType, TestPriority
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        if 'user_story' not in data or 'existing_test_cases' not in data:
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        story_data = data['user_story']
+        
+        # Create user story object
+        user_story = UserStory(
+            title=story_data['title'],
+            description=story_data['description'],
+            acceptance_criteria=story_data['acceptance_criteria'],
+            business_value=story_data['business_value'],
+            user_persona=story_data['user_persona'],
+            epic=story_data.get('epic'),
+            story_points=story_data.get('story_points')
+        )
+        
+        # Create existing test cases
+        existing_test_cases = []
+        for tc_data in data['existing_test_cases']:
+            test_case = TestCase(
+                title=tc_data.get('title', ''),
+                description=tc_data.get('description', ''),
+                steps=tc_data.get('steps', []),
+                expected_result=tc_data.get('expected_result', ''),
+                test_type=TestCaseType(tc_data.get('test_type', 'functional')),
+                priority=TestPriority(tc_data.get('priority', 'medium')),
+                tags=tc_data.get('tags', []),
+                preconditions=tc_data.get('preconditions', []),
+                test_data=tc_data.get('test_data', {}),
+                acceptance_criteria=tc_data.get('acceptance_criteria', [])
+            )
+            existing_test_cases.append(test_case)
+        
+        # Initialize AI generator
+        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AI API key not configured'}), 500
+        
+        provider = data.get('provider', 'openai')
+        generator = AITestGenerator(api_key=api_key, provider=provider)
+        
+        # Analyze coverage
+        analysis = generator.analyze_test_coverage(
+            user_story=user_story,
+            existing_test_cases=existing_test_cases
+        )
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/test-execution')
 def test_execution():
