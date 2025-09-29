@@ -1,0 +1,49 @@
+{
+  "test_summary": {
+    "total_tests": 25,
+    "passed": 21,
+    "failed": 4,
+    "success_rate": 84.0,
+    "duration_seconds": 0.251817,
+    "start_time": "2025-09-29T20:15:09.293190",
+    "end_time": "2025-09-29T20:15:09.545007"
+  },
+  "test_results": {
+    "unit_tests": {
+      "passed": 0,
+      "failed": 1,
+      "total": 1
+    },
+    "integration_tests": {
+      "passed": 4,
+      "failed": 1,
+      "total": 5
+    },
+    "api_tests": {
+      "passed": 5,
+      "failed": 0,
+      "total": 5
+    },
+    "enterprise_tests": {
+      "passed": 4,
+      "failed": 1,
+      "total": 5
+    },
+    "performance_tests": {
+      "passed": 4,
+      "failed": 0,
+      "total": 4
+    },
+    "security_tests": {
+      "passed": 4,
+      "failed": 1,
+      "total": 5
+    }
+  },
+  "recommendations": [
+    "Address 1 failed unit tests",
+    "Address 1 failed integration tests",
+    "Address 1 failed enterprise tests",
+    "Address 1 failed security tests"
+  ]
+}
