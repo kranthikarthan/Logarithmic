@@ -16,6 +16,7 @@
     <!-- Modern CSS -->
     <link href="{{ url_for('static', filename='css/modern-design.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/components.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/brand-colors.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/landing.css') }}" rel="stylesheet">
     
     <!-- Meta Tags -->
@@ -37,9 +38,7 @@
     <nav class="landing-nav">
         <div class="nav-container">
             <div class="nav-brand">
-                <div class="brand-icon">
-                    <i class="fas fa-vial"></i>
-                </div>
+                <img src="{{ url_for('static', filename='brand/logo-icon.svg') }}" alt="Assertly" width="32" height="32" class="brand-icon">
                 <span class="brand-text">Assertly</span>
             </div>
             <div class="nav-links">
@@ -415,9 +414,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
-                    <div class="brand-icon">
-                        <i class="fas fa-vial"></i>
-                    </div>
+                    <img src="{{ url_for('static', filename='brand/logo-icon.svg') }}" alt="Assertly" width="32" height="32" class="brand-icon">
                     <span class="brand-text">Assertly</span>
                 </div>
                 <div class="footer-links">
