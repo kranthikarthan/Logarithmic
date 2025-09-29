@@ -25,6 +25,15 @@ except ImportError:
     ANTHROPIC_AVAILABLE = False
     print("Warning: Anthropic not available. Install with: pip install anthropic")
 
+# Import enterprise/local AI providers
+try:
+    from local_ai_provider import LocalAIProvider, LocalAIConfig
+    from enterprise_config import EnterpriseConfigManager
+    ENTERPRISE_AVAILABLE = True
+except ImportError:
+    ENTERPRISE_AVAILABLE = False
+    print("Warning: Enterprise AI not available. Local AI features disabled.")
+
 class TestCaseType(Enum):
     FUNCTIONAL = "functional"
     INTEGRATION = "integration"
@@ -63,23 +72,69 @@ class UserStory:
     story_points: Optional[int] = None
 
 class AITestGenerator:
-    def __init__(self, api_key: str = None, provider: str = "openai"):
+    def __init__(self, api_key: str = None, provider: str = "openai", enterprise_mode: bool = False):
         """
-        Initialize AI Test Generator
+        Initialize AI Test Generator with enterprise support
         
         Args:
             api_key: API key for AI service
-            provider: AI provider ("openai" or "anthropic")
+            provider: AI provider ("openai", "anthropic", or "local")
+            enterprise_mode: Enable enterprise/local AI mode
         """
         self.api_key = api_key or os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
         self.provider = provider.lower()
+        self.enterprise_mode = enterprise_mode
         
-        if self.provider == "openai" and OPENAI_AVAILABLE:
+        # Initialize enterprise config manager if in enterprise mode
+        if enterprise_mode and ENTERPRISE_AVAILABLE:
+            self.enterprise_config = EnterpriseConfigManager()
+            self._load_enterprise_settings()
+        else:
+            self.enterprise_config = None
+        
+        # Initialize AI client based on provider
+        if self.provider == "local" and ENTERPRISE_AVAILABLE:
+            self._init_local_ai()
+        elif self.provider == "openai" and OPENAI_AVAILABLE:
             self.client = openai.OpenAI(api_key=self.api_key)
         elif self.provider == "anthropic" and ANTHROPIC_AVAILABLE:
             self.client = Anthropic(api_key=self.api_key)
         else:
             raise ValueError(f"Provider {provider} not available or API key not provided")
+    
+    def _load_enterprise_settings(self):
+        """Load enterprise settings from configuration"""
+        if not self.enterprise_config:
+            return
+        
+        settings = self.enterprise_config.load_enterprise_settings()
+        if settings:
+            self.enterprise_settings = settings
+        else:
+            # Default enterprise settings
+            self.enterprise_settings = None
+    
+    def _init_local_ai(self):
+        """Initialize local AI provider"""
+        if not self.enterprise_settings:
+            raise ValueError("Enterprise settings not configured for local AI")
+        
+        # Create local AI configuration
+        local_config = LocalAIConfig(
+            base_url=self.enterprise_settings.local_ai_url,
+            api_key=self.enterprise_settings.local_api_key,
+            model_name=self.enterprise_settings.local_ai_model,
+            proxy_url=self.enterprise_settings.proxy_url,
+            cert_path=self.enterprise_settings.cert_path,
+            verify_ssl=self.enterprise_settings.verify_ssl
+        )
+        
+        # Initialize local AI provider
+        self.local_ai = LocalAIProvider(local_config)
+        
+        # Test connection
+        if not self.local_ai.test_connection():
+            raise ValueError("Failed to connect to local AI service")
 
     def generate_test_cases_from_story(
         self, 
@@ -409,7 +464,15 @@ Return in JSON format:
     def _call_ai_api(self, prompt: str) -> str:
         """Call AI API and return response"""
         
-        if self.provider == "openai":
+        if self.provider == "local":
+            # Use local AI provider
+            response = self.local_ai.generate_test_cases(prompt)
+            if response.success:
+                return response.content
+            else:
+                raise Exception(f"Local AI error: {response.error}")
+        
+        elif self.provider == "openai":
             response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[

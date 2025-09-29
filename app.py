@@ -783,6 +783,14 @@ def integrations():
     """Integrations page"""
     return render_template('integrations.html')
 
+@app.route('/enterprise-settings')
+def enterprise_settings():
+    """Enterprise settings page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('enterprise-settings.html')
+
 @app.route('/api/integrations/vscode/install')
 def vscode_install():
     """VS Code extension installation guide"""
@@ -2844,6 +2852,314 @@ def export_test_cases():
         as_attachment=True,
         download_name=f'test_cases_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     )
+
+# Enterprise API Endpoints
+@app.route('/api/enterprise/ai/configure', methods=['POST'])
+def configure_enterprise_ai():
+    """Configure enterprise AI settings"""
+    try:
+        from enterprise_config import EnterpriseConfigManager, EnterpriseSettings
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data.get('local_ai_url'):
+            return jsonify({'error': 'Local AI URL is required'}), 400
+        
+        # Create enterprise settings
+        settings = EnterpriseSettings(
+            local_ai_url=data['local_ai_url'],
+            local_ai_model=data.get('local_ai_model', 'local-copilot'),
+            local_api_key=data.get('local_api_key'),
+            proxy_url=data.get('proxy_url'),
+            cert_path=data.get('cert_path'),
+            verify_ssl=data.get('verify_ssl', True),
+            audit_enabled=data.get('audit_enabled', True),
+            data_encryption=data.get('data_encryption', True),
+            session_timeout=data.get('session_timeout', 3600),
+            data_retention_days=data.get('data_retention_days', 365),
+            log_retention_days=data.get('log_retention_days', 90),
+            compliance_mode=data.get('compliance_mode', 'standard'),
+            offline_mode=data.get('offline_mode', False),
+            custom_models=data.get('custom_models', False),
+            external_integrations=data.get('external_integrations', False)
+        )
+        
+        # Save settings
+        config_manager = EnterpriseConfigManager()
+        success = config_manager.save_enterprise_settings(settings)
+        
+        if success:
+            # Log configuration event
+            config_manager.log_audit_event(
+                user=session.get('username', 'system'),
+                action='configure_enterprise_ai',
+                resource='enterprise_settings',
+                details={'local_ai_url': data['local_ai_url']},
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent')
+            )
+            
+            return jsonify({
+                'success': True,
+                'message': 'Enterprise AI configured successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to save enterprise settings'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/enterprise/ai/test-connection')
+def test_enterprise_ai_connection():
+    """Test connection to local AI service"""
+    try:
+        from local_ai_provider import LocalAIProvider, LocalAIConfig
+        from enterprise_config import EnterpriseConfigManager
+        
+        # Load enterprise settings
+        config_manager = EnterpriseConfigManager()
+        settings = config_manager.load_enterprise_settings()
+        
+        if not settings:
+            return jsonify({'error': 'Enterprise settings not configured'}), 400
+        
+        # Create local AI configuration
+        local_config = LocalAIConfig(
+            base_url=settings.local_ai_url,
+            api_key=settings.local_api_key,
+            model_name=settings.local_ai_model,
+            proxy_url=settings.proxy_url,
+            cert_path=settings.cert_path,
+            verify_ssl=settings.verify_ssl
+        )
+        
+        # Test connection
+        local_ai = LocalAIProvider(local_config)
+        connection_success = local_ai.test_connection()
+        
+        # Log test event
+        config_manager.log_audit_event(
+            user=session.get('username', 'system'),
+            action='test_enterprise_ai_connection',
+            resource='local_ai_service',
+            details={'success': connection_success, 'url': settings.local_ai_url},
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        
+        return jsonify({
+            'success': connection_success,
+            'message': 'Connection successful' if connection_success else 'Connection failed',
+            'url': settings.local_ai_url,
+            'model': settings.local_ai_model
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/enterprise/ai/generate-test-cases', methods=['POST'])
+def enterprise_generate_test_cases():
+    """Generate test cases using enterprise/local AI"""
+    try:
+        from ai_test_generator import AITestGenerator, UserStory, TestCaseType, TestPriority
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'description', 'acceptance_criteria', 'business_value', 'user_persona']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Create user story object
+        user_story = UserStory(
+            title=data['title'],
+            description=data['description'],
+            acceptance_criteria=data['acceptance_criteria'],
+            business_value=data['business_value'],
+            user_persona=data['user_persona'],
+            epic=data.get('epic'),
+            story_points=data.get('story_points')
+        )
+        
+        # Parse test types
+        test_types = []
+        for test_type in data.get('test_types', ['functional', 'ui']):
+            try:
+                test_types.append(TestCaseType(test_type))
+            except ValueError:
+                continue
+        
+        if not test_types:
+            test_types = [TestCaseType.FUNCTIONAL, TestCaseType.UI]
+        
+        # Initialize AI generator in enterprise mode
+        generator = AITestGenerator(enterprise_mode=True, provider='local')
+        
+        # Generate test cases
+        test_cases = generator.generate_test_cases_from_story(
+            user_story=user_story,
+            test_types=test_types,
+            num_cases=data.get('num_cases', 5),
+            additional_prompts=data.get('additional_prompts', [])
+        )
+        
+        # Convert to JSON-serializable format
+        result = []
+        for tc in test_cases:
+            result.append({
+                'title': tc.title,
+                'description': tc.description,
+                'steps': tc.steps,
+                'expected_result': tc.expected_result,
+                'test_type': tc.test_type.value,
+                'priority': tc.priority.value,
+                'tags': tc.tags,
+                'preconditions': tc.preconditions,
+                'test_data': tc.test_data,
+                'acceptance_criteria': tc.acceptance_criteria
+            })
+        
+        # Log generation event
+        from enterprise_config import EnterpriseConfigManager
+        config_manager = EnterpriseConfigManager()
+        config_manager.log_audit_event(
+            user=session.get('username', 'system'),
+            action='generate_test_cases_enterprise',
+            resource='ai_test_generation',
+            details={'user_story': data['title'], 'test_cases_count': len(result)},
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        
+        return jsonify({
+            'success': True,
+            'test_cases': result,
+            'count': len(result),
+            'provider': 'enterprise_local'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/enterprise/audit/logs')
+def get_enterprise_audit_logs():
+    """Get enterprise audit logs"""
+    try:
+        from enterprise_config import EnterpriseConfigManager
+        
+        # Get query parameters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        user = request.args.get('user')
+        action = request.args.get('action')
+        
+        # Parse dates if provided
+        start_dt = None
+        end_dt = None
+        
+        if start_date:
+            from datetime import datetime
+            start_dt = datetime.fromisoformat(start_date)
+        
+        if end_date:
+            from datetime import datetime
+            end_dt = datetime.fromisoformat(end_date)
+        
+        # Get audit logs
+        config_manager = EnterpriseConfigManager()
+        logs = config_manager.get_audit_logs(
+            start_date=start_dt,
+            end_date=end_dt,
+            user=user,
+            action=action
+        )
+        
+        # Convert to JSON-serializable format
+        result = []
+        for log in logs:
+            result.append({
+                'log_id': log.log_id,
+                'timestamp': log.timestamp.isoformat(),
+                'user': log.user,
+                'action': log.action,
+                'resource': log.resource,
+                'details': log.details,
+                'ip_address': log.ip_address,
+                'user_agent': log.user_agent
+            })
+        
+        return jsonify({
+            'success': True,
+            'logs': result,
+            'count': len(result)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/enterprise/compliance/report', methods=['POST'])
+def generate_compliance_report():
+    """Generate compliance report"""
+    try:
+        from enterprise_config import EnterpriseConfigManager
+        
+        data = request.get_json()
+        report_type = data.get('report_type', 'audit_summary')
+        
+        # Parse dates if provided
+        start_date = None
+        end_date = None
+        
+        if data.get('start_date'):
+            from datetime import datetime
+            start_date = datetime.fromisoformat(data['start_date'])
+        
+        if data.get('end_date'):
+            from datetime import datetime
+            end_date = datetime.fromisoformat(data['end_date'])
+        
+        # Generate report
+        config_manager = EnterpriseConfigManager()
+        report_id = config_manager.generate_compliance_report(
+            report_type=report_type,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        # Log report generation
+        config_manager.log_audit_event(
+            user=session.get('username', 'system'),
+            action='generate_compliance_report',
+            resource='compliance',
+            details={'report_type': report_type, 'report_id': report_id},
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        
+        return jsonify({
+            'success': True,
+            'report_id': report_id,
+            'report_type': report_type
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/enterprise/health')
+def enterprise_health():
+    """Get enterprise system health"""
+    try:
+        from enterprise_config import EnterpriseConfigManager
+        
+        config_manager = EnterpriseConfigManager()
+        health = config_manager.get_system_health()
+        
+        return jsonify(health)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Security: Disable debug mode in production
