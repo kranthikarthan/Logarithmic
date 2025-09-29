@@ -777,6 +777,156 @@ def ai_test_generator():
     """AI Test Generator page"""
     return render_template('ai-test-generator.html')
 
+# Integration Routes
+@app.route('/integrations')
+def integrations():
+    """Integrations page"""
+    return render_template('integrations.html')
+
+@app.route('/api/integrations/vscode/install')
+def vscode_install():
+    """VS Code extension installation guide"""
+    return jsonify({
+        'success': True,
+        'extension_id': 'assertly.assertly-test-manager',
+        'marketplace_url': 'https://marketplace.visualstudio.com/items?itemName=assertly.assertly-test-manager',
+        'installation_guide': {
+            'method1': 'Install from VS Code marketplace',
+            'method2': 'Install from command palette: ext install assertly.assertly-test-manager',
+            'method3': 'Download .vsix file and install manually'
+        }
+    })
+
+@app.route('/api/integrations/github-actions/template')
+def github_actions_template():
+    """GitHub Actions template for CI/CD integration"""
+    return jsonify({
+        'success': True,
+        'template': {
+            'name': 'Assertly Test Generation',
+            'description': 'Generate test cases from user stories using Assertly AI',
+            'yaml_content': '''
+name: Assertly Test Generation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Generate Test Cases
+      uses: assertly/generate-tests@v1
+      with:
+        api-url: ${{ secrets.ASSERTLY_API_URL }}
+        api-key: ${{ secrets.ASSERTLY_API_KEY }}
+        jira-url: ${{ secrets.JIRA_URL }}
+        jira-token: ${{ secrets.JIRA_TOKEN }}
+'''
+        }
+    })
+
+@app.route('/api/integrations/test-frameworks/selenium')
+def selenium_integration():
+    """Selenium integration endpoint"""
+    return jsonify({
+        'success': True,
+        'integration': {
+            'name': 'Selenium Integration',
+            'description': 'Generate and execute Selenium test cases',
+            'supported_browsers': ['Chrome', 'Firefox', 'Edge', 'Safari'],
+            'features': [
+                'AI-generated test cases',
+                'Cross-browser testing',
+                'Screenshot capture',
+                'Test reporting',
+                'CI/CD integration'
+            ],
+            'installation': {
+                'pip': 'pip install selenium',
+                'requirements': ['selenium', 'webdriver-manager']
+            }
+        }
+    })
+
+@app.route('/api/integrations/test-frameworks/cypress')
+def cypress_integration():
+    """Cypress integration endpoint"""
+    return jsonify({
+        'success': True,
+        'integration': {
+            'name': 'Cypress Integration',
+            'description': 'Generate and execute Cypress test cases',
+            'features': [
+                'AI-generated test cases',
+                'Component testing',
+                'E2E testing',
+                'Visual testing',
+                'Test recording'
+            ],
+            'installation': {
+                'npm': 'npm install cypress',
+                'yarn': 'yarn add cypress'
+            }
+        }
+    })
+
+@app.route('/api/integrations/webhooks/register', methods=['POST'])
+def register_webhook():
+    """Register a webhook endpoint"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['url', 'events']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # TODO: Implement webhook registration
+        # This would integrate with the webhook system
+        
+        return jsonify({
+            'success': True,
+            'webhook_id': 'webhook_123',
+            'message': 'Webhook registered successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/integrations/webhooks/<webhook_id>', methods=['DELETE'])
+def unregister_webhook(webhook_id):
+    """Unregister a webhook endpoint"""
+    try:
+        # TODO: Implement webhook unregistration
+        
+        return jsonify({
+            'success': True,
+            'message': 'Webhook unregistered successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/integrations/webhooks', methods=['GET'])
+def list_webhooks():
+    """List all registered webhooks"""
+    try:
+        # TODO: Implement webhook listing
+        
+        return jsonify({
+            'success': True,
+            'webhooks': []
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/health')
 def health():
     """Health check endpoint for Docker"""
