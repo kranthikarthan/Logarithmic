@@ -245,6 +245,406 @@ class JiraXrayClient:
         except Exception as e:
             print(f"Error creating issue link: {e}")
             return False
+
+    def get_test_sets(self, project_key=None, jql=None):
+        """Get test sets from Jira"""
+        try:
+            if not jql:
+                if project_key:
+                    jql = f'project = "{project_key}" AND issuetype = "Test Set"'
+                else:
+                    jql = 'issuetype = "Test Set"'
+            
+            params = {
+                'jql': jql,
+                'maxResults': 1000,
+                'fields': 'summary,description,status,assignee,reporter,created,updated,labels,components,fixVersions,priority,issuetype,parent'
+            }
+            
+            response = self.session.get(f"{self.jira_url}/rest/api/3/search", params=params)
+            if response.status_code == 200:
+                return response.json()
+            return {'issues': []}
+        except Exception as e:
+            print(f"Error fetching test sets: {e}")
+            return {'issues': []}
+
+    def get_test_set_tests(self, test_set_key):
+        """Get tests linked to a test set"""
+        try:
+            response = self.session.get(f"{self.jira_url}/rest/api/3/issue/{test_set_key}?fields=issuelinks")
+            if response.status_code == 200:
+                data = response.json()
+                issue_links = data.get('fields', {}).get('issuelinks', [])
+                
+                linked_tests = []
+                for link in issue_links:
+                    if link.get('type', {}).get('name') == 'Test Set contains':
+                        linked_issue = link.get('inwardIssue') or link.get('outwardIssue')
+                        if linked_issue:
+                            linked_tests.append(linked_issue)
+                
+                return linked_tests
+            return []
+        except Exception as e:
+            print(f"Error fetching test set tests: {e}")
+            return []
+
+    def add_test_to_set(self, test_set_key, test_key):
+        """Add a test to a test set"""
+        try:
+            url = f"{self.jira_url}/rest/api/3/issueLink"
+            data = {
+                "type": {"name": "Test Set contains"},
+                "inwardIssue": {"key": test_set_key},
+                "outwardIssue": {"key": test_key}
+            }
+            
+            response = self.session.post(url, json=data)
+            return response.status_code == 201
+        except Exception as e:
+            print(f"Error adding test to set: {e}")
+            return False
+
+    def remove_test_from_set(self, test_set_key, test_key):
+        """Remove a test from a test set"""
+        try:
+            # Get the link ID first
+            response = self.session.get(f"{self.jira_url}/rest/api/3/issue/{test_set_key}?fields=issuelinks")
+            if response.status_code != 200:
+                return False
+                
+            data = response.json()
+            issue_links = data.get('fields', {}).get('issuelinks', [])
+            
+            link_id = None
+            for link in issue_links:
+                if link.get('type', {}).get('name') == 'Test Set contains':
+                    linked_issue = link.get('inwardIssue') or link.get('outwardIssue')
+                    if linked_issue and linked_issue.get('key') == test_key:
+                        link_id = link.get('id')
+                        break
+            
+            if link_id:
+                # Delete the link
+                delete_url = f"{self.jira_url}/rest/api/3/issueLink/{link_id}"
+                response = self.session.delete(delete_url)
+                return response.status_code == 204
+            
+            return False
+        except Exception as e:
+            print(f"Error removing test from set: {e}")
+            return False
+
+    def get_preconditions(self, project_key=None, jql=None):
+        """Get test preconditions from Jira"""
+        try:
+            if not jql:
+                if project_key:
+                    jql = f'project = "{project_key}" AND issuetype = "Precondition"'
+                else:
+                    jql = 'issuetype = "Precondition"'
+            
+            params = {
+                'jql': jql,
+                'maxResults': 1000,
+                'fields': 'summary,description,status,assignee,reporter,created,updated,labels,components,fixVersions,priority,issuetype,parent'
+            }
+            
+            response = self.session.get(f"{self.jira_url}/rest/api/3/search", params=params)
+            if response.status_code == 200:
+                return response.json()
+            return {'issues': []}
+        except Exception as e:
+            print(f"Error fetching preconditions: {e}")
+            return {'issues': []}
+
+    def get_precondition_tests(self, precondition_key):
+        """Get tests that use a specific precondition"""
+        try:
+            response = self.session.get(f"{self.jira_url}/rest/api/3/issue/{precondition_key}?fields=issuelinks")
+            if response.status_code == 200:
+                data = response.json()
+                issue_links = data.get('fields', {}).get('issuelinks', [])
+                
+                linked_tests = []
+                for link in issue_links:
+                    if link.get('type', {}).get('name') == 'Precondition':
+                        linked_issue = link.get('inwardIssue') or link.get('outwardIssue')
+                        if linked_issue:
+                            linked_tests.append(linked_issue)
+                
+                return linked_tests
+            return []
+        except Exception as e:
+            print(f"Error fetching precondition tests: {e}")
+            return []
+
+    def link_precondition_to_test(self, test_key, precondition_key):
+        """Link a precondition to a test"""
+        try:
+            url = f"{self.jira_url}/rest/api/3/issueLink"
+            data = {
+                "type": {"name": "Precondition"},
+                "inwardIssue": {"key": test_key},
+                "outwardIssue": {"key": precondition_key}
+            }
+            
+            response = self.session.post(url, json=data)
+            return response.status_code == 201
+        except Exception as e:
+            print(f"Error linking precondition to test: {e}")
+            return False
+
+    def unlink_precondition_from_test(self, test_key, precondition_key):
+        """Unlink a precondition from a test"""
+        try:
+            # Get the link ID first
+            response = self.session.get(f"{self.jira_url}/rest/api/3/issue/{test_key}?fields=issuelinks")
+            if response.status_code != 200:
+                return False
+                
+            data = response.json()
+            issue_links = data.get('fields', {}).get('issuelinks', [])
+            
+            link_id = None
+            for link in issue_links:
+                if link.get('type', {}).get('name') == 'Precondition':
+                    linked_issue = link.get('inwardIssue') or link.get('outwardIssue')
+                    if linked_issue and linked_issue.get('key') == precondition_key:
+                        link_id = link.get('id')
+                        break
+            
+            if link_id:
+                # Delete the link
+                delete_url = f"{self.jira_url}/rest/api/3/issueLink/{link_id}"
+                response = self.session.delete(delete_url)
+                return response.status_code == 204
+            
+            return False
+        except Exception as e:
+            print(f"Error unlinking precondition from test: {e}")
+            return False
+
+    def get_advanced_metrics(self, project_key=None, date_range=None):
+        """Get advanced test metrics and analytics"""
+        try:
+            # Mock advanced metrics data
+            metrics = {
+                'test_execution_trends': {
+                    'daily': [
+                        {'date': '2024-01-01', 'executed': 45, 'passed': 42, 'failed': 3},
+                        {'date': '2024-01-02', 'executed': 52, 'passed': 48, 'failed': 4},
+                        {'date': '2024-01-03', 'executed': 38, 'passed': 35, 'failed': 3},
+                        {'date': '2024-01-04', 'executed': 61, 'passed': 58, 'failed': 3},
+                        {'date': '2024-01-05', 'executed': 47, 'passed': 44, 'failed': 3}
+                    ],
+                    'weekly': [
+                        {'week': '2024-W01', 'executed': 234, 'passed': 220, 'failed': 14},
+                        {'week': '2024-W02', 'executed': 267, 'passed': 251, 'failed': 16},
+                        {'week': '2024-W03', 'executed': 289, 'passed': 273, 'failed': 16}
+                    ]
+                },
+                'test_coverage_metrics': {
+                    'requirements_coverage': 85.5,
+                    'code_coverage': 78.2,
+                    'functional_coverage': 92.1,
+                    'regression_coverage': 88.7
+                },
+                'defect_metrics': {
+                    'total_defects': 127,
+                    'open_defects': 23,
+                    'closed_defects': 104,
+                    'defect_density': 2.3,
+                    'defect_resolution_time': 3.2
+                },
+                'test_automation_metrics': {
+                    'automation_coverage': 65.8,
+                    'automated_tests': 156,
+                    'manual_tests': 89,
+                    'automation_success_rate': 94.2
+                },
+                'performance_metrics': {
+                    'avg_execution_time': 12.5,
+                    'slowest_tests': [
+                        {'test': 'TEST-001', 'duration': 45.2},
+                        {'test': 'TEST-015', 'duration': 38.7},
+                        {'test': 'TEST-023', 'duration': 32.1}
+                    ]
+                }
+            }
+            return metrics
+        except Exception as e:
+            print(f"Error fetching advanced metrics: {e}")
+            return {}
+
+    def get_test_analytics(self, project_key=None, analysis_type='overview'):
+        """Get detailed test analytics"""
+        try:
+            analytics = {
+                'overview': {
+                    'total_tests': 245,
+                    'executed_tests': 198,
+                    'passed_tests': 185,
+                    'failed_tests': 13,
+                    'pass_rate': 93.4,
+                    'execution_rate': 80.8
+                },
+                'trends': {
+                    'test_creation_trend': 'increasing',
+                    'execution_trend': 'stable',
+                    'pass_rate_trend': 'improving'
+                },
+                'bottlenecks': [
+                    {'area': 'Database Tests', 'issue': 'Slow execution', 'impact': 'High'},
+                    {'area': 'UI Tests', 'issue': 'Flaky tests', 'impact': 'Medium'},
+                    {'area': 'API Tests', 'issue': 'Environment issues', 'impact': 'Low'}
+                ],
+                'recommendations': [
+                    'Optimize database test setup',
+                    'Implement better test data management',
+                    'Add more automated tests for regression coverage'
+                ]
+            }
+            return analytics
+        except Exception as e:
+            print(f"Error fetching test analytics: {e}")
+            return {}
+
+    def get_custom_reports(self, report_type='executive'):
+        """Get custom reports for different stakeholders"""
+        try:
+            reports = {
+                'executive': {
+                    'title': 'Executive Summary',
+                    'summary': 'Overall test health and progress',
+                    'metrics': {
+                        'test_coverage': 85.5,
+                        'defect_escape_rate': 2.1,
+                        'release_readiness': 87.3
+                    }
+                },
+                'manager': {
+                    'title': 'Management Dashboard',
+                    'summary': 'Team performance and resource utilization',
+                    'metrics': {
+                        'team_velocity': 45.2,
+                        'test_automation_ratio': 65.8,
+                        'defect_resolution_time': 3.2
+                    }
+                },
+                'tester': {
+                    'title': 'Tester Dashboard',
+                    'summary': 'Individual and team testing activities',
+                    'metrics': {
+                        'tests_created': 23,
+                        'tests_executed': 156,
+                        'defects_found': 8
+                    }
+                }
+            }
+            return reports.get(report_type, {})
+        except Exception as e:
+            print(f"Error fetching custom reports: {e}")
+            return {}
+
+    def get_workflows(self, project_key=None):
+        """Get test workflows and approval processes"""
+        try:
+            # Mock workflow data
+            workflows = {
+                'workflows': [
+                    {
+                        'id': 'wf-001',
+                        'name': 'Standard Test Workflow',
+                        'description': 'Standard workflow for test execution and approval',
+                        'status': 'active',
+                        'steps': [
+                            {'id': 1, 'name': 'Test Creation', 'type': 'manual', 'approver': None},
+                            {'id': 2, 'name': 'Test Review', 'type': 'approval', 'approver': 'Test Lead'},
+                            {'id': 3, 'name': 'Test Execution', 'type': 'manual', 'approver': None},
+                            {'id': 4, 'name': 'Results Review', 'type': 'approval', 'approver': 'Test Manager'}
+                        ]
+                    },
+                    {
+                        'id': 'wf-002',
+                        'name': 'Automated Test Workflow',
+                        'description': 'Workflow for automated test execution',
+                        'status': 'active',
+                        'steps': [
+                            {'id': 1, 'name': 'Test Creation', 'type': 'manual', 'approver': None},
+                            {'id': 2, 'name': 'Automation Review', 'type': 'approval', 'approver': 'Automation Lead'},
+                            {'id': 3, 'name': 'Automated Execution', 'type': 'automated', 'approver': None},
+                            {'id': 4, 'name': 'Results Analysis', 'type': 'approval', 'approver': 'Test Manager'}
+                        ]
+                    }
+                ]
+            }
+            return workflows
+        except Exception as e:
+            print(f"Error fetching workflows: {e}")
+            return {'workflows': []}
+
+    def get_approval_requests(self, project_key=None, status=None):
+        """Get pending approval requests"""
+        try:
+            # Mock approval requests data
+            requests = {
+                'requests': [
+                    {
+                        'id': 'req-001',
+                        'test_key': 'TEST-001',
+                        'test_name': 'Login Functionality Test',
+                        'requestor': 'John Doe',
+                        'request_date': '2024-01-15T10:30:00Z',
+                        'approval_type': 'Test Review',
+                        'status': 'pending',
+                        'approver': 'Test Lead',
+                        'priority': 'High'
+                    },
+                    {
+                        'id': 'req-002',
+                        'test_key': 'TEST-015',
+                        'test_name': 'Payment Processing Test',
+                        'requestor': 'Jane Smith',
+                        'request_date': '2024-01-15T14:20:00Z',
+                        'approval_type': 'Automation Review',
+                        'status': 'pending',
+                        'approver': 'Automation Lead',
+                        'priority': 'Medium'
+                    }
+                ]
+            }
+            return requests
+        except Exception as e:
+            print(f"Error fetching approval requests: {e}")
+            return {'requests': []}
+
+    def approve_request(self, request_id, approver, comments=None):
+        """Approve a test request"""
+        try:
+            # Mock approval process
+            return {
+                'success': True,
+                'message': f'Request {request_id} approved by {approver}',
+                'approval_date': datetime.now().isoformat()
+            }
+        except Exception as e:
+            print(f"Error approving request: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def reject_request(self, request_id, approver, comments=None):
+        """Reject a test request"""
+        try:
+            # Mock rejection process
+            return {
+                'success': True,
+                'message': f'Request {request_id} rejected by {approver}',
+                'rejection_date': datetime.now().isoformat()
+            }
+        except Exception as e:
+            print(f"Error rejecting request: {e}")
+            return {'success': False, 'error': str(e)}
     
     def get_bdd_scenarios(self, project_key=None, jql=None):
         """Get BDD scenarios from Jira"""
@@ -405,6 +805,38 @@ def scheduling_environments():
         return redirect(url_for('login'))
     
     return render_template('scheduling-environments.html')
+
+@app.route('/test-sets')
+def test_sets():
+    """Test sets management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('test-sets.html')
+
+@app.route('/preconditions')
+def preconditions():
+    """Preconditions management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('preconditions.html')
+
+@app.route('/advanced-reporting')
+def advanced_reporting():
+    """Advanced reporting and analytics page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('advanced-reporting.html')
+
+@app.route('/workflow-approval')
+def workflow_approval():
+    """Workflow and approval management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('workflow-approval.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1223,6 +1655,274 @@ def api_create_schedule():
             'message': f'Test schedule "{name}" created successfully',
             'next_run': cron_expression if schedule_type == 'recurring' else scheduled_time
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-sets')
+def api_test_sets():
+    """API endpoint to get test sets"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        test_sets = jira_client.get_test_sets(project_key, jql)
+        return jsonify(test_sets)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-sets/<test_set_key>/tests')
+def api_test_set_tests(test_set_key):
+    """API endpoint to get tests in a test set"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        tests = jira_client.get_test_set_tests(test_set_key)
+        return jsonify(tests)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-sets/<test_set_key>/add-test', methods=['POST'])
+def api_add_test_to_set(test_set_key):
+    """API endpoint to add a test to a test set"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        test_key = data.get('test_key')
+        
+        if not test_key:
+            return jsonify({'error': 'test_key is required'}), 400
+        
+        success = jira_client.add_test_to_set(test_set_key, test_key)
+        if success:
+            return jsonify({'success': True, 'message': f'Test {test_key} added to set {test_set_key}'})
+        else:
+            return jsonify({'error': 'Failed to add test to set'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-sets/<test_set_key>/remove-test', methods=['POST'])
+def api_remove_test_from_set(test_set_key):
+    """API endpoint to remove a test from a test set"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        test_key = data.get('test_key')
+        
+        if not test_key:
+            return jsonify({'error': 'test_key is required'}), 400
+        
+        success = jira_client.remove_test_from_set(test_set_key, test_key)
+        if success:
+            return jsonify({'success': True, 'message': f'Test {test_key} removed from set {test_set_key}'})
+        else:
+            return jsonify({'error': 'Failed to remove test from set'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/preconditions')
+def api_preconditions():
+    """API endpoint to get preconditions"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        preconditions = jira_client.get_preconditions(project_key, jql)
+        return jsonify(preconditions)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/preconditions/<precondition_key>/tests')
+def api_precondition_tests(precondition_key):
+    """API endpoint to get tests using a precondition"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        tests = jira_client.get_precondition_tests(precondition_key)
+        return jsonify(tests)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/preconditions/link', methods=['POST'])
+def api_link_precondition():
+    """API endpoint to link a precondition to a test"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        test_key = data.get('test_key')
+        precondition_key = data.get('precondition_key')
+        
+        if not test_key or not precondition_key:
+            return jsonify({'error': 'test_key and precondition_key are required'}), 400
+        
+        success = jira_client.link_precondition_to_test(test_key, precondition_key)
+        if success:
+            return jsonify({'success': True, 'message': f'Precondition {precondition_key} linked to test {test_key}'})
+        else:
+            return jsonify({'error': 'Failed to link precondition to test'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/preconditions/unlink', methods=['POST'])
+def api_unlink_precondition():
+    """API endpoint to unlink a precondition from a test"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        test_key = data.get('test_key')
+        precondition_key = data.get('precondition_key')
+        
+        if not test_key or not precondition_key:
+            return jsonify({'error': 'test_key and precondition_key are required'}), 400
+        
+        success = jira_client.unlink_precondition_from_test(test_key, precondition_key)
+        if success:
+            return jsonify({'success': True, 'message': f'Precondition {precondition_key} unlinked from test {test_key}'})
+        else:
+            return jsonify({'error': 'Failed to unlink precondition from test'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/advanced-metrics')
+def api_advanced_metrics():
+    """API endpoint to get advanced test metrics"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        date_range = request.args.get('date_range')
+        
+        metrics = jira_client.get_advanced_metrics(project_key, date_range)
+        return jsonify(metrics)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-analytics')
+def api_test_analytics():
+    """API endpoint to get test analytics"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        analysis_type = request.args.get('analysis_type', 'overview')
+        
+        analytics = jira_client.get_test_analytics(project_key, analysis_type)
+        return jsonify(analytics)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/custom-reports')
+def api_custom_reports():
+    """API endpoint to get custom reports"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        report_type = request.args.get('report_type', 'executive')
+        
+        reports = jira_client.get_custom_reports(report_type)
+        return jsonify(reports)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/workflows')
+def api_workflows():
+    """API endpoint to get workflows"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        workflows = jira_client.get_workflows(project_key)
+        return jsonify(workflows)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/approval-requests')
+def api_approval_requests():
+    """API endpoint to get approval requests"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        status = request.args.get('status')
+        
+        requests = jira_client.get_approval_requests(project_key, status)
+        return jsonify(requests)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/approve-request', methods=['POST'])
+def api_approve_request():
+    """API endpoint to approve a request"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        request_id = data.get('request_id')
+        approver = data.get('approver')
+        comments = data.get('comments')
+        
+        if not request_id or not approver:
+            return jsonify({'error': 'request_id and approver are required'}), 400
+        
+        result = jira_client.approve_request(request_id, approver, comments)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reject-request', methods=['POST'])
+def api_reject_request():
+    """API endpoint to reject a request"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        request_id = data.get('request_id')
+        approver = data.get('approver')
+        comments = data.get('comments')
+        
+        if not request_id or not approver:
+            return jsonify({'error': 'request_id and approver are required'}), 400
+        
+        result = jira_client.reject_request(request_id, approver, comments)
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

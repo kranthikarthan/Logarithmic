@@ -1,0 +1,582 @@
+{% extends "base.html" %}
+
+{% block title %}Workflow & Approval Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-project-diagram"></i> Workflow & Approval Management</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="showCreateWorkflowModal()">
+                        <i class="fas fa-plus"></i> Create Workflow
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="refreshData()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card xray-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-project-diagram fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Active Workflows</h6>
+                            <h4 class="mb-0" id="active-workflows">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card xray-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Pending Approvals</h6>
+                            <h4 class="mb-0" id="pending-approvals">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card xray-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Approved Today</h6>
+                            <h4 class="mb-0" id="approved-today">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card xray-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-times-circle fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Rejected Today</h6>
+                            <h4 class="mb-0" id="rejected-today">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="workflowTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="workflows-tab" data-bs-toggle="tab" data-bs-target="#workflows" type="button" role="tab">
+                <i class="fas fa-project-diagram"></i> Workflows
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="approvals-tab" data-bs-toggle="tab" data-bs-target="#approvals" type="button" role="tab">
+                <i class="fas fa-clipboard-check"></i> Approval Requests
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="workflowTabContent">
+        <!-- Workflows Tab -->
+        <div class="tab-pane fade show active" id="workflows" role="tabpanel">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card xray-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-project-diagram"></i> Test Workflows
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="workflows-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Workflow Name</th>
+                                            <th>Description</th>
+                                            <th>Steps</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="workflows-tbody">
+                                        <tr>
+                                            <td colspan="5" class="text-center">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approvals Tab -->
+        <div class="tab-pane fade" id="approvals" role="tabpanel">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card xray-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clipboard-check"></i> Approval Requests
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="approvals-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Test</th>
+                                            <th>Requestor</th>
+                                            <th>Approval Type</th>
+                                            <th>Priority</th>
+                                            <th>Request Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="approvals-tbody">
+                                        <tr>
+                                            <td colspan="7" class="text-center">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Workflow Modal -->
+<div class="modal fade" id="createWorkflowModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Workflow</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createWorkflowForm">
+                    <div class="mb-3">
+                        <label for="workflowName" class="form-label">Workflow Name</label>
+                        <input type="text" class="form-control" id="workflowName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="workflowDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="workflowDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Workflow Steps</label>
+                        <div id="workflowSteps">
+                            <div class="workflow-step mb-2">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" placeholder="Step Name" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select">
+                                            <option value="manual">Manual</option>
+                                            <option value="approval">Approval</option>
+                                            <option value="automated">Automated</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" placeholder="Approver (if applicable)">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeStep(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addWorkflowStep()">
+                            <i class="fas fa-plus"></i> Add Step
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createWorkflow()">Create Workflow</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Action Modal -->
+<div class="modal fade" id="approvalActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approve/Reject Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="approvalActionForm">
+                    <div class="mb-3">
+                        <label for="approvalComments" class="form-label">Comments</label>
+                        <textarea class="form-control" id="approvalComments" rows="3" placeholder="Add your comments here..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="approveRequest()">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button type="button" class="btn btn-danger" onclick="rejectRequest()">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentRequestId = null;
+let workflows = [];
+let approvalRequests = [];
+
+function loadData() {
+    loadWorkflows();
+    loadApprovalRequests();
+    updateOverview();
+}
+
+function loadWorkflows() {
+    fetch('/api/workflows')
+        .then(response => response.json())
+        .then(data => {
+            workflows = data.workflows || [];
+            displayWorkflows();
+        })
+        .catch(error => {
+            console.error('Error loading workflows:', error);
+            showError('Failed to load workflows');
+        });
+}
+
+function displayWorkflows() {
+    const tbody = document.getElementById('workflows-tbody');
+    tbody.innerHTML = '';
+    
+    if (workflows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No workflows found</td></tr>';
+        return;
+    }
+    
+    workflows.forEach(workflow => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <strong>${workflow.name}</strong>
+            </td>
+            <td>${workflow.description}</td>
+            <td>
+                <span class="badge bg-info">${workflow.steps.length} steps</span>
+            </td>
+            <td>
+                <span class="badge bg-${workflow.status === 'active' ? 'success' : 'secondary'}">
+                    ${workflow.status}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewWorkflowDetails('${workflow.id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function loadApprovalRequests() {
+    fetch('/api/approval-requests')
+        .then(response => response.json())
+        .then(data => {
+            approvalRequests = data.requests || [];
+            displayApprovalRequests();
+        })
+        .catch(error => {
+            console.error('Error loading approval requests:', error);
+            showError('Failed to load approval requests');
+        });
+}
+
+function displayApprovalRequests() {
+    const tbody = document.getElementById('approvals-tbody');
+    tbody.innerHTML = '';
+    
+    if (approvalRequests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No approval requests found</td></tr>';
+        return;
+    }
+    
+    approvalRequests.forEach(request => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <strong>${request.test_key}</strong><br>
+                <small class="text-muted">${request.test_name}</small>
+            </td>
+            <td>${request.requestor}</td>
+            <td>
+                <span class="badge bg-info">${request.approval_type}</span>
+            </td>
+            <td>
+                <span class="badge bg-${getPriorityColor(request.priority)}">${request.priority}</span>
+            </td>
+            <td>${formatDate(request.request_date)}</td>
+            <td>
+                <span class="badge bg-${getStatusColor(request.status)}">${request.status}</span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="showApprovalModal('${request.id}')">
+                    <i class="fas fa-clipboard-check"></i> Review
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function updateOverview() {
+    // Mock overview data
+    document.getElementById('active-workflows').textContent = workflows.length;
+    document.getElementById('pending-approvals').textContent = approvalRequests.filter(r => r.status === 'pending').length;
+    document.getElementById('approved-today').textContent = '12'; // Mock data
+    document.getElementById('rejected-today').textContent = '3'; // Mock data
+}
+
+function showCreateWorkflowModal() {
+    const modal = new bootstrap.Modal(document.getElementById('createWorkflowModal'));
+    modal.show();
+}
+
+function addWorkflowStep() {
+    const stepsContainer = document.getElementById('workflowSteps');
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'workflow-step mb-2';
+    stepDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Step Name" required>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select">
+                    <option value="manual">Manual</option>
+                    <option value="approval">Approval</option>
+                    <option value="automated">Automated</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Approver (if applicable)">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeStep(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    stepsContainer.appendChild(stepDiv);
+}
+
+function removeStep(button) {
+    button.closest('.workflow-step').remove();
+}
+
+function createWorkflow() {
+    const name = document.getElementById('workflowName').value;
+    const description = document.getElementById('workflowDescription').value;
+    
+    if (!name) {
+        showError('Please enter a workflow name');
+        return;
+    }
+    
+    // Mock workflow creation
+    const newWorkflow = {
+        id: `wf-${Date.now()}`,
+        name: name,
+        description: description,
+        status: 'active',
+        steps: []
+    };
+    
+    workflows.push(newWorkflow);
+    displayWorkflows();
+    updateOverview();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createWorkflowModal'));
+    modal.hide();
+    
+    showSuccess('Workflow created successfully');
+}
+
+function showApprovalModal(requestId) {
+    currentRequestId = requestId;
+    const modal = new bootstrap.Modal(document.getElementById('approvalActionModal'));
+    modal.show();
+}
+
+function approveRequest() {
+    if (!currentRequestId) {
+        showError('No request selected');
+        return;
+    }
+    
+    const comments = document.getElementById('approvalComments').value;
+    
+    fetch('/api/approve-request', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            request_id: currentRequestId,
+            approver: 'Current User', // In real app, get from session
+            comments: comments
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Request approved successfully');
+            loadApprovalRequests();
+            updateOverview();
+        } else {
+            showError(data.error || 'Failed to approve request');
+        }
+    })
+    .catch(error => {
+        console.error('Error approving request:', error);
+        showError('Failed to approve request');
+    });
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('approvalActionModal'));
+    modal.hide();
+}
+
+function rejectRequest() {
+    if (!currentRequestId) {
+        showError('No request selected');
+        return;
+    }
+    
+    const comments = document.getElementById('approvalComments').value;
+    
+    fetch('/api/reject-request', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            request_id: currentRequestId,
+            approver: 'Current User', // In real app, get from session
+            comments: comments
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Request rejected');
+            loadApprovalRequests();
+            updateOverview();
+        } else {
+            showError(data.error || 'Failed to reject request');
+        }
+    })
+    .catch(error => {
+        console.error('Error rejecting request:', error);
+        showError('Failed to reject request');
+    });
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('approvalActionModal'));
+    modal.hide();
+}
+
+function viewWorkflowDetails(workflowId) {
+    const workflow = workflows.find(w => w.id === workflowId);
+    if (workflow) {
+        alert(`Workflow: ${workflow.name}\nSteps: ${workflow.steps.length}\nDescription: ${workflow.description}`);
+    }
+}
+
+function getPriorityColor(priority) {
+    const colors = {
+        'High': 'danger',
+        'Medium': 'warning',
+        'Low': 'success'
+    };
+    return colors[priority] || 'secondary';
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'pending': 'warning',
+        'approved': 'success',
+        'rejected': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString();
+}
+
+function showSuccess(message) {
+    alert(message);
+}
+
+function showError(message) {
+    alert('Error: ' + message);
+}
+
+function refreshData() {
+    loadData();
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+});
+</script>
+{% endblock %}
