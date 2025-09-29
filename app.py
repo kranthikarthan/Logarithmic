@@ -830,6 +830,85 @@ jobs:
         }
     })
 
+@app.route('/api/integrations/azure-devops/template')
+def azure_devops_template():
+    """Azure DevOps pipeline template for CI/CD integration"""
+    return jsonify({
+        'success': True,
+        'template': {
+            'name': 'Assertly Test Generation Pipeline',
+            'description': 'Azure DevOps pipeline for generating test cases with Assertly AI',
+            'yaml_content': '''
+# Azure DevOps Pipeline for Assertly Test Generation
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  ASSERTLY_API_KEY: $(ASSERTLY_API_KEY)
+  ASSERTLY_API_URL: $(ASSERTLY_API_URL)
+  JIRA_URL: $(JIRA_URL)
+  JIRA_TOKEN: $(JIRA_TOKEN)
+
+stages:
+- stage: TestGeneration
+  displayName: 'Generate Tests with Assertly'
+  jobs:
+  - job: GenerateTests
+    displayName: 'Generate Test Cases'
+    steps:
+    - task: PowerShell@2
+      displayName: 'Install Assertly CLI'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Install Assertly CLI
+          npm install -g @assertly/cli
+          
+          # Verify installation
+          assertly --version
+    - task: PowerShell@2
+      displayName: 'Generate Test Cases'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Generate test cases from user stories
+          assertly generate-tests \\
+            --api-key $(ASSERTLY_API_KEY) \\
+            --api-url $(ASSERTLY_API_URL) \\
+            --project-key $(PROJECT_KEY) \\
+            --output-format jira \\
+            --include-bdd-scenarios \\
+            --jira-url $(JIRA_URL) \\
+            --jira-token $(JIRA_TOKEN)
+          
+          # Generate test data
+          assertly generate-test-data \\
+            --api-key $(ASSERTLY_API_KEY) \\
+            --test-cases ./generated-tests.json \\
+            --output-format csv
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results'
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/test-results.xml'
+        mergeTestResults: true
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Test Artifacts'
+      inputs:
+        pathToPublish: 'test-results'
+        artifactName: 'test-results'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Generated Tests'
+      inputs:
+        pathToPublish: 'generated-tests'
+        artifactName: 'generated-tests'
+'''
+        }
+    })
+
 @app.route('/api/integrations/test-frameworks/selenium')
 def selenium_integration():
     """Selenium integration endpoint"""
