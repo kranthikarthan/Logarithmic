@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Standalone Xray Test Management Tool
-A standalone application that replicates Xray test management functionality
+Assertly Test Management Platform
+A comprehensive test management platform with AI-powered test generation
 using personal Jira credentials without requiring admin installation.
 """
 
@@ -89,8 +89,8 @@ def clear_cache():
     """Clear all cached data"""
     cache.clear()
 
-class JiraXrayClient:
-    """Client for interacting with Jira and Xray APIs"""
+class JiraAssertlyClient:
+    """Client for interacting with Jira and Assertly APIs"""
     
     def __init__(self, jira_url, username, api_token):
         self.jira_url = jira_url.rstrip('/')
@@ -132,7 +132,7 @@ class JiraXrayClient:
     def get_test_cases(self, project_key=None, jql=None):
         """Get test cases from Jira"""
         try:
-            # Default JQL for test cases (Xray typically uses specific issue types)
+            # Default JQL for test cases (Assertly typically uses specific issue types)
             if not jql:
                 if project_key:
                     jql = f'project = "{project_key}" AND issuetype = "Test"'
@@ -741,7 +741,7 @@ def get_jira_client():
         return None
     
     # Create client from session data
-    return JiraXrayClient(
+    return JiraAssertlyClient(
         session['jira_url'],
         session['username'],
         session.get('api_token')  # Store token securely in session
@@ -1340,7 +1340,7 @@ def login():
             return render_template('login.html')
         
         # Create temporary client for testing
-        temp_client = JiraXrayClient(jira_url, username, api_token)
+        temp_client = JiraAssertlyClient(jira_url, username, api_token)
         
         # Test connection
         success, user_info = temp_client.test_connection()

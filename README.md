@@ -7,7 +7,7 @@
 
 > **Affordable, lightweight test management for Jira, GitHub & GitLab**
 
-Assertly is a modern alternative to Xray with better UX, lower cost, and seamless integrations. Built for agile teams who value quality and efficiency.
+Assertly is a modern test management platform with AI-powered test generation, comprehensive traceability, and seamless integrations. Built for agile teams who value quality and efficiency.
 
 ## ✨ Features
 

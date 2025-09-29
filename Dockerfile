@@ -1,4 +1,4 @@
-# Multi-stage build for production-ready Xray Test Management
+# Multi-stage build for production-ready Assertly Test Management
 FROM python:3.11-slim as base
 
 # Set environment variables

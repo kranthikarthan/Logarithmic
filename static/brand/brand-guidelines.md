@@ -154,9 +154,9 @@
 
 ### Competitive Positioning
 
-#### vs. Xray
-- **Assertly**: Modern UX, lower cost, better integrations
-- **Xray**: Established, feature-rich, enterprise-focused
+#### vs. Traditional Test Management
+- **Assertly**: Modern UX, AI-powered, better integrations
+- **Traditional Tools**: Established, feature-rich, enterprise-focused
 
 #### vs. TestRail
 - **Assertly**: Jira-native, modern design, agile-focused
