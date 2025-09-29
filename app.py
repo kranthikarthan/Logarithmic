@@ -749,11 +749,37 @@ def get_jira_client():
 
 @app.route('/')
 def index():
-    """Main dashboard"""
+    """Main dashboard or landing page"""
     if 'jira_connected' not in session:
-        return redirect(url_for('login'))
+        return render_template('landing.html')
     
     return render_template('dashboard.html')
+
+@app.route('/landing')
+def landing():
+    """Landing page"""
+    return render_template('landing.html')
+
+@app.route('/signup')
+def signup():
+    """Sign up page"""
+    return render_template('signup.html')
+
+@app.route('/signup', methods=['POST'])
+def signup_post():
+    """Handle signup form submission"""
+    # TODO: Implement user registration logic
+    flash('Signup functionality coming soon!', 'info')
+    return redirect(url_for('login'))
+
+@app.route('/health')
+def health():
+    """Health check endpoint for Docker"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.0'
+    })
 
 @app.route('/test-execution')
 def test_execution():
