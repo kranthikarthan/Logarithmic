@@ -59,7 +59,7 @@
 "Affordable, lightweight test management for Jira, GitHub & GitLab"
 
 #### Supporting Messages
-- "Modern alternative to Xray with better UX and lower cost"
+- "Modern test management platform with AI-powered test generation"
 - "Built for agile teams who value quality and efficiency"
 - "Seamless integrations with your favorite tools"
 - "From startup to enterprise scale"
@@ -141,7 +141,7 @@
 ### Brand Evolution
 
 #### Current Phase: Beta Launch
-- Focus on "Modern alternative to Xray"
+- Focus on "AI-powered test management platform"
 - Emphasize ease of use and affordability
 - Target QA teams and test leads
 - Build credibility through testimonials

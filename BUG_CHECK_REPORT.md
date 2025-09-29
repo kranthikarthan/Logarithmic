@@ -1,4 +1,4 @@
-# 🐛 Bug Check Report - Xray Test Management Tool
+# 🐛 Bug Check Report - Assertly Test Management Platform
 
 ## ✅ Completed Checks
 
