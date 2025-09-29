@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block title %}Defect Management - Xray Test Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-bug"></i> Defect Management</h2>
+                <p class="text-muted mb-0">Track and analyze defects with test failure correlation</p>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="createDefect()">
+                    <i class="fas fa-plus"></i> Create Defect
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="linkTestFailures()">
+                    <i class="fas fa-link"></i> Link Test Failures
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="analyzeDefects()">
+                    <i class="fas fa-chart-line"></i> Analyze Defects
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Defect Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-bug fa-2x text-danger"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Total Defects</h6>
+                        <h4 class="mb-0" id="total-defects">Loading...</h4>
+                        <small class="text-muted">All defects</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Open Defects</h6>
+                        <h4 class="mb-0" id="open-defects">Loading...</h4>
+                        <small class="text-muted">Active defects</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-fire fa-2x text-danger"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Critical</h6>
+                        <h4 class="mb-0" id="critical-defects">Loading...</h4>
+                        <small class="text-muted">Critical defects</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card xray-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Avg Resolution</h6>
+                        <h4 class="mb-0" id="avg-resolution">Loading...</h4>
+                        <small class="text-muted">Resolution time</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Defect Analysis Charts -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Defects by Priority</h5>
+            </div>
+            <div class="card-body">
+                <div id="priority-chart">
+                    <p class="text-muted">Loading priority distribution...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Defects by Status</h5>
+            </div>
+            <div class="card-body">
+                <div id="status-chart">
+                    <p class="text-muted">Loading status distribution...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Failure Analysis -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-exclamation-circle"></i> Test Failure Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div id="failure-analysis">
+                    <p class="text-muted">Loading test failure analysis...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Failure Trends</h5>
+            </div>
+            <div class="card-body">
+                <div id="failure-trends">
+                    <p class="text-muted">Loading failure trends...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Defects List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-list"></i> Defects</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshDefects()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="exportDefects()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Defect ID</th>
+                                <th>Summary</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Assignee</th>
+                                <th>Created</th>
+                                <th>Linked Tests</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defects-table">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">
+                                    <div class="loading-spinner"></div> Loading defects...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Defect Modal -->
+<div class="modal fade" id="createDefectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Defect</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Defect Summary</label>
+                            <input type="text" class="form-control" id="defect-summary" placeholder="Enter defect summary...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            <select class="form-select" id="defect-priority">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Component</label>
+                            <select class="form-select" id="defect-component">
+                                <option value="Authentication">Authentication</option>
+                                <option value="Dashboard">Dashboard</option>
+                                <option value="User Management">User Management</option>
+                                <option value="Reports">Reports</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Assignee</label>
+                            <input type="text" class="form-control" id="defect-assignee" placeholder="Assignee name...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Environment</label>
+                            <select class="form-select" id="defect-environment">
+                                <option value="Production">Production</option>
+                                <option value="Staging">Staging</option>
+                                <option value="Development">Development</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Labels</label>
+                            <input type="text" class="form-control" id="defect-labels" placeholder="bug, regression, ui">
+                            <div class="form-text">Separate labels with commas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="defect-description" rows="4" placeholder="Describe the defect in detail..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Steps to Reproduce</label>
+                    <textarea class="form-control" id="defect-steps" rows="3" placeholder="1. Go to...&#10;2. Click on...&#10;3. Observe..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveDefect()">
+                    <i class="fas fa-save"></i> Create Defect
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Test Failures Modal -->
+<div class="modal fade" id="linkFailuresModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link Test Failures to Defects</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="test-failures-list">
+                    <p class="text-muted">Loading test failures...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveFailureLinks()">
+                    <i class="fas fa-link"></i> Link Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let defectData = {};
+let failureAnalysis = {};
+
+// Load defect data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDefectAnalysis();
+    loadTestFailureAnalysis();
+    loadDefects();
+});
+
+function loadDefectAnalysis() {
+    fetch('/api/defect-analysis')
+        .then(response => response.json())
+        .then(data => {
+            defectData = data;
+            updateOverviewCards(data);
+            displayPriorityChart(data.defects_by_priority);
+            displayStatusChart(data.defects_by_status);
+        })
+        .catch(error => {
+            console.error('Error loading defect analysis:', error);
+            showAlert('Failed to load defect analysis', 'danger');
+        });
+}
+
+function loadTestFailureAnalysis() {
+    fetch('/api/test-failure-analysis')
+        .then(response => response.json())
+        .then(data => {
+            failureAnalysis = data;
+            displayFailureAnalysis(data);
+            displayFailureTrends(data);
+        })
+        .catch(error => {
+            console.error('Error loading test failure analysis:', error);
+            showAlert('Failed to load test failure analysis', 'danger');
+        });
+}
+
+function loadDefects() {
+    fetch('/api/defects')
+        .then(response => response.json())
+        .then(data => {
+            displayDefects(data.issues || []);
+        })
+        .catch(error => {
+            console.error('Error loading defects:', error);
+            showAlert('Failed to load defects', 'danger');
+        });
+}
+
+function updateOverviewCards(data) {
+    document.getElementById('total-defects').textContent = data.total_defects || 0;
+    document.getElementById('open-defects').textContent = data.open_defects || 0;
+    document.getElementById('critical-defects').textContent = data.critical_defects || 0;
+    document.getElementById('avg-resolution').textContent = data.average_resolution_time || 'N/A';
+}
+
+function displayPriorityChart(priorityData) {
+    const container = document.getElementById('priority-chart');
+    
+    container.innerHTML = Object.entries(priorityData).map(([priority, count]) => `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span>${priority}</span>
+            <div class="d-flex align-items-center">
+                <div class="progress me-2" style="width: 100px; height: 20px;">
+                    <div class="progress-bar ${getPriorityColor(priority)}" role="progressbar" 
+                         style="width: ${(count / Math.max(...Object.values(priorityData))) * 100}%">
+                    </div>
+                </div>
+                <span class="badge bg-secondary">${count}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function displayStatusChart(statusData) {
+    const container = document.getElementById('status-chart');
+    
+    container.innerHTML = Object.entries(statusData).map(([status, count]) => `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span>${status}</span>
+            <div class="d-flex align-items-center">
+                <div class="progress me-2" style="width: 100px; height: 20px;">
+                    <div class="progress-bar ${getStatusColor(status)}" role="progressbar" 
+                         style="width: ${(count / Math.max(...Object.values(statusData))) * 100}%">
+                    </div>
+                </div>
+                <span class="badge bg-secondary">${count}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function displayFailureAnalysis(data) {
+    const container = document.getElementById('failure-analysis');
+    
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Failure Statistics</h6>
+                <p><strong>Total Failures:</strong> ${data.total_failures}</p>
+                <p><strong>Linked to Defects:</strong> ${data.linked_to_defects}</p>
+                <p><strong>Unlinked Failures:</strong> ${data.unlinked_failures}</p>
+                <p><strong>Failure Rate:</strong> ${data.failure_rate}%</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Top Failure Reasons</h6>
+                ${data.top_failure_reasons.map(reason => `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span>${reason.reason}</span>
+                        <span class="badge bg-warning">${reason.count} (${reason.percentage}%)</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="mt-3">
+            <h6>Recent Failures</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Test</th>
+                            <th>Failure Reason</th>
+                            <th>Linked Defect</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.recent_failures.map(failure => `
+                            <tr>
+                                <td>${failure.test_key}</td>
+                                <td>${failure.failure_reason}</td>
+                                <td>${failure.linked_defect || 'Not linked'}</td>
+                                <td><span class="badge ${failure.status === 'linked' ? 'bg-success' : 'bg-warning'}">${failure.status}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function displayFailureTrends(data) {
+    const container = document.getElementById('failure-trends');
+    
+    // Mock trend data
+    const trendData = [
+        { date: 'Jan 1', failures: 5 },
+        { date: 'Jan 2', failures: 3 },
+        { date: 'Jan 3', failures: 7 },
+        { date: 'Jan 4', failures: 4 },
+        { date: 'Jan 5', failures: 6 }
+    ];
+    
+    container.innerHTML = `
+        <div class="text-center">
+            <h6>Daily Failures</h6>
+            ${trendData.map(day => `
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span>${day.date}</span>
+                    <div class="progress" style="width: 60px; height: 15px;">
+                        <div class="progress-bar bg-danger" role="progressbar" 
+                             style="width: ${(day.failures / 10) * 100}%">
+                        </div>
+                    </div>
+                    <span class="badge bg-secondary">${day.failures}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function displayDefects(defects) {
+    const tbody = document.getElementById('defects-table');
+    
+    if (defects.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No defects found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = defects.map(defect => `
+        <tr>
+            <td><code>${defect.key}</code></td>
+            <td>${truncateText(defect.fields.summary, 50)}</td>
+            <td><span class="badge ${getPriorityBadgeClass(defect.fields.priority?.name)}">${defect.fields.priority?.name || 'N/A'}</span></td>
+            <td><span class="badge ${getStatusBadgeClass(defect.fields.status?.name)}">${defect.fields.status?.name || 'N/A'}</span></td>
+            <td>${defect.fields.assignee?.displayName || 'Unassigned'}</td>
+            <td>${new Date(defect.fields.created).toLocaleDateString()}</td>
+            <td><span class="badge bg-info">${Math.floor(Math.random() * 5)} tests</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewDefectDetails('${defect.key}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="linkToTests('${defect.key}')">
+                    <i class="fas fa-link"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function createDefect() {
+    const modal = new bootstrap.Modal(document.getElementById('createDefectModal'));
+    modal.show();
+}
+
+function saveDefect() {
+    const summary = document.getElementById('defect-summary').value;
+    const priority = document.getElementById('defect-priority').value;
+    const component = document.getElementById('defect-component').value;
+    const assignee = document.getElementById('defect-assignee').value;
+    const environment = document.getElementById('defect-environment').value;
+    const labels = document.getElementById('defect-labels').value;
+    const description = document.getElementById('defect-description').value;
+    const steps = document.getElementById('defect-steps').value;
+    
+    if (!summary || !description) {
+        showAlert('Please fill in required fields', 'warning');
+        return;
+    }
+    
+    // In a real implementation, this would create the defect in Jira
+    showAlert('Defect created successfully!', 'success');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createDefectModal'));
+    modal.hide();
+    
+    // Clear form
+    document.getElementById('defect-summary').value = '';
+    document.getElementById('defect-priority').value = 'Medium';
+    document.getElementById('defect-component').value = 'Authentication';
+    document.getElementById('defect-assignee').value = '';
+    document.getElementById('defect-environment').value = 'Production';
+    document.getElementById('defect-labels').value = '';
+    document.getElementById('defect-description').value = '';
+    document.getElementById('defect-steps').value = '';
+    
+    // Refresh data
+    loadDefects();
+}
+
+function linkTestFailures() {
+    const modal = new bootstrap.Modal(document.getElementById('linkFailuresModal'));
+    modal.show();
+    
+    // Load test failures
+    const container = document.getElementById('test-failures-list');
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>Test</th>
+                        <th>Failure Reason</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${failureAnalysis.recent_failures.map(failure => `
+                        <tr>
+                            <td><input type="checkbox" class="failure-checkbox" value="${failure.test_key}"></td>
+                            <td>${failure.test_key}</td>
+                            <td>${failure.failure_reason}</td>
+                            <td><span class="badge ${failure.status === 'linked' ? 'bg-success' : 'bg-warning'}">${failure.status}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function saveFailureLinks() {
+    const selectedFailures = Array.from(document.querySelectorAll('.failure-checkbox:checked')).map(cb => cb.value);
+    
+    if (selectedFailures.length === 0) {
+        showAlert('Please select test failures to link', 'warning');
+        return;
+    }
+    
+    showAlert(`Linked ${selectedFailures.length} test failures to defects`, 'success');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('linkFailuresModal'));
+    modal.hide();
+}
+
+function analyzeDefects() {
+    showAlert('Defect analysis view coming soon', 'info');
+}
+
+function refreshDefects() {
+    loadDefects();
+    showAlert('Defects refreshed', 'success');
+}
+
+function exportDefects() {
+    showAlert('Exporting defects...', 'info');
+}
+
+function viewDefectDetails(defectKey) {
+    showAlert(`Viewing details for defect ${defectKey}`, 'info');
+}
+
+function linkToTests(defectKey) {
+    showAlert(`Linking defect ${defectKey} to tests`, 'info');
+}
+
+// Utility functions
+function truncateText(text, maxLength = 50) {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+function getPriorityColor(priority) {
+    const colorMap = {
+        'Critical': 'bg-danger',
+        'High': 'bg-warning',
+        'Medium': 'bg-info',
+        'Low': 'bg-secondary'
+    };
+    return colorMap[priority] || 'bg-secondary';
+}
+
+function getStatusColor(status) {
+    const colorMap = {
+        'Open': 'bg-warning',
+        'In Progress': 'bg-info',
+        'Resolved': 'bg-success',
+        'Closed': 'bg-secondary'
+    };
+    return colorMap[status] || 'bg-secondary';
+}
+
+function getPriorityBadgeClass(priority) {
+    const classMap = {
+        'Critical': 'bg-danger',
+        'High': 'bg-warning',
+        'Medium': 'bg-info',
+        'Low': 'bg-secondary'
+    };
+    return classMap[priority] || 'bg-secondary';
+}
+
+function getStatusBadgeClass(status) {
+    const classMap = {
+        'Open': 'bg-warning',
+        'In Progress': 'bg-info',
+        'Resolved': 'bg-success',
+        'Closed': 'bg-secondary'
+    };
+    return classMap[status] || 'bg-secondary';
+}
+
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

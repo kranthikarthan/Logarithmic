@@ -246,6 +246,79 @@ class JiraXrayClient:
             print(f"Error creating issue link: {e}")
             return False
     
+    def get_bdd_scenarios(self, project_key=None, jql=None):
+        """Get BDD scenarios from Jira"""
+        try:
+            if not jql:
+                if project_key:
+                    jql = f'project = "{project_key}" AND issuetype = "Test" AND summary ~ "Scenario:"'
+                else:
+                    jql = 'issuetype = "Test" AND summary ~ "Scenario:"'
+            
+            params = {
+                'jql': jql,
+                'maxResults': 1000,
+                'fields': 'summary,description,status,assignee,reporter,created,updated,labels,components,fixVersions,priority,issuetype'
+            }
+            
+            response = self.session.get(f"{self.jira_url}/rest/api/3/search", params=params)
+            if response.status_code == 200:
+                return response.json()
+            return {'issues': []}
+        except Exception as e:
+            print(f"Error fetching BDD scenarios: {e}")
+            return {'issues': []}
+    
+    def parse_gherkin_from_description(self, description):
+        """Parse Gherkin syntax from issue description"""
+        if not description:
+            return None
+        
+        lines = description.split('\n')
+        gherkin_data = {
+            'feature': '',
+            'scenarios': [],
+            'background': [],
+            'tags': []
+        }
+        
+        current_scenario = None
+        in_background = False
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            if line.startswith('@'):
+                gherkin_data['tags'].append(line[1:])
+            elif line.startswith('Feature:'):
+                gherkin_data['feature'] = line.replace('Feature:', '').strip()
+            elif line.startswith('Background:'):
+                in_background = True
+            elif line.startswith('Scenario:'):
+                if current_scenario:
+                    gherkin_data['scenarios'].append(current_scenario)
+                current_scenario = {
+                    'name': line.replace('Scenario:', '').strip(),
+                    'steps': []
+                }
+                in_background = False
+            elif line.startswith('Given') or line.startswith('When') or line.startswith('Then') or line.startswith('And') or line.startswith('But'):
+                step = {
+                    'keyword': line.split()[0],
+                    'text': ' '.join(line.split()[1:])
+                }
+                if in_background:
+                    gherkin_data['background'].append(step)
+                elif current_scenario:
+                    current_scenario['steps'].append(step)
+        
+        if current_scenario:
+            gherkin_data['scenarios'].append(current_scenario)
+        
+        return gherkin_data
+    
     def get_issue_details(self, issue_key):
         """Get detailed information about a specific issue"""
         try:
@@ -292,6 +365,30 @@ def requirements_traceability():
         return redirect(url_for('login'))
     
     return render_template('requirements-traceability.html')
+
+@app.route('/bdd-scenarios')
+def bdd_scenarios():
+    """BDD scenarios page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('bdd-scenarios.html')
+
+@app.route('/automated-testing')
+def automated_testing():
+    """Automated testing page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('automated-testing.html')
+
+@app.route('/defect-management')
+def defect_management():
+    """Defect management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('defect-management.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -444,6 +541,332 @@ def api_create_issue_link():
             return jsonify({'success': True, 'message': 'Issue link created successfully'})
         else:
             return jsonify({'error': 'Failed to create issue link'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/bdd-scenarios')
+def api_bdd_scenarios():
+    """API endpoint to get BDD scenarios"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        scenarios = jira_client.get_bdd_scenarios(project_key, jql)
+        
+        # Parse Gherkin from descriptions
+        for issue in scenarios.get('issues', []):
+            description = issue.get('fields', {}).get('description', '')
+            if description:
+                gherkin_data = jira_client.parse_gherkin_from_description(description)
+                issue['gherkin'] = gherkin_data
+        
+        return jsonify(scenarios)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/bdd-scenarios/<issue_key>/gherkin')
+def api_parse_gherkin(issue_key):
+    """API endpoint to parse Gherkin from a specific issue"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        issue = jira_client.get_issue_details(issue_key)
+        if not issue:
+            return jsonify({'error': 'Issue not found'}), 404
+        
+        description = issue.get('fields', {}).get('description', '')
+        gherkin_data = jira_client.parse_gherkin_from_description(description)
+        
+        return jsonify({
+            'issue_key': issue_key,
+            'gherkin': gherkin_data
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/automated-tests')
+def api_automated_tests():
+    """API endpoint to get automated test results"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        test_framework = request.args.get('framework', 'all')
+        
+        # Mock automated test results - in real implementation, integrate with CI/CD
+        automated_tests = {
+            'total_tests': 150,
+            'passed': 120,
+            'failed': 20,
+            'skipped': 10,
+            'execution_time': '15m 30s',
+            'framework_results': {
+                'selenium': {
+                    'total': 80,
+                    'passed': 70,
+                    'failed': 8,
+                    'skipped': 2,
+                    'execution_time': '8m 15s'
+                },
+                'junit': {
+                    'total': 50,
+                    'passed': 40,
+                    'failed': 8,
+                    'skipped': 2,
+                    'execution_time': '4m 30s'
+                },
+                'cucumber': {
+                    'total': 20,
+                    'passed': 10,
+                    'failed': 4,
+                    'skipped': 6,
+                    'execution_time': '2m 45s'
+                }
+            },
+            'recent_executions': [
+                {
+                    'id': 'exec-001',
+                    'timestamp': '2024-01-15T10:30:00Z',
+                    'status': 'completed',
+                    'total_tests': 150,
+                    'passed': 120,
+                    'failed': 20,
+                    'skipped': 10,
+                    'duration': '15m 30s',
+                    'framework': 'selenium'
+                },
+                {
+                    'id': 'exec-002',
+                    'timestamp': '2024-01-15T09:15:00Z',
+                    'status': 'completed',
+                    'total_tests': 150,
+                    'passed': 140,
+                    'failed': 8,
+                    'skipped': 2,
+                    'duration': '12m 45s',
+                    'framework': 'junit'
+                }
+            ]
+        }
+        
+        return jsonify(automated_tests)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ci-cd-integration')
+def api_ci_cd_integration():
+    """API endpoint for CI/CD integration status"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        # Mock CI/CD integration data
+        ci_cd_data = {
+            'integrations': {
+                'jenkins': {
+                    'enabled': True,
+                    'url': 'https://jenkins.company.com',
+                    'last_build': '2024-01-15T10:30:00Z',
+                    'status': 'success',
+                    'test_results': {
+                        'total': 150,
+                        'passed': 120,
+                        'failed': 20,
+                        'skipped': 10
+                    }
+                },
+                'bamboo': {
+                    'enabled': False,
+                    'url': None,
+                    'last_build': None,
+                    'status': 'disabled'
+                },
+                'gitlab': {
+                    'enabled': True,
+                    'url': 'https://gitlab.company.com',
+                    'last_build': '2024-01-15T09:45:00Z',
+                    'status': 'success',
+                    'test_results': {
+                        'total': 100,
+                        'passed': 95,
+                        'failed': 3,
+                        'skipped': 2
+                    }
+                }
+            },
+            'pipeline_status': {
+                'total_pipelines': 2,
+                'active_pipelines': 2,
+                'success_rate': 85.5,
+                'average_execution_time': '14m 30s'
+            }
+        }
+        
+        return jsonify(ci_cd_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/trigger-automated-test', methods=['POST'])
+def api_trigger_automated_test():
+    """API endpoint to trigger automated test execution"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        data = request.get_json()
+        test_suite = data.get('test_suite', 'all')
+        framework = data.get('framework', 'selenium')
+        environment = data.get('environment', 'staging')
+        
+        # Mock test execution trigger
+        execution_id = f"exec-{int(time.time())}"
+        
+        return jsonify({
+            'success': True,
+            'execution_id': execution_id,
+            'message': f'Automated test execution triggered for {test_suite} using {framework}',
+            'estimated_duration': '15-20 minutes',
+            'status_url': f'/api/execution-status/{execution_id}'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/defects')
+def api_defects():
+    """API endpoint to get defects/bugs"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        jql = request.args.get('jql')
+        
+        if not jql:
+            if project_key:
+                jql = f'project = "{project_key}" AND issuetype = "Bug"'
+            else:
+                jql = 'issuetype = "Bug"'
+        
+        params = {
+            'jql': jql,
+            'maxResults': 1000,
+            'fields': 'summary,description,status,assignee,reporter,created,updated,labels,components,fixVersions,priority,issuetype,issuelinks'
+        }
+        
+        response = jira_client.session.get(f"{jira_client.jira_url}/rest/api/3/search", params=params)
+        if response.status_code == 200:
+            return response.json()
+        return {'issues': []}
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/defect-analysis')
+def api_defect_analysis():
+    """API endpoint to get defect analysis and statistics"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Get defects
+        defects = jira_client.get_requirements(project_key)  # Using requirements method as placeholder
+        defects_list = defects.get('issues', [])
+        
+        # Mock defect analysis data
+        analysis = {
+            'total_defects': len(defects_list),
+            'open_defects': len([d for d in defects_list if d.get('fields', {}).get('status', {}).get('name') in ['Open', 'In Progress']]),
+            'closed_defects': len([d for d in defects_list if d.get('fields', {}).get('status', {}).get('name') in ['Closed', 'Resolved']]),
+            'critical_defects': len([d for d in defects_list if d.get('fields', {}).get('priority', {}).get('name') == 'Critical']),
+            'defects_by_priority': {
+                'Critical': 5,
+                'High': 12,
+                'Medium': 25,
+                'Low': 8
+            },
+            'defects_by_status': {
+                'Open': 15,
+                'In Progress': 8,
+                'Resolved': 20,
+                'Closed': 7
+            },
+            'defects_by_component': {
+                'Authentication': 8,
+                'Dashboard': 12,
+                'User Management': 6,
+                'Reports': 4
+            },
+            'average_resolution_time': '3.5 days',
+            'defect_trend': [
+                {'date': '2024-01-01', 'opened': 5, 'closed': 3},
+                {'date': '2024-01-02', 'opened': 3, 'closed': 4},
+                {'date': '2024-01-03', 'opened': 7, 'closed': 2},
+                {'date': '2024-01-04', 'opened': 4, 'closed': 6},
+                {'date': '2024-01-05', 'opened': 6, 'closed': 5}
+            ]
+        }
+        
+        return jsonify(analysis)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test-failure-analysis')
+def api_test_failure_analysis():
+    """API endpoint to analyze test failures and link to defects"""
+    jira_client = get_jira_client()
+    if not jira_client:
+        return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    try:
+        project_key = request.args.get('project')
+        
+        # Mock test failure analysis
+        failure_analysis = {
+            'total_failures': 25,
+            'linked_to_defects': 18,
+            'unlinked_failures': 7,
+            'failure_rate': 16.7,
+            'top_failure_reasons': [
+                {'reason': 'Element not found', 'count': 8, 'percentage': 32},
+                {'reason': 'Timeout waiting for element', 'count': 6, 'percentage': 24},
+                {'reason': 'Assertion failed', 'count': 5, 'percentage': 20},
+                {'reason': 'Network error', 'count': 3, 'percentage': 12},
+                {'reason': 'Data validation error', 'count': 3, 'percentage': 12}
+            ],
+            'recent_failures': [
+                {
+                    'test_key': 'TEST-001',
+                    'test_name': 'Login with valid credentials',
+                    'failure_reason': 'Element not found',
+                    'timestamp': '2024-01-15T10:30:00Z',
+                    'linked_defect': 'BUG-123',
+                    'status': 'linked'
+                },
+                {
+                    'test_key': 'TEST-002',
+                    'test_name': 'User registration',
+                    'failure_reason': 'Timeout waiting for element',
+                    'timestamp': '2024-01-15T09:45:00Z',
+                    'linked_defect': None,
+                    'status': 'unlinked'
+                }
+            ]
+        }
+        
+        return jsonify(failure_analysis)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
