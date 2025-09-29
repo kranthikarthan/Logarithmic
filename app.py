@@ -755,6 +755,11 @@ def index():
     
     return render_template('dashboard.html')
 
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard page"""
+    return render_template('dashboard.html')
+
 @app.route('/landing')
 def landing():
     """Landing page"""

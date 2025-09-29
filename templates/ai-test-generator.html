@@ -48,12 +48,12 @@
                             <div class="form-group">
                                 <label for="story-title" class="form-label">Story Title *</label>
                                 <input type="text" id="story-title" name="title" class="form-control" 
-                                       placeholder="e.g., User Login" required>
+                                       placeholder="e.g., User Login" required id="title-input">
                             </div>
                             <div class="form-group">
                                 <label for="story-epic" class="form-label">Epic</label>
                                 <input type="text" id="story-epic" name="epic" class="form-control" 
-                                       placeholder="e.g., Authentication">
+                                       placeholder="e.g., Authentication" id="epic-input">
                             </div>
                         </div>
                         
@@ -67,8 +67,8 @@
                             <label for="acceptance-criteria" class="form-label">Acceptance Criteria *</label>
                             <div id="acceptance-criteria-list">
                                 <div class="criteria-item">
-                                    <input type="text" name="acceptance_criteria" class="form-control" 
-                                           placeholder="User can log in with valid credentials">
+                                    <input type="text" id="criteria-input" name="acceptance_criteria" class="form-control" 
+                                           placeholder="User can log in with valid credentials" id="acceptance_criteria-input">
                                     <button type="button" class="btn-remove-criteria" onclick="removeCriteria(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -83,12 +83,12 @@
                             <div class="form-group">
                                 <label for="business-value" class="form-label">Business Value *</label>
                                 <input type="text" id="business-value" name="business_value" class="form-control" 
-                                       placeholder="Enables secure access to user accounts" required>
+                                       placeholder="Enables secure access to user accounts" required id="business_value-input">
                             </div>
                             <div class="form-group">
                                 <label for="user-persona" class="form-label">User Persona *</label>
                                 <input type="text" id="user-persona" name="user_persona" class="form-control" 
-                                       placeholder="Registered user" required>
+                                       placeholder="Registered user" required id="user_persona-input">
                             </div>
                         </div>
                     </div>
@@ -100,32 +100,32 @@
                                 <label for="test-types" class="form-label">Test Types</label>
                                 <div class="checkbox-group">
                                     <label class="checkbox-item">
-                                        <input type="checkbox" name="test_types" value="functional" checked>
+                                        <input type="checkbox" name="test_types" value="functional" checked id="test_types-input">
                                         <span class="checkmark"></span>
                                         Functional
                                     </label>
                                     <label class="checkbox-item">
-                                        <input type="checkbox" name="test_types" value="ui" checked>
+                                        <input type="checkbox" name="test_types" value="ui" checked id="test_types-input">
                                         <span class="checkmark"></span>
                                         UI
                                     </label>
                                     <label class="checkbox-item">
-                                        <input type="checkbox" name="test_types" value="api">
+                                        <input type="checkbox" name="test_types" value="api" id="test_types-input">
                                         <span class="checkmark"></span>
                                         API
                                     </label>
                                     <label class="checkbox-item">
-                                        <input type="checkbox" name="test_types" value="integration">
+                                        <input type="checkbox" name="test_types" value="integration" id="test_types-input">
                                         <span class="checkmark"></span>
                                         Integration
                                     </label>
                                     <label class="checkbox-item">
-                                        <input type="checkbox" name="test_types" value="security">
+                                        <input type="checkbox" name="test_types" value="security" id="test_types-input">
                                         <span class="checkmark"></span>
                                         Security
                                     </label>
                                     <label class="checkbox-item">
-                                        <input type="checkbox" name="test_types" value="performance">
+                                        <input type="checkbox" name="test_types" value="performance" id="test_types-input">
                                         <span class="checkmark"></span>
                                         Performance
                                     </label>
@@ -146,8 +146,8 @@
                             <label for="additional-prompts" class="form-label">Additional Prompts</label>
                             <div id="prompts-list">
                                 <div class="prompt-item">
-                                    <input type="text" name="additional_prompts" class="form-control" 
-                                           placeholder="Focus on security testing">
+                                    <input type="text" id="additional-prompts" name="additional_prompts" class="form-control" 
+                                           placeholder="Focus on security testing" id="additional_prompts-input">
                                     <button type="button" class="btn-remove-prompt" onclick="removePrompt(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -178,7 +178,7 @@
                         <div class="form-group">
                             <label for="improve-title" class="form-label">Test Case Title</label>
                             <input type="text" id="improve-title" name="title" class="form-control" 
-                                   placeholder="Enter test case title">
+                                   placeholder="Enter test case title" id="title-input">
                         </div>
                         
                         <div class="form-group">
@@ -191,8 +191,8 @@
                             <label for="improve-steps" class="form-label">Test Steps</label>
                             <div id="improve-steps-list">
                                 <div class="step-item">
-                                    <input type="text" name="steps" class="form-control" 
-                                           placeholder="Step 1: Navigate to login page">
+                                    <input type="text" id="test-steps" name="steps" class="form-control" 
+                                           placeholder="Step 1: Navigate to login page" id="steps-input">
                                     <button type="button" class="btn-remove-step" onclick="removeStep(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -206,7 +206,7 @@
                         <div class="form-group">
                             <label for="improve-expected" class="form-label">Expected Result</label>
                             <input type="text" id="improve-expected" name="expected_result" class="form-control" 
-                                   placeholder="User should be logged in successfully">
+                                   placeholder="User should be logged in successfully" id="expected_result-input">
                         </div>
                     </div>
 
@@ -217,7 +217,7 @@
                             <div id="improvement-prompts-list">
                                 <div class="prompt-item">
                                     <input type="text" name="improvement_prompts" class="form-control" 
-                                           placeholder="Add more edge cases">
+                                           placeholder="Add more edge cases" id="improvement_prompts-input">
                                     <button type="button" class="btn-remove-prompt" onclick="removePrompt(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -248,7 +248,7 @@
                         <div class="form-group">
                             <label for="bdd-title" class="form-label">Story Title *</label>
                             <input type="text" id="bdd-title" name="title" class="form-control" 
-                                   placeholder="e.g., User Login" required>
+                                   placeholder="e.g., User Login" required id="title-input">
                         </div>
                         
                         <div class="form-group">
@@ -261,8 +261,8 @@
                             <label for="bdd-criteria" class="form-label">Acceptance Criteria *</label>
                             <div id="bdd-criteria-list">
                                 <div class="criteria-item">
-                                    <input type="text" name="acceptance_criteria" class="form-control" 
-                                           placeholder="User can log in with valid credentials">
+                                    <input type="text" id="criteria-input" name="acceptance_criteria" class="form-control" 
+                                           placeholder="User can log in with valid credentials" id="acceptance_criteria-input">
                                     <button type="button" class="btn-remove-criteria" onclick="removeCriteria(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -277,12 +277,12 @@
                             <div class="form-group">
                                 <label for="bdd-business-value" class="form-label">Business Value *</label>
                                 <input type="text" id="bdd-business-value" name="business_value" class="form-control" 
-                                       placeholder="Enables secure access to user accounts" required>
+                                       placeholder="Enables secure access to user accounts" required id="business_value-input">
                             </div>
                             <div class="form-group">
                                 <label for="bdd-user-persona" class="form-label">User Persona *</label>
                                 <input type="text" id="bdd-user-persona" name="user_persona" class="form-control" 
-                                       placeholder="Registered user" required>
+                                       placeholder="Registered user" required id="user_persona-input">
                             </div>
                         </div>
                         
@@ -312,7 +312,7 @@
                         <div class="form-group">
                             <label for="coverage-title" class="form-label">Story Title *</label>
                             <input type="text" id="coverage-title" name="title" class="form-control" 
-                                   placeholder="e.g., User Login" required>
+                                   placeholder="e.g., User Login" required id="title-input">
                         </div>
                         
                         <div class="form-group">
@@ -325,8 +325,8 @@
                             <label for="coverage-criteria" class="form-label">Acceptance Criteria *</label>
                             <div id="coverage-criteria-list">
                                 <div class="criteria-item">
-                                    <input type="text" name="acceptance_criteria" class="form-control" 
-                                           placeholder="User can log in with valid credentials">
+                                    <input type="text" id="criteria-input" name="acceptance_criteria" class="form-control" 
+                                           placeholder="User can log in with valid credentials" id="acceptance_criteria-input">
                                     <button type="button" class="btn-remove-criteria" onclick="removeCriteria(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -341,12 +341,12 @@
                             <div class="form-group">
                                 <label for="coverage-business-value" class="form-label">Business Value *</label>
                                 <input type="text" id="coverage-business-value" name="business_value" class="form-control" 
-                                       placeholder="Enables secure access to user accounts" required>
+                                       placeholder="Enables secure access to user accounts" required id="business_value-input">
                             </div>
                             <div class="form-group">
                                 <label for="coverage-user-persona" class="form-label">User Persona *</label>
                                 <input type="text" id="coverage-user-persona" name="user_persona" class="form-control" 
-                                       placeholder="Registered user" required>
+                                       placeholder="Registered user" required id="user_persona-input">
                             </div>
                         </div>
                     </div>
@@ -358,7 +358,7 @@
                             <div id="existing-test-cases-list">
                                 <div class="test-case-item">
                                     <input type="text" name="existing_test_cases" class="form-control" 
-                                           placeholder="Test case title">
+                                           placeholder="Test case title" id="existing_test_cases-input">
                                     <button type="button" class="btn-remove-test-case" onclick="removeTestCase(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -812,7 +812,7 @@ function addCriteria() {
     const newItem = document.createElement('div');
     newItem.className = 'criteria-item';
     newItem.innerHTML = `
-        <input type="text" name="acceptance_criteria" class="form-control" placeholder="Acceptance criteria">
+        <input type="text" name="acceptance_criteria" class="form-control" placeholder="Acceptance criteria" id="acceptance_criteria-input">
         <button type="button" class="btn-remove-criteria" onclick="removeCriteria(this)">
             <i class="fas fa-times"></i>
         </button>
@@ -829,7 +829,7 @@ function addPrompt() {
     const newItem = document.createElement('div');
     newItem.className = 'prompt-item';
     newItem.innerHTML = `
-        <input type="text" name="additional_prompts" class="form-control" placeholder="Additional prompt">
+        <input type="text" name="additional_prompts" class="form-control" placeholder="Additional prompt" id="additional_prompts-input">
         <button type="button" class="btn-remove-prompt" onclick="removePrompt(this)">
             <i class="fas fa-times"></i>
         </button>
@@ -846,7 +846,7 @@ function addStep() {
     const newItem = document.createElement('div');
     newItem.className = 'step-item';
     newItem.innerHTML = `
-        <input type="text" name="steps" class="form-control" placeholder="Test step">
+        <input type="text" name="steps" class="form-control" placeholder="Test step" id="steps-input">
         <button type="button" class="btn-remove-step" onclick="removeStep(this)">
             <i class="fas fa-times"></i>
         </button>
@@ -863,7 +863,7 @@ function addImprovementPrompt() {
     const newItem = document.createElement('div');
     newItem.className = 'prompt-item';
     newItem.innerHTML = `
-        <input type="text" name="improvement_prompts" class="form-control" placeholder="Improvement prompt">
+        <input type="text" name="improvement_prompts" class="form-control" placeholder="Improvement prompt" id="improvement_prompts-input">
         <button type="button" class="btn-remove-prompt" onclick="removePrompt(this)">
             <i class="fas fa-times"></i>
         </button>
@@ -876,7 +876,7 @@ function addTestCase() {
     const newItem = document.createElement('div');
     newItem.className = 'test-case-item';
     newItem.innerHTML = `
-        <input type="text" name="existing_test_cases" class="form-control" placeholder="Test case title">
+        <input type="text" name="existing_test_cases" class="form-control" placeholder="Test case title" id="existing_test_cases-input">
         <button type="button" class="btn-remove-test-case" onclick="removeTestCase(this)">
             <i class="fas fa-times"></i>
         </button>
