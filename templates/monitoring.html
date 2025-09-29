@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}System Monitoring - Assertly{% endblock %}
+
+{% block content %}
+<div class="monitoring-container">
+    <div class="monitoring-header">
+        <h1><i class="fas fa-chart-line"></i> System Monitoring</h1>
+        <p>Real-time system metrics and performance monitoring</p>
+    </div>
+
+    <!-- System Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-header">
+                <h3><i class="fas fa-server"></i> System Health</h3>
+                <span class="status-indicator" id="system-status">Loading...</span>
+            </div>
+            <div class="metric-content">
+                <div class="metric-item">
+                    <span class="metric-label">CPU Usage</span>
+                    <span class="metric-value" id="cpu-usage">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Memory Usage</span>
+                    <span class="metric-value" id="memory-usage">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Disk Usage</span>
+                    <span class="metric-value" id="disk-usage">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <h3><i class="fas fa-database"></i> Cache Performance</h3>
+                <span class="status-indicator" id="cache-status">Loading...</span>
+            </div>
+            <div class="metric-content">
+                <div class="metric-item">
+                    <span class="metric-label">Hit Rate</span>
+                    <span class="metric-value" id="cache-hit-rate">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Connected Clients</span>
+                    <span class="metric-value" id="cache-clients">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Memory Used</span>
+                    <span class="metric-value" id="cache-memory">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <h3><i class="fas fa-users"></i> Real-time Users</h3>
+                <span class="status-indicator" id="realtime-status">Loading...</span>
+            </div>
+            <div class="metric-content">
+                <div class="metric-item">
+                    <span class="metric-label">Connected Users</span>
+                    <span class="metric-value" id="connected-users">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Active Rooms</span>
+                    <span class="metric-value" id="active-rooms">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">WebSocket Status</span>
+                    <span class="metric-value" id="websocket-status">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <h3><i class="fas fa-chart-bar"></i> Performance</h3>
+                <span class="status-indicator" id="performance-status">Loading...</span>
+            </div>
+            <div class="metric-content">
+                <div class="metric-item">
+                    <span class="metric-label">Request Count</span>
+                    <span class="metric-value" id="request-count">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Error Rate</span>
+                    <span class="metric-value" id="error-rate">-</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Avg Response Time</span>
+                    <span class="metric-value" id="avg-response-time">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Charts -->
+    <div class="charts-section">
+        <div class="chart-container">
+            <h3><i class="fas fa-chart-line"></i> Performance Summary (Last Hour)</h3>
+            <div class="chart-content" id="performance-chart">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading performance data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Actions -->
+    <div class="actions-section">
+        <h3><i class="fas fa-tools"></i> System Actions</h3>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="refreshMetrics()">
+                <i class="fas fa-sync"></i> Refresh Metrics
+            </button>
+            <button class="btn btn-warning" onclick="clearCache()">
+                <i class="fas fa-trash"></i> Clear Cache
+            </button>
+            <button class="btn btn-info" onclick="exportMetrics()">
+                <i class="fas fa-download"></i> Export Metrics
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// WebSocket connection for real-time updates
+const socket = io();
+
+// Connect to monitoring room
+socket.emit('join_room', { room: 'monitoring' });
+
+// Listen for real-time updates
+socket.on('system_metrics_updated', function(data) {
+    updateSystemMetrics(data);
+});
+
+socket.on('performance_updated', function(data) {
+    updatePerformanceChart(data);
+});
+
+// Update system metrics
+function updateSystemMetrics(data) {
+    if (data.cpu) {
+        document.getElementById('cpu-usage').textContent = data.cpu.percent + '%';
+    }
+    if (data.memory) {
+        document.getElementById('memory-usage').textContent = data.memory.percent + '%';
+    }
+    if (data.disk) {
+        document.getElementById('disk-usage').textContent = data.disk.percent + '%';
+    }
+}
+
+// Update performance chart
+function updatePerformanceChart(data) {
+    const chartContainer = document.getElementById('performance-chart');
+    chartContainer.innerHTML = `
+        <div class="performance-summary">
+            <div class="summary-item">
+                <span class="summary-label">Total Requests:</span>
+                <span class="summary-value">${data.total_requests || 0}</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Average Duration:</span>
+                <span class="summary-value">${(data.average_duration || 0).toFixed(3)}s</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Error Rate:</span>
+                <span class="summary-value">${(data.error_rate || 0).toFixed(1)}%</span>
+            </div>
+        </div>
+    `;
+}
+
+// Load initial data
+async function loadInitialData() {
+    try {
+        // Load system metrics
+        const systemResponse = await fetch('/api/monitoring/system-metrics');
+        const systemData = await systemResponse.json();
+        updateSystemMetrics(systemData);
+
+        // Load cache stats
+        const cacheResponse = await fetch('/api/cache/stats');
+        const cacheData = await cacheResponse.json();
+        updateCacheMetrics(cacheData);
+
+        // Load real-time status
+        const realtimeResponse = await fetch('/api/realtime/status');
+        const realtimeData = await realtimeResponse.json();
+        updateRealtimeMetrics(realtimeData);
+
+        // Load performance summary
+        const performanceResponse = await fetch('/api/monitoring/performance-summary?hours=1');
+        const performanceData = await performanceResponse.json();
+        updatePerformanceChart(performanceData);
+
+    } catch (error) {
+        console.error('Error loading monitoring data:', error);
+    }
+}
+
+// Update cache metrics
+function updateCacheMetrics(data) {
+    if (data.connected) {
+        document.getElementById('cache-status').textContent = 'Connected';
+        document.getElementById('cache-status').className = 'status-indicator connected';
+        document.getElementById('cache-hit-rate').textContent = data.hit_rate + '%';
+        document.getElementById('cache-clients').textContent = data.connected_clients;
+        document.getElementById('cache-memory').textContent = data.used_memory;
+    } else {
+        document.getElementById('cache-status').textContent = 'Disconnected';
+        document.getElementById('cache-status').className = 'status-indicator disconnected';
+    }
+}
+
+// Update real-time metrics
+function updateRealtimeMetrics(data) {
+    document.getElementById('connected-users').textContent = data.total_users || 0;
+    document.getElementById('active-rooms').textContent = Object.keys(data.rooms || {}).length;
+    document.getElementById('websocket-status').textContent = 'Connected';
+}
+
+// Refresh metrics
+function refreshMetrics() {
+    loadInitialData();
+}
+
+// Clear cache
+async function clearCache() {
+    if (confirm('Are you sure you want to clear the cache? This will affect performance temporarily.')) {
+        try {
+            const response = await fetch('/api/cache/clear', { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                alert('Cache cleared successfully');
+                refreshMetrics();
+            } else {
+                alert('Failed to clear cache');
+            }
+        } catch (error) {
+            console.error('Error clearing cache:', error);
+            alert('Error clearing cache');
+        }
+    }
+}
+
+// Export metrics
+function exportMetrics() {
+    // This would implement metrics export functionality
+    alert('Metrics export functionality would be implemented here');
+}
+
+// Auto-refresh every 30 seconds
+setInterval(loadInitialData, 30000);
+
+// Load initial data when page loads
+document.addEventListener('DOMContentLoaded', loadInitialData);
+</script>
+
+<style>
+.monitoring-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.monitoring-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.monitoring-header h1 {
+    color: var(--primary-600);
+    margin-bottom: 0.5rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.metric-header h3 {
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.status-indicator {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+}
+
+.status-indicator.connected {
+    background: var(--success-100);
+    color: var(--success-700);
+}
+
+.status-indicator.disconnected {
+    background: var(--error-100);
+    color: var(--error-700);
+}
+
+.metric-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+.metric-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: var(--text-sm);
+}
+
+.charts-section {
+    margin-bottom: 2rem;
+}
+
+.chart-container {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-primary);
+}
+
+.chart-container h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.performance-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.summary-label {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+.summary-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.actions-section {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-primary);
+}
+
+.actions-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .monitoring-container {
+        padding: 1rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

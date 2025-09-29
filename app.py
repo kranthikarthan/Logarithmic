@@ -24,6 +24,20 @@ from functools import wraps
 import time
 from collections import defaultdict
 
+# Import new managers (with fallbacks)
+try:
+    from cache_manager import cache_manager
+except ImportError:
+    from simple_cache_manager import cache_manager
+
+try:
+    from realtime_manager import init_realtime_manager
+    from monitoring_manager import init_monitoring_manager
+except ImportError:
+    # Fallback managers
+    init_realtime_manager = None
+    init_monitoring_manager = None
+
 # Load environment variables
 load_dotenv()
 
@@ -32,6 +46,17 @@ app = Flask(__name__)
 # Security: Use environment variable for secret key, generate random if not set
 import secrets
 app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
+
+# Initialize managers (with fallbacks)
+if init_monitoring_manager:
+    monitoring_manager = init_monitoring_manager(app)
+else:
+    monitoring_manager = None
+
+if init_realtime_manager:
+    realtime_manager = init_realtime_manager(app)
+else:
+    realtime_manager = None
 
 # Security decorators
 def require_auth(f):
@@ -795,6 +820,11 @@ def enterprise_settings():
         return redirect(url_for('login'))
     
     return render_template('enterprise-settings.html')
+
+@app.route('/monitoring')
+def monitoring():
+    """System monitoring page"""
+    return render_template('monitoring.html')
 
 @app.route('/api/integrations/vscode/install')
 def vscode_install():
@@ -3163,6 +3193,104 @@ def enterprise_health():
         
         return jsonify(health)
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# New monitoring and caching endpoints
+@app.route('/api/monitoring/system-metrics')
+def get_system_metrics():
+    """Get system metrics"""
+    try:
+        if monitoring_manager:
+            metrics = monitoring_manager.get_system_metrics()
+        else:
+            # Fallback metrics
+            metrics = {
+                'timestamp': datetime.now().isoformat(),
+                'uptime': 0,
+                'cpu': {'percent': 0, 'count': 1},
+                'memory': {'percent': 0, 'available': 0, 'total': 0},
+                'disk': {'percent': 0, 'used': 0, 'total': 0},
+                'application': {
+                    'request_count': 0,
+                    'error_count': 0,
+                    'cache_stats': cache_manager.get_cache_stats()
+                }
+            }
+        return jsonify(metrics)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/monitoring/performance-summary')
+def get_performance_summary():
+    """Get performance summary"""
+    try:
+        if monitoring_manager:
+            hours = request.args.get('hours', 1, type=int)
+            summary = monitoring_manager.get_performance_summary(hours)
+        else:
+            # Fallback summary
+            summary = {
+                'period_hours': 1,
+                'total_requests': 0,
+                'average_duration': 0,
+                'min_duration': 0,
+                'max_duration': 0,
+                'status_codes': {'200': 0, '400': 0, '401': 0, '404': 0, '500': 0},
+                'error_rate': 0,
+                'endpoints': {}
+            }
+        return jsonify(summary)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/monitoring/health')
+def get_health_status():
+    """Get health status"""
+    try:
+        if monitoring_manager:
+            health = monitoring_manager.get_health_status()
+        else:
+            # Fallback health status
+            health = {
+                'status': 'healthy',
+                'issues': [],
+                'timestamp': datetime.now().isoformat(),
+                'uptime': 0,
+                'metrics': cache_manager.get_cache_stats()
+            }
+        return jsonify(health)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/stats')
+def get_cache_stats():
+    """Get cache statistics"""
+    try:
+        stats = cache_manager.get_cache_stats()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/clear', methods=['POST'])
+def clear_cache():
+    """Clear cache (admin only)"""
+    try:
+        # This should be protected by authentication in production
+        success = cache_manager.clear_all_cache()
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/realtime/status')
+def get_realtime_status():
+    """Get real-time status"""
+    try:
+        if realtime_manager:
+            status = realtime_manager.get_connected_users()
+            return jsonify(status)
+        else:
+            return jsonify({'error': 'Real-time manager not initialized'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
