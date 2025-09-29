@@ -3,155 +3,161 @@
 {% block title %}Xray Test Management Dashboard{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="mb-1"><i class="fas fa-vial"></i> Xray Test Management</h2>
-                <p class="text-muted mb-0">Test Management Dashboard</p>
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="fas fa-vial" style="font-size: 1.5rem;"></i>
+            <span>Xray Test Management</span>
+        </div>
+        <h1 class="hero-title">
+            Test Management Dashboard
+        </h1>
+        <p class="hero-subtitle">
+            Comprehensive test management with advanced reporting, traceability, and automation integration
+        </p>
+        <div class="hero-actions">
+            <button class="hero-btn" onclick="createTestPlan()">
+                <i class="fas fa-plus"></i> Create Test Plan
+            </button>
+            <button class="hero-btn" onclick="createTestExecution()">
+                <i class="fas fa-play"></i> Create Test Execution
+            </button>
+            <button class="hero-btn" onclick="openRequirementsTraceability()">
+                <i class="fas fa-sitemap"></i> Requirements Traceability
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="metrics-grid">
+    <div class="metric-card animate-fadeIn" style="animation-delay: 0.1s;">
+        <div class="metric-card-body">
+            <div class="metric-content">
+                <div class="metric-icon primary">
+                    <i class="fas fa-list-check" style="font-size: 1.5rem;"></i>
+                </div>
+                <div class="metric-info">
+                    <h3 class="metric-value" id="test-cases-count">Loading...</h3>
+                    <p class="metric-label">Total Test Cases</p>
+                </div>
             </div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary" onclick="createTestPlan()">
-                    <i class="fas fa-plus"></i> Create Test Plan
+            <div class="metric-action">
+                <button class="btn btn-sm btn-primary w-100" onclick="loadTestCases()">
+                    <i class="fas fa-eye"></i> View Test Cases
                 </button>
-                <button type="button" class="btn btn-outline-success" onclick="createTestExecution()">
-                    <i class="fas fa-play"></i> Create Test Execution
+            </div>
+        </div>
+    </div>
+    
+    <div class="metric-card animate-fadeIn" style="animation-delay: 0.2s;">
+        <div class="metric-card-body">
+            <div class="metric-content">
+                <div class="metric-icon success">
+                    <i class="fas fa-play-circle" style="font-size: 1.5rem;"></i>
+                </div>
+                <div class="metric-info">
+                    <h3 class="metric-value" id="test-executions-count">Loading...</h3>
+                    <p class="metric-label">Active Executions</p>
+                </div>
+            </div>
+            <div class="metric-action">
+                <button class="btn btn-sm btn-success w-100" onclick="loadTestExecutions()">
+                    <i class="fas fa-play"></i> View Executions
                 </button>
-                <button type="button" class="btn btn-outline-info" onclick="openRequirementsTraceability()">
-                    <i class="fas fa-sitemap"></i> Requirements Traceability
+            </div>
+        </div>
+    </div>
+    
+    <div class="metric-card animate-fadeIn" style="animation-delay: 0.3s;">
+        <div class="metric-card-body">
+            <div class="metric-content">
+                <div class="metric-icon warning">
+                    <i class="fas fa-clipboard-list" style="font-size: 1.5rem;"></i>
+                </div>
+                <div class="metric-info">
+                    <h3 class="metric-value" id="test-plans-count">Loading...</h3>
+                    <p class="metric-label">Active Plans</p>
+                </div>
+            </div>
+            <div class="metric-action">
+                <button class="btn btn-sm btn-warning w-100" onclick="loadTestPlans()">
+                    <i class="fas fa-clipboard"></i> View Plans
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="metric-card animate-fadeIn" style="animation-delay: 0.4s;">
+        <div class="metric-card-body">
+            <div class="metric-content">
+                <div class="metric-icon secondary">
+                    <i class="fas fa-sitemap" style="font-size: 1.5rem;"></i>
+                </div>
+                <div class="metric-info">
+                    <h3 class="metric-value" id="requirements-count">Loading...</h3>
+                    <p class="metric-label">Total Requirements</p>
+                </div>
+            </div>
+            <div class="metric-action">
+                <button class="btn btn-sm btn-secondary w-100" onclick="openRequirementsTraceability()">
+                    <i class="fas fa-sitemap"></i> View Traceability
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Xray-style Overview Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card xray-card">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-list-check fa-2x text-primary"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="card-title mb-1">Test Cases</h6>
-                        <h4 class="mb-0" id="test-cases-count">Loading...</h4>
-                        <small class="text-muted">Total test cases</small>
-                    </div>
+<!-- Main Content Grid -->
+<div class="content-grid">
+    <!-- Quick Filters Card -->
+    <div class="content-card animate-fadeIn" style="animation-delay: 0.5s;">
+        <div class="content-card-header">
+            <div class="content-card-title">
+                <div class="content-card-icon primary">
+                    <i class="fas fa-filter" style="font-size: 1rem;"></i>
                 </div>
-                <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-primary w-100" onclick="loadTestCases()">
-                        <i class="fas fa-eye"></i> View Test Cases
-                    </button>
-                </div>
+                <h5>Quick Filters</h5>
             </div>
+        </div>
+        <div class="content-card-body">
+            <div class="form-group">
+                <label for="project-filter" class="form-label">Project</label>
+                <select id="project-filter" onchange="updateProjectFilter()" class="form-control">
+                    <option value="">All Projects</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="jql-filter" class="form-label">Custom JQL Query</label>
+                <input type="text" id="jql-filter" placeholder="issuetype = 'Test' AND status = 'Open'" class="form-control">
+                <div class="form-text">Enter a JQL query to filter results</div>
+            </div>
+            
+            <button class="btn btn-primary w-100" onclick="applyFilters()">
+                <i class="fas fa-search"></i> Apply Filters
+            </button>
         </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card xray-card">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-play-circle fa-2x text-success"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="card-title mb-1">Test Executions</h6>
-                        <h4 class="mb-0" id="test-executions-count">Loading...</h4>
-                        <small class="text-muted">Active executions</small>
-                    </div>
+    <!-- Recent Activity Card -->
+    <div class="content-card animate-fadeIn" style="animation-delay: 0.6s;">
+        <div class="content-card-header">
+            <div class="content-card-title">
+                <div class="content-card-icon success">
+                    <i class="fas fa-chart-bar" style="font-size: 1rem;"></i>
                 </div>
-                <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-success w-100" onclick="loadTestExecutions()">
-                        <i class="fas fa-play"></i> View Executions
-                    </button>
-                </div>
+                <h5>Recent Activity</h5>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-3">
-        <div class="card xray-card">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-clipboard-list fa-2x text-info"></i>
+        <div class="content-card-body">
+            <div id="recent-activity" style="max-height: 300px; overflow-y: auto;">
+                <div style="display: flex; align-items: center; justify-content: center; padding: var(--space-8); color: var(--text-muted);">
+                    <div style="text-align: center;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: var(--space-3);"></i>
+                        <p style="margin: 0;">Loading recent activity...</p>
                     </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="card-title mb-1">Test Plans</h6>
-                        <h4 class="mb-0" id="test-plans-count">Loading...</h4>
-                        <small class="text-muted">Active plans</small>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-info w-100" onclick="loadTestPlans()">
-                        <i class="fas fa-clipboard"></i> View Plans
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3">
-        <div class="card xray-card">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-sitemap fa-2x text-info"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="card-title mb-1">Requirements</h6>
-                        <h4 class="mb-0" id="requirements-count">Loading...</h4>
-                        <small class="text-muted">Total requirements</small>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-info w-100" onclick="openRequirementsTraceability()">
-                        <i class="fas fa-sitemap"></i> View Traceability
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-filter"></i> Quick Filters</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="project-filter" class="form-label">Project</label>
-                    <select class="form-select" id="project-filter" onchange="updateProjectFilter()">
-                        <option value="">All Projects</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="jql-filter" class="form-label">Custom JQL Query</label>
-                    <input type="text" class="form-control" id="jql-filter" 
-                           placeholder="issuetype = 'Test' AND status = 'Open'">
-                    <div class="form-text">Enter a JQL query to filter results</div>
-                </div>
-                
-                <button class="btn btn-primary" onclick="applyFilters()">
-                    <i class="fas fa-search"></i> Apply Filters
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-chart-bar"></i> Recent Activity</h5>
-            </div>
-            <div class="card-body">
-                <div id="recent-activity">
-                    <p class="text-muted">Loading recent activity...</p>
                 </div>
             </div>
         </div>
@@ -159,66 +165,69 @@
 </div>
 
 <!-- Data Display Area -->
-<div class="row mt-4" id="data-display" style="display: none;">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 id="data-title">Data</h5>
-                <div>
-                    <button class="btn btn-sm btn-outline-primary" onclick="exportCurrentData()">
+<div id="data-display" class="data-display">
+    <div class="content-card">
+        <div class="content-card-header">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div class="content-card-title">
+                    <div class="content-card-icon primary">
+                        <i class="fas fa-table" style="font-size: 1rem;"></i>
+                    </div>
+                    <h5 id="data-title">Data</h5>
+                </div>
+                <div style="display: flex; gap: var(--space-2);">
+                    <button class="btn btn-sm btn-primary" onclick="exportCurrentData()">
                         <i class="fas fa-download"></i> Export
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="hideDataDisplay()">
+                    <button class="btn btn-sm btn-secondary" onclick="hideDataDisplay()">
                         <i class="fas fa-times"></i> Close
                     </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped" id="data-table">
-                        <thead id="data-table-head">
-                        </thead>
-                        <tbody id="data-table-body">
-                        </tbody>
-                    </table>
-                </div>
+        </div>
+        <div class="content-card-body" style="padding: 0;">
+            <div style="overflow-x: auto;">
+                <table class="data-table" id="data-table">
+                    <thead id="data-table-head">
+                    </thead>
+                    <tbody id="data-table-body">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Export Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Export Data</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div id="exportModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Export Data</h5>
+            <button class="modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="export-format" class="form-label">Export Format</label>
+                <select id="export-format" class="form-control">
+                    <option value="excel">Excel (.xlsx)</option>
+                    <option value="csv">CSV</option>
+                    <option value="json">JSON</option>
+                </select>
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="export-format" class="form-label">Export Format</label>
-                    <select class="form-select" id="export-format">
-                        <option value="excel">Excel (.xlsx)</option>
-                        <option value="csv">CSV</option>
-                        <option value="json">JSON</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="export-type" class="form-label">Data Type</label>
-                    <select class="form-select" id="export-type">
-                        <option value="test-cases">Test Cases</option>
-                        <option value="test-executions">Test Executions</option>
-                        <option value="test-plans">Test Plans</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label for="export-type" class="form-label">Data Type</label>
+                <select id="export-type" class="form-control">
+                    <option value="test-cases">Test Cases</option>
+                    <option value="test-executions">Test Executions</option>
+                    <option value="test-plans">Test Plans</option>
+                </select>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="performExport()">
-                    <i class="fas fa-download"></i> Export
-                </button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="performExport()">
+                <i class="fas fa-download"></i> Export
+            </button>
         </div>
     </div>
 </div>
@@ -285,21 +294,23 @@ function updateRecentActivity(activities) {
     if (!container) return;
     
     if (activities.length === 0) {
-        container.innerHTML = '<p class="text-muted">No recent activity</p>';
+        container.innerHTML = '<div style="text-align: center; padding: var(--space-8); color: var(--text-muted);"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: var(--space-3);"></i><p style="margin: 0;">No recent activity</p></div>';
         return;
     }
     
     container.innerHTML = activities.map(activity => `
-        <div class="d-flex align-items-center mb-2">
-            <div class="flex-shrink-0">
-                <i class="fas fa-${activity.type === 'test_execution' ? 'play-circle' : 'list-check'} text-primary"></i>
+        <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); margin-bottom: var(--space-2); background: var(--bg-secondary); border: 1px solid var(--border-primary); transition: all var(--transition-fast);">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                <i class="fas fa-${activity.type === 'test_execution' ? 'play-circle' : 'list-check'}" style="font-size: 1rem;"></i>
             </div>
-            <div class="flex-grow-1 ms-2">
-                <div class="fw-bold">${activity.key}</div>
-                <small class="text-muted">${activity.summary}</small>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: var(--font-semibold); color: var(--text-primary); margin-bottom: var(--space-1);">${activity.key}</div>
+                <div style="font-size: var(--text-sm); color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${activity.summary}</div>
             </div>
-            <div class="flex-shrink-0">
-                <span class="badge bg-${activity.status === 'Completed' ? 'success' : 'info'}">${activity.status}</span>
+            <div style="flex-shrink: 0;">
+                <span style="display: inline-block; padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: var(--font-medium); background: ${activity.status === 'Completed' ? 'var(--success-100)' : 'var(--primary-100)'}; color: ${activity.status === 'Completed' ? 'var(--success-700)' : 'var(--primary-700)'};">
+                    ${activity.status}
+                </span>
             </div>
         </div>
     `).join('');
@@ -386,7 +397,7 @@ function displayData(title, data) {
     tableBody.innerHTML = '';
     
     if (data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="100%" class="text-center text-muted">No data found</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: var(--space-8); color: var(--text-muted);"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: var(--space-3);"></i><p style="margin: 0;">No data found</p></td></tr>';
         return;
     }
     
@@ -396,6 +407,10 @@ function displayData(title, data) {
     headers.forEach(header => {
         const th = document.createElement('th');
         th.textContent = header;
+        th.style.padding = 'var(--space-4)';
+        th.style.fontWeight = 'var(--font-semibold)';
+        th.style.color = 'var(--text-primary)';
+        th.style.borderBottom = '1px solid var(--border-primary)';
         headerRow.appendChild(th);
     });
     tableHead.appendChild(headerRow);
@@ -403,10 +418,13 @@ function displayData(title, data) {
     // Create table rows
     data.forEach(issue => {
         const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid var(--border-primary)';
+        row.style.transition = 'background-color var(--transition-fast)';
+        
         const fields = issue.fields || {};
         
         const cells = [
-            `<a href="#" onclick="viewIssueDetails('${issue.key}')">${issue.key}</a>`,
+            `<a href="#" onclick="viewIssueDetails('${issue.key}')" style="color: var(--primary-600); text-decoration: none; font-weight: var(--font-medium);">${issue.key}</a>`,
             fields.summary || '',
             fields.status ? fields.status.name : '',
             fields.assignee ? fields.assignee.displayName : '',
@@ -418,7 +436,17 @@ function displayData(title, data) {
         cells.forEach(cellContent => {
             const td = document.createElement('td');
             td.innerHTML = cellContent;
+            td.style.padding = 'var(--space-4)';
+            td.style.color = 'var(--text-primary)';
             row.appendChild(td);
+        });
+        
+        // Add hover effect
+        row.addEventListener('mouseenter', () => {
+            row.style.backgroundColor = 'var(--bg-secondary)';
+        });
+        row.addEventListener('mouseleave', () => {
+            row.style.backgroundColor = 'transparent';
         });
         
         tableBody.appendChild(row);
@@ -431,49 +459,52 @@ function viewIssueDetails(issueKey) {
         .then(issue => {
             // Create a modal to display issue details
             const modal = document.createElement('div');
-            modal.className = 'modal fade';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-overlay); z-index: var(--z-modal); display: flex; align-items: center; justify-content: center; padding: var(--space-4);';
             modal.innerHTML = `
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">${issue.key}: ${issue.fields.summary}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>Basic Information</h6>
-                                    <p><strong>Status:</strong> ${issue.fields.status.name}</p>
-                                    <p><strong>Priority:</strong> ${issue.fields.priority ? issue.fields.priority.name : 'N/A'}</p>
-                                    <p><strong>Assignee:</strong> ${issue.fields.assignee ? issue.fields.assignee.displayName : 'Unassigned'}</p>
-                                    <p><strong>Reporter:</strong> ${issue.fields.reporter ? issue.fields.reporter.displayName : 'N/A'}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Dates</h6>
-                                    <p><strong>Created:</strong> ${new Date(issue.fields.created).toLocaleString()}</p>
-                                    <p><strong>Updated:</strong> ${new Date(issue.fields.updated).toLocaleString()}</p>
+                <div style="background: var(--bg-elevated); border-radius: var(--radius-xl); box-shadow: var(--shadow-2xl); max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                    <div style="padding: var(--space-6); border-bottom: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: space-between;">
+                        <h5 style="margin: 0; color: var(--text-primary); font-weight: var(--font-semibold);">${issue.key}: ${issue.fields.summary}</h5>
+                        <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem;">&times;</button>
+                    </div>
+                    <div style="padding: var(--space-6);">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                            <div>
+                                <h6 style="margin: 0 0 var(--space-3) 0; color: var(--text-primary); font-weight: var(--font-semibold);">Basic Information</h6>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                                    <div><strong>Status:</strong> ${issue.fields.status.name}</div>
+                                    <div><strong>Priority:</strong> ${issue.fields.priority ? issue.fields.priority.name : 'N/A'}</div>
+                                    <div><strong>Assignee:</strong> ${issue.fields.assignee ? issue.fields.assignee.displayName : 'Unassigned'}</div>
+                                    <div><strong>Reporter:</strong> ${issue.fields.reporter ? issue.fields.reporter.displayName : 'N/A'}</div>
                                 </div>
                             </div>
-                            ${issue.fields.description ? `
-                                <div class="mt-3">
-                                    <h6>Description</h6>
-                                    <div class="border p-3">${issue.fields.description}</div>
+                            <div>
+                                <h6 style="margin: 0 0 var(--space-3) 0; color: var(--text-primary); font-weight: var(--font-semibold);">Dates</h6>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                                    <div><strong>Created:</strong> ${new Date(issue.fields.created).toLocaleString()}</div>
+                                    <div><strong>Updated:</strong> ${new Date(issue.fields.updated).toLocaleString()}</div>
                                 </div>
-                            ` : ''}
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
+                        ${issue.fields.description ? `
+                            <div>
+                                <h6 style="margin: 0 0 var(--space-3) 0; color: var(--text-primary); font-weight: var(--font-semibold);">Description</h6>
+                                <div style="border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: var(--space-4); background: var(--bg-secondary);">${issue.fields.description}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div style="padding: var(--space-6); border-top: 1px solid var(--border-primary); display: flex; justify-content: flex-end;">
+                        <button class="btn btn-secondary" onclick="this.closest('[style*=\"position: fixed\"]').remove()">Close</button>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(modal);
-            const bsModal = new bootstrap.Modal(modal);
-            bsModal.show();
             
-            modal.addEventListener('hidden.bs.modal', () => {
-                document.body.removeChild(modal);
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
             });
         })
         .catch(error => console.error('Error loading issue details:', error));
@@ -499,8 +530,11 @@ function hideDataDisplay() {
 }
 
 function showExportOptions() {
-    const modal = new bootstrap.Modal(document.getElementById('exportModal'));
-    modal.show();
+    document.getElementById('exportModal').style.display = 'flex';
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').style.display = 'none';
 }
 
 function performExport() {
@@ -512,6 +546,8 @@ function performExport() {
     } else {
         alert('Export functionality for this format/type combination is not yet implemented.');
     }
+    
+    closeExportModal();
 }
 
 function exportCurrentData() {
