@@ -22,7 +22,9 @@
   "activationEvents": [
     "onCommand:assertly.generateTestCases",
     "onCommand:assertly.openDashboard",
-    "onCommand:assertly.syncWithJira"
+    "onCommand:assertly.syncWithJira",
+    "onCommand:assertly.configureEnterprise",
+    "onCommand:assertly.testEnterpriseConnection"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -50,6 +52,21 @@
       {
         "command": "assertly.analyzeCoverage",
         "title": "Analyze Test Coverage",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.configureEnterprise",
+        "title": "Configure Enterprise AI",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.testEnterpriseConnection",
+        "title": "Test Enterprise AI Connection",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.openEnterpriseSettings",
+        "title": "Open Enterprise Settings",
         "category": "Assertly"
       }
     ],
@@ -125,6 +142,37 @@
         "assertly.aiApiKey": {
           "type": "string",
           "description": "AI API Key"
+        },
+        "assertly.enterpriseMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Enterprise Mode"
+        },
+        "assertly.enterpriseAiUrl": {
+          "type": "string",
+          "description": "Enterprise AI Service URL"
+        },
+        "assertly.enterpriseAiModel": {
+          "type": "string",
+          "default": "local-copilot",
+          "description": "Enterprise AI Model Name"
+        },
+        "assertly.enterpriseApiKey": {
+          "type": "string",
+          "description": "Enterprise AI API Key"
+        },
+        "assertly.proxyUrl": {
+          "type": "string",
+          "description": "Corporate Proxy URL"
+        },
+        "assertly.certPath": {
+          "type": "string",
+          "description": "SSL Certificate Path"
+        },
+        "assertly.verifySsl": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify SSL Certificates"
         }
       }
     },

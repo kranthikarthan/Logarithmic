@@ -7,8 +7,15 @@ interface AssertlyConfig {
     jiraUrl?: string;
     jiraUsername?: string;
     jiraApiToken?: string;
-    aiProvider: 'openai' | 'anthropic';
+    aiProvider: 'openai' | 'anthropic' | 'local';
     aiApiKey?: string;
+    enterpriseMode?: boolean;
+    enterpriseAiUrl?: string;
+    enterpriseAiModel?: string;
+    enterpriseApiKey?: string;
+    proxyUrl?: string;
+    certPath?: string;
+    verifySsl?: boolean;
 }
 
 interface TestCase {
@@ -58,6 +65,18 @@ export function activate(context: vscode.ExtensionContext) {
         await analyzeCoverage();
     });
 
+    const configureEnterpriseCommand = vscode.commands.registerCommand('assertly.configureEnterprise', async () => {
+        await configureEnterprise();
+    });
+
+    const testEnterpriseConnectionCommand = vscode.commands.registerCommand('assertly.testEnterpriseConnection', async () => {
+        await testEnterpriseConnection();
+    });
+
+    const openEnterpriseSettingsCommand = vscode.commands.registerCommand('assertly.openEnterpriseSettings', async () => {
+        await openEnterpriseSettings();
+    });
+
     // Register test explorer provider
     const testExplorerProvider = new AssertlyTestExplorerProvider();
     vscode.window.registerTreeDataProvider('assertlyTestExplorer', testExplorerProvider);
@@ -84,6 +103,9 @@ export function activate(context: vscode.ExtensionContext) {
         syncWithJiraCommand,
         createBDDScenarioCommand,
         analyzeCoverageCommand,
+        configureEnterpriseCommand,
+        testEnterpriseConnectionCommand,
+        openEnterpriseSettingsCommand,
         fileWatcher
     );
 
@@ -112,7 +134,10 @@ async function generateTestCases() {
             cancellable: true
         }, async (progress, token) => {
             try {
-                const response = await axios.post(`${config.apiUrl}/api/ai/generate-test-cases`, {
+                // Choose API endpoint based on enterprise mode
+                const endpoint = config.enterpriseMode ? '/api/enterprise/ai/generate-test-cases' : '/api/ai/generate-test-cases';
+                
+                const response = await axios.post(`${config.apiUrl}${endpoint}`, {
                     ...userStory,
                     test_types: ['functional', 'ui', 'api'],
                     num_cases: 5,
@@ -644,21 +669,21 @@ function generateCoverageAnalysisHTML(analysis: any): string {
         <div class="detail-section">
             <h4>Covered Areas</h4>
             <ul>
-                ${analysis.covered_areas.map(area => `<li>${area}</li>`).join('')}
+                ${analysis.covered_areas.map((area: any) => `<li>${area}</li>`).join('')}
             </ul>
         </div>
         
         <div class="detail-section">
             <h4>Missing Areas</h4>
             <ul>
-                ${analysis.missing_areas.map(area => `<li>${area}</li>`).join('')}
+                ${analysis.missing_areas.map((area: any) => `<li>${area}</li>`).join('')}
             </ul>
         </div>
         
         <div class="detail-section">
             <h4>Recommendations</h4>
             <ul>
-                ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                ${analysis.recommendations.map((rec: any) => `<li>${rec}</li>`).join('')}
             </ul>
         </div>
     </div>
@@ -675,7 +700,14 @@ function getConfiguration(): AssertlyConfig {
         jiraUsername: config.get('jiraUsername'),
         jiraApiToken: config.get('jiraApiToken'),
         aiProvider: config.get('aiProvider', 'openai'),
-        aiApiKey: config.get('aiApiKey')
+        aiApiKey: config.get('aiApiKey'),
+        enterpriseMode: config.get('enterpriseMode', false),
+        enterpriseAiUrl: config.get('enterpriseAiUrl'),
+        enterpriseAiModel: config.get('enterpriseAiModel', 'local-copilot'),
+        enterpriseApiKey: config.get('enterpriseApiKey'),
+        proxyUrl: config.get('proxyUrl'),
+        certPath: config.get('certPath'),
+        verifySsl: config.get('verifySsl', true)
     };
 }
 
@@ -711,7 +743,7 @@ class AssertlyTestExplorerProvider implements vscode.TreeDataProvider<any> {
     readonly onDidChangeTreeData: vscode.Event<any | undefined | null | void> = this._onDidChangeTreeData.event;
 
     refresh(): void {
-        this._onDidChangeTreeData.fire();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     getTreeItem(element: any): vscode.TreeItem {
@@ -815,6 +847,153 @@ class AssertlyDashboardProvider implements vscode.WebviewViewProvider {
 </body>
 </html>`;
     }
+}
+
+async function configureEnterprise() {
+    try {
+        const config = getConfiguration();
+        if (!config.apiUrl) {
+            vscode.window.showErrorMessage('Assertly API URL not configured.');
+            return;
+        }
+
+        // Show enterprise configuration dialog
+        const localAiUrl = await vscode.window.showInputBox({
+            prompt: 'Enter Local AI Service URL',
+            placeHolder: 'http://internal-ai.company.com:8080/api',
+            value: config.enterpriseAiUrl || ''
+        });
+        if (!localAiUrl) return;
+
+        const localAiModel = await vscode.window.showQuickPick([
+            { label: 'Local Copilot', value: 'local-copilot' },
+            { label: 'Internal LLM', value: 'internal-llm' },
+            { label: 'Custom Model', value: 'custom-model' },
+            { label: 'Offline Model', value: 'offline-model' }
+        ], {
+            placeHolder: 'Select AI Model',
+            title: 'Enterprise AI Model'
+        });
+        if (!localAiModel) return;
+
+        const localApiKey = await vscode.window.showInputBox({
+            prompt: 'Enter API Key (Optional)',
+            placeHolder: 'Internal API key if required',
+            value: config.enterpriseApiKey || '',
+            password: true
+        });
+
+        const proxyUrl = await vscode.window.showInputBox({
+            prompt: 'Enter Proxy URL (Optional)',
+            placeHolder: 'http://proxy.company.com:8080',
+            value: config.proxyUrl || ''
+        });
+
+        const certPath = await vscode.window.showInputBox({
+            prompt: 'Enter Certificate Path (Optional)',
+            placeHolder: '/path/to/company-cert.pem',
+            value: config.certPath || ''
+        });
+
+        // Configure enterprise AI
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Configuring enterprise AI...",
+            cancellable: true
+        }, async (progress, token) => {
+            try {
+                const response = await axios.post(`${config.apiUrl}/api/enterprise/ai/configure`, {
+                    local_ai_url: localAiUrl,
+                    local_ai_model: localAiModel.value,
+                    local_api_key: localApiKey,
+                    proxy_url: proxyUrl,
+                    cert_path: certPath,
+                    verify_ssl: true
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${config.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 30000
+                });
+
+                if (response.data.success) {
+                    vscode.window.showInformationMessage('Enterprise AI configured successfully!');
+                    
+                    // Update VS Code settings
+                    const workspaceConfig = vscode.workspace.getConfiguration('assertly');
+                    await workspaceConfig.update('enterpriseMode', true, vscode.ConfigurationTarget.Workspace);
+                    await workspaceConfig.update('enterpriseAiUrl', localAiUrl, vscode.ConfigurationTarget.Workspace);
+                    await workspaceConfig.update('enterpriseAiModel', localAiModel.value, vscode.ConfigurationTarget.Workspace);
+                    if (localApiKey) {
+                        await workspaceConfig.update('enterpriseApiKey', localApiKey, vscode.ConfigurationTarget.Workspace);
+                    }
+                    if (proxyUrl) {
+                        await workspaceConfig.update('proxyUrl', proxyUrl, vscode.ConfigurationTarget.Workspace);
+                    }
+                    if (certPath) {
+                        await workspaceConfig.update('certPath', certPath, vscode.ConfigurationTarget.Workspace);
+                    }
+                } else {
+                    vscode.window.showErrorMessage(`Failed to configure enterprise AI: ${response.data.error}`);
+                }
+            } catch (error: any) {
+                vscode.window.showErrorMessage(`Error configuring enterprise AI: ${error.message}`);
+            }
+        });
+    } catch (error: any) {
+        vscode.window.showErrorMessage(`Error: ${error.message}`);
+    }
+}
+
+async function testEnterpriseConnection() {
+    try {
+        const config = getConfiguration();
+        if (!config.apiUrl) {
+            vscode.window.showErrorMessage('Assertly API URL not configured.');
+            return;
+        }
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Testing enterprise AI connection...",
+            cancellable: true
+        }, async (progress, token) => {
+            try {
+                const response = await axios.get(`${config.apiUrl}/api/enterprise/ai/test-connection`, {
+                    headers: {
+                        'Authorization': `Bearer ${config.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+
+                if (response.data.success) {
+                    vscode.window.showInformationMessage(
+                        `Enterprise AI connection successful!\nURL: ${response.data.url}\nModel: ${response.data.model}`
+                    );
+                } else {
+                    vscode.window.showErrorMessage(`Enterprise AI connection failed: ${response.data.message}`);
+                }
+            } catch (error: any) {
+                vscode.window.showErrorMessage(`Error testing enterprise AI connection: ${error.message}`);
+            }
+        });
+    } catch (error: any) {
+        vscode.window.showErrorMessage(`Error: ${error.message}`);
+    }
+}
+
+async function openEnterpriseSettings() {
+    const config = getConfiguration();
+    if (!config.apiUrl) {
+        vscode.window.showErrorMessage('Assertly API URL not configured.');
+        return;
+    }
+
+    // Open enterprise settings in external browser
+    const settingsUrl = `${config.apiUrl}/enterprise-settings`;
+    vscode.env.openExternal(vscode.Uri.parse(settingsUrl));
 }
 
 export function deactivate() {}
