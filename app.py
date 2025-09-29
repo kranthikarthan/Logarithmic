@@ -11,7 +11,12 @@ import requests
 import io
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_file
 from datetime import datetime, timedelta
-import pandas as pd
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+    print("Warning: pandas not available. Excel export features will be limited.")
 from dotenv import load_dotenv
 import base64
 import re
@@ -2231,8 +2236,12 @@ def reset_all_tests(execution_key):
 @app.route('/export/test-cases')
 def export_test_cases():
     """Export test cases to Excel"""
+    jira_client = get_jira_client()
     if not jira_client:
         return jsonify({'error': 'Not connected to Jira'}), 401
+    
+    if not PANDAS_AVAILABLE:
+        return jsonify({'error': 'Excel export requires pandas. Please install: pip install pandas'}), 500
     
     project_key = request.args.get('project')
     jql = request.args.get('jql')
