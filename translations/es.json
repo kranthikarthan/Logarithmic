@@ -1,0 +1,60 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "test_cases": "Test Cases",
+    "test_executions": "Test Executions",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "remember_me": "Remember Me"
+  },
+  "test_management": {
+    "test_case": "Test Case",
+    "test_cases": "Test Cases",
+    "test_execution": "Test Execution",
+    "test_executions": "Test Executions",
+    "test_set": "Test Set",
+    "test_sets": "Test Sets",
+    "priority": "Priority",
+    "status": "Status",
+    "assigned_to": "Assigned To",
+    "created_by": "Created By",
+    "created_at": "Created At",
+    "updated_at": "Updated At"
+  },
+  "ai_features": {
+    "ai_test_generator": "AI Test Generator",
+    "generate_test_cases": "Generate Test Cases",
+    "improve_test_case": "Improve Test Case",
+    "generate_bdd_scenarios": "Generate BDD Scenarios",
+    "analyze_coverage": "Analyze Coverage"
+  },
+  "enterprise": {
+    "enterprise_settings": "Enterprise Settings",
+    "ai_configuration": "AI Configuration",
+    "security_settings": "Security Settings",
+    "audit_logs": "Audit Logs",
+    "compliance": "Compliance"
+  }
+}

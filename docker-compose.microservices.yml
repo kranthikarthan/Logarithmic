@@ -1,0 +1,226 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: 
+      context: ./microservices/api-gateway
+      dockerfile: Dockerfile
+    container_name: assertly-api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - USER_SERVICE_URL=http://user-service:5001
+      - TEST_SERVICE_URL=http://test-service:5002
+      - AI_SERVICE_URL=http://ai-service:5003
+      - INTEGRATION_SERVICE_URL=http://integration-service:5004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5005
+    depends_on:
+      - user-service
+      - test-service
+      - ai-service
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # User Service
+  user-service:
+    build:
+      context: ./microservices/user-service
+      dockerfile: Dockerfile
+    container_name: assertly-user-service
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+      - USER_DB_URL=postgresql://postgres:password@user-db:5432/user_service_db
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - user-db
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Test Service
+  test-service:
+    build:
+      context: ./microservices/test-service
+      dockerfile: Dockerfile
+    container_name: assertly-test-service
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_ENV=production
+      - TEST_DB_URL=postgresql://postgres:password@test-db:5432/test_service_db
+    depends_on:
+      - test-db
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # AI Service
+  ai-service:
+    build:
+      context: ./microservices/ai-service
+      dockerfile: Dockerfile
+    container_name: assertly-ai-service
+    ports:
+      - "5003:5003"
+    environment:
+      - FLASK_ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LOCAL_AI_URL=${LOCAL_AI_URL}
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Integration Service
+  integration-service:
+    build:
+      context: ./microservices/integration-service
+      dockerfile: Dockerfile
+    container_name: assertly-integration-service
+    ports:
+      - "5004:5004"
+    environment:
+      - FLASK_ENV=production
+      - JIRA_URL=${JIRA_URL}
+      - JIRA_USERNAME=${JIRA_USERNAME}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+      dockerfile: Dockerfile
+    container_name: assertly-notification-service
+    ports:
+      - "5005:5005"
+    environment:
+      - FLASK_ENV=production
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # User Database
+  user-db:
+    image: postgres:15-alpine
+    container_name: assertly-user-db
+    environment:
+      - POSTGRES_DB=user_service_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Test Database
+  test-db:
+    image: postgres:15-alpine
+    container_name: assertly-test-db
+    environment:
+      - POSTGRES_DB=test_service_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Redis for Caching
+  redis:
+    image: redis:7-alpine
+    container_name: assertly-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Service Discovery (Consul)
+  consul:
+    image: consul:latest
+    container_name: assertly-consul
+    ports:
+      - "8500:8500"
+    command: agent -server -bootstrap-expect=1 -client=0.0.0.0 -ui
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Load Balancer (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: assertly-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.microservices.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Monitoring (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: assertly-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.microservices.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+  # Monitoring (Grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: assertly-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - assertly-microservices
+
+volumes:
+  user_db_data:
+  test_db_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  assertly-microservices:
+    driver: bridge

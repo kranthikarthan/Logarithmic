@@ -38,6 +38,17 @@ except ImportError:
     init_realtime_manager = None
     init_monitoring_manager = None
 
+# Import new microservices managers
+try:
+    from i18n_manager import init_i18n_manager
+    from analytics_manager import init_analytics_manager
+    from ab_testing_manager import init_ab_testing_manager
+except ImportError:
+    # Fallback managers
+    init_i18n_manager = None
+    init_analytics_manager = None
+    init_ab_testing_manager = None
+
 # Load environment variables
 load_dotenv()
 
@@ -57,6 +68,22 @@ if init_realtime_manager:
     realtime_manager = init_realtime_manager(app)
 else:
     realtime_manager = None
+
+# Initialize new microservices managers
+if init_i18n_manager:
+    i18n_manager = init_i18n_manager(app)
+else:
+    i18n_manager = None
+
+if init_analytics_manager:
+    analytics_manager = init_analytics_manager(app)
+else:
+    analytics_manager = None
+
+if init_ab_testing_manager:
+    ab_testing_manager = init_ab_testing_manager(app)
+else:
+    ab_testing_manager = None
 
 # Security decorators
 def require_auth(f):
@@ -825,6 +852,133 @@ def enterprise_settings():
 def monitoring():
     """System monitoring page"""
     return render_template('monitoring.html')
+
+# New microservices endpoints
+@app.route('/api/i18n/languages', methods=['GET'])
+def get_supported_languages():
+    """Get supported languages"""
+    try:
+        if i18n_manager:
+            languages = i18n_manager.get_supported_languages()
+            return jsonify({'languages': languages})
+        else:
+            return jsonify({'languages': {'en': 'English'}})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/i18n/set-language', methods=['POST'])
+def set_language():
+    """Set current language"""
+    try:
+        data = request.get_json()
+        language = data.get('language', 'en')
+        
+        if i18n_manager:
+            success = i18n_manager.set_language(language)
+            if success:
+                return jsonify({'message': 'Language set successfully'})
+            else:
+                return jsonify({'error': 'Invalid language'}), 400
+        else:
+            return jsonify({'message': 'Language support not available'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/user', methods=['GET'])
+def get_user_analytics():
+    """Get user analytics"""
+    try:
+        user_id = request.args.get('user_id')
+        days = request.args.get('days', 30, type=int)
+        
+        if analytics_manager:
+            analytics = analytics_manager.get_user_analytics(user_id, days)
+            return jsonify(analytics)
+        else:
+            return jsonify({'error': 'Analytics not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/business', methods=['GET'])
+def get_business_analytics():
+    """Get business analytics"""
+    try:
+        days = request.args.get('days', 30, type=int)
+        
+        if analytics_manager:
+            metrics = analytics_manager.get_business_metrics(days)
+            return jsonify(metrics)
+        else:
+            return jsonify({'error': 'Analytics not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/performance', methods=['GET'])
+def get_performance_analytics():
+    """Get performance analytics"""
+    try:
+        metric_name = request.args.get('metric_name')
+        days = request.args.get('days', 7, type=int)
+        
+        if analytics_manager:
+            analytics = analytics_manager.get_performance_analytics(metric_name, days)
+            return jsonify(analytics)
+        else:
+            return jsonify({'error': 'Analytics not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ab-testing/experiments', methods=['GET'])
+def get_experiments():
+    """Get all experiments"""
+    try:
+        if ab_testing_manager:
+            experiments = ab_testing_manager.get_all_experiments()
+            return jsonify(experiments)
+        else:
+            return jsonify({'error': 'A/B testing not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ab-testing/experiment/<experiment_id>', methods=['GET'])
+def get_experiment_results(experiment_id):
+    """Get experiment results"""
+    try:
+        if ab_testing_manager:
+            results = ab_testing_manager.get_experiment_results(experiment_id)
+            return jsonify(results)
+        else:
+            return jsonify({'error': 'A/B testing not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ab-testing/feature-flag/<flag_id>', methods=['GET'])
+def check_feature_flag(flag_id):
+    """Check feature flag status"""
+    try:
+        user_id = request.args.get('user_id')
+        
+        if ab_testing_manager:
+            enabled = ab_testing_manager.is_feature_enabled(flag_id, user_id)
+            return jsonify({'flag_id': flag_id, 'enabled': enabled})
+        else:
+            return jsonify({'error': 'A/B testing not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ab-testing/experiment/<experiment_id>/variant', methods=['GET'])
+def get_experiment_variant(experiment_id):
+    """Get experiment variant for user"""
+    try:
+        user_id = request.args.get('user_id')
+        
+        if ab_testing_manager:
+            variant = ab_testing_manager.get_experiment_variant(experiment_id, user_id)
+            return jsonify({'experiment_id': experiment_id, 'variant': variant})
+        else:
+            return jsonify({'error': 'A/B testing not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/integrations/vscode/install')
 def vscode_install():
