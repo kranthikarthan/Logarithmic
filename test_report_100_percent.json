@@ -4,9 +4,9 @@
     "passed": 29,
     "failed": 0,
     "success_rate": 100.0,
-    "duration_seconds": 0.198019,
-    "start_time": "2025-09-29T20:25:40.687431",
-    "end_time": "2025-09-29T20:25:40.885450"
+    "duration_seconds": 0.151785,
+    "start_time": "2025-09-30T17:27:01.358963",
+    "end_time": "2025-09-30T17:27:01.510748"
   },
   "test_results": {
     "core_tests": {
