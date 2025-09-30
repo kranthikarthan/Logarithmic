@@ -95,17 +95,64 @@ def require_auth(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def validate_input(data, required_fields=None, max_lengths=None):
-    """Validate input data"""
+# Security headers middleware
+@app.after_request
+def add_security_headers(response):
+    """Add comprehensive security headers to all responses"""
+    # Prevent MIME type sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # Prevent clickjacking
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    
+    # Enable XSS protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Content Security Policy
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
+    
+    # Strict Transport Security (HTTPS only)
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    
+    # Referrer Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Permissions Policy
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    
+    # Remove server information
+    response.headers.pop('Server', None)
+    
+    return response
+
+def validate_input(data, required_fields=None, max_lengths=None, data_types=None):
+    """Enhanced input validation with comprehensive error handling"""
+    if not isinstance(data, dict):
+        return False, "Invalid data format: expected JSON object"
+    
     if required_fields:
         for field in required_fields:
-            if field not in data or not data[field]:
+            if field not in data or data[field] is None or data[field] == "":
                 return False, f"Missing required field: {field}"
     
     if max_lengths:
         for field, max_len in max_lengths.items():
             if field in data and len(str(data[field])) > max_len:
                 return False, f"Field {field} exceeds maximum length of {max_len}"
+    
+    if data_types:
+        for field, expected_type in data_types.items():
+            if field in data:
+                if expected_type == 'string' and not isinstance(data[field], str):
+                    return False, f"Field {field} must be a string"
+                elif expected_type == 'integer' and not isinstance(data[field], int):
+                    return False, f"Field {field} must be an integer"
+                elif expected_type == 'boolean' and not isinstance(data[field], bool):
+                    return False, f"Field {field} must be a boolean"
+                elif expected_type == 'list' and not isinstance(data[field], list):
+                    return False, f"Field {field} must be a list"
+                elif expected_type == 'dict' and not isinstance(data[field], dict):
+                    return False, f"Field {field} must be a dictionary"
     
     return True, None
 
@@ -871,7 +918,25 @@ def set_language():
     """Set current language"""
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON data'}), 400
+        
+        # Enhanced validation
+        is_valid, error_msg = validate_input(
+            data, 
+            required_fields=['language'],
+            data_types={'language': 'string'},
+            max_lengths={'language': 10}
+        )
+        
+        if not is_valid:
+            return jsonify({'error': error_msg}), 400
+        
         language = data.get('language', 'en')
+        
+        # Validate language code format
+        if not re.match(r'^[a-z]{2}(-[A-Z]{2})?$', language):
+            return jsonify({'error': 'Invalid language code format'}), 400
         
         if i18n_manager:
             success = i18n_manager.set_language(language)
@@ -977,6 +1042,46 @@ def get_experiment_variant(experiment_id):
             return jsonify({'experiment_id': experiment_id, 'variant': variant})
         else:
             return jsonify({'error': 'A/B testing not available'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Service Discovery Endpoint
+@app.route('/api/services', methods=['GET'])
+def list_services():
+    """List available services for service discovery"""
+    try:
+        services = {
+            'services': [
+                {
+                    'name': 'user-service',
+                    'url': 'http://localhost:5001',
+                    'status': 'healthy',
+                    'endpoints': ['/health', '/users', '/auth']
+                },
+                {
+                    'name': 'test-service', 
+                    'url': 'http://localhost:5002',
+                    'status': 'healthy',
+                    'endpoints': ['/health', '/test-cases', '/test-executions']
+                },
+                {
+                    'name': 'ai-service',
+                    'url': 'http://localhost:5003', 
+                    'status': 'healthy',
+                    'endpoints': ['/health', '/generate-test-cases', '/improve-test-case']
+                },
+                {
+                    'name': 'api-gateway',
+                    'url': 'http://localhost:8000',
+                    'status': 'healthy', 
+                    'endpoints': ['/health', '/api/services']
+                }
+            ],
+            'gateway_url': request.url_root,
+            'timestamp': datetime.utcnow().isoformat(),
+            'total_services': 4
+        }
+        return jsonify(services)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
