@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-09-30T17:41:40.654905",
+  "results": {
+    "assertly_health": true,
+    "llm_health": false,
+    "test_case_generation": true,
+    "bdd_generation": true,
+    "test_data_generation": true,
+    "coverage_analysis": true,
+    "overall_success": true
+  },
+  "success_rate": 83.33333333333334,
+  "passed_tests": 5,
+  "total_tests": 6
+}
