@@ -155,16 +155,23 @@ class EnterpriseConfigManager:
                 settings_dict = asdict(settings)
                 
                 for key, value in settings_dict.items():
+                    # Skip None values
+                    if value is None:
+                        continue
+                    
                     # Encrypt sensitive values
                     if key in ['local_api_key'] and value:
                         value = self._encrypt_value(str(value))
+                    
+                    # Convert value to string for storage
+                    value_str = str(value)
                     
                     # Insert or update setting
                     cursor.execute('''
                         INSERT OR REPLACE INTO enterprise_settings 
                         (setting_key, setting_value, updated_at)
                         VALUES (?, ?, CURRENT_TIMESTAMP)
-                    ''', (key, value))
+                    ''', (key, value_str))
                 
                 conn.commit()
                 logger.info("Enterprise settings saved successfully")
