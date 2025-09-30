@@ -1,72 +1,74 @@
-# 📚 Assertly Enterprise Documentation
+# 📚 Assertly Documentation
 
-Welcome to the comprehensive documentation for Assertly Enterprise - the complete test management solution for enterprise environments with full data privacy and security compliance.
+Welcome to the comprehensive documentation for Assertly - the modern test management platform with AI-powered test generation, microservices architecture, and enterprise capabilities.
 
 ## 🚀 Quick Start
 
-### For Administrators
-- [Enterprise Deployment Guide](deployment/ENTERPRISE_DEPLOYMENT.md) - Complete deployment instructions
-- [Installation Script](deployment/install-enterprise.sh) - One-command installation
-- [Docker Configuration](deployment/docker-compose.enterprise.yml) - Enterprise Docker setup
+### **For Deployment**
+- **[DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md)** - ✅ **RECOMMENDED** - Complete deployment guide
+- **[README.md](../README.md)** - Main project documentation
+- **[PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md)** - Project overview and features
 
-### For Users
-- [Enterprise User Guide](user-guides/enterprise-user-guide.md) - Complete user manual
-- [API Documentation](api/enterprise-api.md) - REST API reference
-- [Video Tutorials](tutorials/) - Step-by-step video guides
+### **For Users**
+- **[Enterprise User Guide](user-guides/enterprise-user-guide.md)** - Complete user manual
+- **[API Documentation](api/enterprise-api.md)** - REST API reference
+- **[AI Features Guide](../static/docs/ai-features.md)** - AI test generation features
 
-### For Developers
-- [Developer Guide](developer/README.md) - Development setup and guidelines
-- [API SDKs](sdk/) - Python, JavaScript, and other language SDKs
-- [Integration Examples](integrations/) - Code examples and integrations
+### **For Developers**
+- **[Integration Examples](../integrations/)** - VS Code, IntelliJ, CI/CD integrations
+- **[Test Framework Integrations](../integrations/)** - Selenium, Cypress, Playwright
+- **[Enterprise Features](../static/brand/)** - Brand guidelines and enterprise setup
 
-## 📖 Documentation Structure
+## 📖 Current Architecture
 
-### 🏢 Enterprise Features
-- **Data Privacy**: Complete on-premise solution with no external dependencies
-- **Security**: Enterprise-grade security with audit logging and compliance
-- **AI Integration**: Local AI service integration with offline capabilities
-- **Monitoring**: Comprehensive monitoring with Prometheus and Grafana
-- **Scalability**: Production-ready architecture with horizontal scaling
+### **🏗️ Monolithic Application**
+- **Single Flask App** - 3,700+ lines with all features
+- **AI Integration** - OpenAI/Anthropic with mock fallbacks
+- **Enterprise Features** - Compliance and audit logging
+- **Real-time** - WebSocket support for live collaboration
+- **Caching** - Redis with intelligent fallback
+- **Monitoring** - Prometheus and Grafana integration
 
-### 🎯 Core Capabilities
-- **AI Test Generation**: Generate test cases from user stories using AI
-- **BDD Scenarios**: Create Gherkin scenarios for behavior-driven development
-- **Test Data Generation**: Generate test data sets for various scenarios
-- **Coverage Analysis**: Analyze test coverage and identify gaps
-- **Test Management**: Organize and manage test cases and test suites
+### **🏢 Microservices Architecture**
+- **API Gateway** - Central routing and authentication
+- **User Service** - User management and authentication
+- **Test Service** - Test case and execution management
+- **AI Service** - AI test generation and analysis
+- **Integration Service** - External tool integrations
+- **Notification Service** - Real-time notifications
 
-### 🔧 Technical Features
-- **REST API**: Complete REST API for all functionality
-- **Real-time Updates**: WebSocket support for real-time collaboration
-- **Export/Import**: Support for various formats (JSON, CSV, Excel, XML)
-- **Integrations**: Jira, GitHub, GitLab, CI/CD pipeline integrations
-- **Customization**: Configurable workflows and custom fields
+### **🤖 AI-Powered Features**
+- **Test Generation** - Generate test cases from user stories
+- **BDD Scenarios** - AI-generated Gherkin scenarios
+- **Test Data** - AI-powered test data generation
+- **Coverage Analysis** - AI-driven coverage analysis
+- **Local AI** - Enterprise on-premise AI integration
 
 ## 📋 Getting Started
 
-### 1. Installation
-
-#### Quick Installation
+### **1. Simple Deployment (Recommended)**
 ```bash
-# One-command installation
-curl -fsSL https://install.assertly.com/enterprise | sudo bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+python app.py
+
+# Access: http://localhost:5000
 ```
 
-#### Manual Installation
+### **2. Docker Deployment**
 ```bash
-# Clone repository
-git clone https://github.com/assertly/assertly-enterprise.git
-cd assertly-enterprise
+# Monolithic deployment
+docker-compose up -d
 
-# Run installation script
-sudo ./install-enterprise.sh
+# Microservices deployment
+docker-compose -f docker-compose.microservices.yml up -d
 ```
 
-### 2. Configuration
-
-#### Enterprise Settings
+### **3. Enterprise Configuration**
 1. Navigate to Enterprise Settings
-2. Configure your local AI service
+2. Configure local AI service (optional)
 3. Set up security policies
 4. Configure audit logging
 
