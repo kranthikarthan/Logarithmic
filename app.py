@@ -2008,6 +2008,160 @@ def parameterized_testing():
     
     return render_template('parameterized-testing.html')
 
+@app.route('/api-keys')
+def api_keys():
+    """API Key Management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('api-keys.html')
+
+# API Key Management Endpoints
+@app.route('/api/ai/keys', methods=['GET'])
+def get_api_keys():
+    """Get all API keys"""
+    try:
+        from api_key_manager import APIKeyManager
+        manager = APIKeyManager()
+        
+        keys = {}
+        for provider, config in manager.keys.items():
+            keys[provider.value] = {
+                'provider': provider.value,
+                'model': config.model,
+                'max_tokens': config.max_tokens,
+                'temperature': config.temperature,
+                'timeout': config.timeout,
+                'retry_attempts': config.retry_attempts,
+                'is_active': config.is_active,
+                'created_at': config.created_at.isoformat() if config.created_at else None,
+                'last_used': config.last_used.isoformat() if config.last_used else None,
+                'usage_count': config.usage_count,
+                'monthly_limit': config.monthly_limit,
+                'cost_per_token': config.cost_per_token
+            }
+        
+        return jsonify({'success': True, 'keys': keys})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/keys', methods=['POST'])
+def add_api_key():
+    """Add new API key"""
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        
+        data = request.get_json()
+        provider = AIProvider(data['provider'])
+        
+        manager = APIKeyManager()
+        success = manager.add_api_key(
+            provider=provider,
+            api_key=data['apiKey'],
+            base_url=data.get('baseUrl'),
+            model=data.get('model'),
+            max_tokens=int(data.get('maxTokens', 4000)),
+            temperature=float(data.get('temperature', 0.7)),
+            timeout=int(data.get('timeout', 30)),
+            retry_attempts=int(data.get('retryAttempts', 3)),
+            is_active=data.get('isActive', True),
+            monthly_limit=int(data.get('monthlyLimit')) if data.get('monthlyLimit') else None,
+            cost_per_token=float(data.get('costPerToken')) if data.get('costPerToken') else None
+        )
+        
+        if success:
+            return jsonify({'success': True, 'message': 'API key added successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to add API key'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/keys/<provider>', methods=['DELETE'])
+def remove_api_key(provider):
+    """Remove API key"""
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        
+        manager = APIKeyManager()
+        success = manager.remove_api_key(AIProvider(provider))
+        
+        if success:
+            return jsonify({'success': True, 'message': 'API key removed successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to remove API key'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/keys/<provider>', methods=['PATCH'])
+def update_api_key(provider):
+    """Update API key settings"""
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        
+        data = request.get_json()
+        manager = APIKeyManager()
+        
+        if AIProvider(provider) in manager.keys:
+            config = manager.keys[AIProvider(provider)]
+            config.is_active = data.get('isActive', config.is_active)
+            manager.save_keys()
+            
+            return jsonify({'success': True, 'message': 'API key updated successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'API key not found'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/keys/<provider>/test', methods=['POST'])
+def test_api_key(provider):
+    """Test API key connection"""
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        
+        manager = APIKeyManager()
+        result = manager.test_api_key(AIProvider(provider))
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/usage-stats')
+def get_usage_stats():
+    """Get API usage statistics"""
+    try:
+        from api_key_manager import APIKeyManager
+        
+        manager = APIKeyManager()
+        stats = manager.get_usage_stats()
+        
+        return jsonify(stats)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/providers')
+def get_available_providers():
+    """Get available AI providers"""
+    try:
+        from api_key_manager import APIKeyManager
+        
+        manager = APIKeyManager()
+        active_providers = manager.get_active_providers()
+        
+        return jsonify({
+            'success': True,
+            'providers': [p.value for p in active_providers],
+            'default_provider': active_providers[0].value if active_providers else None
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # Additional API endpoints for complete AI workflow coverage
 @app.route('/api/ai/test-data-validation', methods=['POST'])
 def ai_test_data_validation():
