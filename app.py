@@ -1442,33 +1442,73 @@ def ai_generate_test_cases():
         if not test_types:
             test_types = [TestCaseType.FUNCTIONAL, TestCaseType.UI]
         
-        # Initialize AI generator
+        # Initialize AI generator with local LLM fallback
         api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        provider = data.get('provider', 'openai')
+        
         if not api_key:
-            # Return mock test cases when API key is not configured
-            return jsonify({
-                'success': True,
-                'test_cases': [
-                    {
-                        'title': f'Test Case 1: {data.get("title", "User Story")}',
-                        'description': f'Verify that {data.get("description", "the feature works correctly")}',
-                        'steps': [
-                            '1. Navigate to the application',
-                            '2. Perform the required action',
-                            '3. Verify the expected result'
-                        ],
-                        'expected_result': 'The feature should work as expected',
-                        'test_type': 'functional',
-                        'priority': 'high',
-                        'tags': ['smoke', 'regression'],
-                        'preconditions': ['User is logged in', 'Application is accessible'],
-                        'test_data': 'Sample test data',
-                        'acceptance_criteria': data.get('acceptance_criteria', 'Feature works as specified')
-                    }
-                ],
-                'count': 1,
-                'note': 'Mock test case generated - configure AI API key for real AI generation'
-            })
+            # Try local LLM first as fallback
+            try:
+                print("No API key found, attempting to use local LLM...")
+                generator = AITestGenerator(provider='local', enterprise_mode=True)
+                test_cases = generator.generate_test_cases_from_story(
+                    user_story=user_story,
+                    test_types=test_types,
+                    num_cases=data.get('num_cases', 5),
+                    additional_prompts=data.get('additional_prompts', [])
+                )
+                
+                # Convert to JSON-serializable format
+                result = []
+                for tc in test_cases:
+                    result.append({
+                        'title': tc.title,
+                        'description': tc.description,
+                        'steps': tc.steps,
+                        'expected_result': tc.expected_result,
+                        'test_type': tc.test_type.value,
+                        'priority': tc.priority.value,
+                        'tags': tc.tags,
+                        'preconditions': tc.preconditions,
+                        'test_data': tc.test_data,
+                        'acceptance_criteria': tc.acceptance_criteria
+                    })
+                
+                return jsonify({
+                    'success': True,
+                    'test_cases': result,
+                    'count': len(result),
+                    'provider': 'local-llm',
+                    'note': 'Generated using local LLM'
+                })
+                
+            except Exception as e:
+                print(f"Local LLM failed: {e}, using mock fallback")
+                # Fallback to mock if local LLM fails
+                return jsonify({
+                    'success': True,
+                    'test_cases': [
+                        {
+                            'title': f'Test Case 1: {data.get("title", "User Story")}',
+                            'description': f'Verify that {data.get("description", "the feature works correctly")}',
+                            'steps': [
+                                '1. Navigate to the application',
+                                '2. Perform the required action',
+                                '3. Verify the expected result'
+                            ],
+                            'expected_result': 'The feature should work as expected',
+                            'test_type': 'functional',
+                            'priority': 'high',
+                            'tags': ['smoke', 'regression'],
+                            'preconditions': ['User is logged in', 'Application is accessible'],
+                            'test_data': 'Sample test data',
+                            'acceptance_criteria': data.get('acceptance_criteria', 'Feature works as specified')
+                        }
+                    ],
+                    'count': 1,
+                    'provider': 'mock-fallback',
+                    'note': 'Mock test case generated - local LLM and API keys not available'
+                })
         
         provider = data.get('provider', 'openai')
         generator = AITestGenerator(api_key=api_key, provider=provider)
@@ -1534,26 +1574,58 @@ def ai_improve_test_case():
             acceptance_criteria=tc_data.get('acceptance_criteria', [])
         )
         
-        # Initialize AI generator
+        # Initialize AI generator with local LLM fallback
         api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        provider = data.get('provider', 'openai')
+        
         if not api_key:
-            # Return improved mock test case when API key is not configured
-            return jsonify({
-                'success': True,
-                'improved_test_case': {
-                    'title': f'Improved: {test_case.title}',
-                    'description': f'Enhanced: {test_case.description}',
-                    'steps': test_case.steps + ['4. Verify enhanced functionality'],
-                    'expected_result': f'Enhanced: {test_case.expected_result}',
-                    'test_type': test_case.test_type.value,
-                    'priority': test_case.priority.value,
-                    'tags': test_case.tags + ['improved'],
-                    'preconditions': test_case.preconditions,
-                    'test_data': test_case.test_data,
-                    'acceptance_criteria': test_case.acceptance_criteria
-                },
-                'note': 'Mock improvement generated - configure AI API key for real AI improvement'
-            })
+            # Try local LLM first as fallback
+            try:
+                print("No API key found, attempting to use local LLM for improvement...")
+                generator = AITestGenerator(provider='local', enterprise_mode=True)
+                improved_test_case = generator.improve_test_case(
+                    test_case=test_case,
+                    improvement_prompts=data['improvement_prompts']
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'improved_test_case': {
+                        'title': improved_test_case.title,
+                        'description': improved_test_case.description,
+                        'steps': improved_test_case.steps,
+                        'expected_result': improved_test_case.expected_result,
+                        'test_type': improved_test_case.test_type.value,
+                        'priority': improved_test_case.priority.value,
+                        'tags': improved_test_case.tags,
+                        'preconditions': improved_test_case.preconditions,
+                        'test_data': improved_test_case.test_data,
+                        'acceptance_criteria': improved_test_case.acceptance_criteria
+                    },
+                    'provider': 'local-llm',
+                    'note': 'Improved using local LLM'
+                })
+                
+            except Exception as e:
+                print(f"Local LLM failed: {e}, using mock fallback")
+                # Fallback to mock if local LLM fails
+                return jsonify({
+                    'success': True,
+                    'improved_test_case': {
+                        'title': f'Improved: {test_case.title}',
+                        'description': f'Enhanced: {test_case.description}',
+                        'steps': test_case.steps + ['4. Verify enhanced functionality'],
+                        'expected_result': f'Enhanced: {test_case.expected_result}',
+                        'test_type': test_case.test_type.value,
+                        'priority': test_case.priority.value,
+                        'tags': test_case.tags + ['improved'],
+                        'preconditions': test_case.preconditions,
+                        'test_data': test_case.test_data,
+                        'acceptance_criteria': test_case.acceptance_criteria
+                    },
+                    'provider': 'mock-fallback',
+                    'note': 'Mock improvement generated - local LLM and API keys not available'
+                })
         
         provider = data.get('provider', 'openai')
         generator = AITestGenerator(api_key=api_key, provider=provider)
@@ -1612,32 +1684,55 @@ def ai_generate_bdd_scenarios():
         )
         
         # Initialize AI generator
+        # Initialize AI generator with local LLM fallback
         api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+        provider = data.get('provider', 'openai')
+        
         if not api_key:
-            # Return mock BDD scenarios when API key is not configured
-            return jsonify({
-                'success': True,
-                'scenarios': [
-                    {
-                        'title': f'Scenario 1: {data.get("title", "User Story")}',
-                        'description': f'Given {data.get("description", "the user is on the application")}',
-                        'steps': [
-                            'Given the user is on the application',
-                            'When the user performs the action',
-                            'Then the expected result should occur'
-                        ],
-                        'tags': ['smoke', 'regression'],
-                        'examples': [
-                            {
-                                'name': 'Valid scenario',
-                                'data': {'input': 'valid input', 'expected': 'success'}
-                            }
-                        ]
-                    }
-                ],
-                'count': 1,
-                'note': 'Mock BDD scenario generated - configure AI API key for real AI generation'
-            })
+            # Try local LLM first as fallback
+            try:
+                print("No API key found, attempting to use local LLM for BDD scenarios...")
+                generator = AITestGenerator(provider='local', enterprise_mode=True)
+                scenarios = generator.generate_bdd_scenarios(
+                    user_story=user_story,
+                    num_scenarios=data.get('num_scenarios', 3)
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'scenarios': scenarios,
+                    'count': len(scenarios),
+                    'provider': 'local-llm',
+                    'note': 'Generated using local LLM'
+                })
+                
+            except Exception as e:
+                print(f"Local LLM failed: {e}, using mock fallback")
+                # Fallback to mock if local LLM fails
+                return jsonify({
+                    'success': True,
+                    'scenarios': [
+                        {
+                            'title': f'Scenario 1: {data.get("title", "User Story")}',
+                            'description': f'Given {data.get("description", "the user is on the application")}',
+                            'steps': [
+                                'Given the user is on the application',
+                                'When the user performs the action',
+                                'Then the expected result should occur'
+                            ],
+                            'tags': ['smoke', 'regression'],
+                            'examples': [
+                                {
+                                    'name': 'Valid scenario',
+                                    'data': {'input': 'valid input', 'expected': 'success'}
+                                }
+                            ]
+                        }
+                    ],
+                    'count': 1,
+                    'provider': 'mock-fallback',
+                    'note': 'Mock BDD scenarios generated - local LLM and API keys not available'
+                })
         
         provider = data.get('provider', 'openai')
         generator = AITestGenerator(api_key=api_key, provider=provider)

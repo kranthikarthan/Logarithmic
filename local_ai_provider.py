@@ -175,14 +175,14 @@ class LocalAIProvider:
             }
             
             # Make request to local AI service
-            response = self._make_request('/generate', request_data)
+            response = self._make_request('/api/generate', request_data)
             result = response.json()
             
-            # Parse response
+            # Parse response (Ollama format uses 'response' field)
             ai_response = AIResponse(
-                content=result.get('content', ''),
+                content=result.get('response', result.get('content', '')),
                 model=self.config.model_name,
-                tokens_used=result.get('tokens_used'),
+                tokens_used=result.get('eval_count', result.get('tokens_used')),
                 response_time=time.time() - start_time,
                 success=True
             )
@@ -390,14 +390,25 @@ Please generate test cases that include:
 4. Boundary value testing
 5. Negative test cases
 
-Format the output as structured test cases with:
-- Test Case Title
-- Test Steps
-- Expected Results
-- Test Data Requirements
-- Priority Level
+Format the output as JSON with the following structure:
+{{
+  "test_cases": [
+    {{
+      "title": "Test Case Title",
+      "description": "Test case description",
+      "steps": ["Step 1", "Step 2", "Step 3"],
+      "expected_result": "Expected outcome",
+      "test_type": "functional",
+      "priority": "high",
+      "tags": ["smoke", "regression"],
+      "preconditions": ["Prerequisite 1", "Prerequisite 2"],
+      "test_data": "Required test data",
+      "acceptance_criteria": ["Criteria 1", "Criteria 2"]
+    }}
+  ]
+}}
 
-Ensure the test cases are comprehensive and cover all aspects of the user story.
+Return only the JSON response, no additional text.
 """
         return prompt.strip()
     

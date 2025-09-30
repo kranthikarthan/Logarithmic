@@ -528,7 +528,75 @@ Return in JSON format:
             
         except Exception as e:
             print(f"Error parsing test cases: {e}")
-            return []
+            # Fallback: try to parse plain text response
+            return self._parse_plain_text_test_cases(response, test_types)
+
+    def _parse_plain_text_test_cases(self, response: str, test_types: List[TestCaseType]) -> List[TestCase]:
+        """Parse plain text test cases from response"""
+        test_cases = []
+        
+        try:
+            # Split response into test cases (look for "Test Case" patterns)
+            test_case_patterns = re.split(r'Test Case \d+:', response)
+            
+            for i, test_case_text in enumerate(test_case_patterns[1:], 1):  # Skip first empty split
+                # Extract title (first line)
+                lines = test_case_text.strip().split('\n')
+                title = lines[0].strip() if lines else f"Test Case {i}"
+                
+                # Extract description
+                description = ""
+                steps = []
+                expected_result = ""
+                
+                for line in lines[1:]:
+                    line = line.strip()
+                    if line.startswith('Description:'):
+                        description = line.replace('Description:', '').strip()
+                    elif line.startswith('Steps:'):
+                        # Extract steps
+                        step_lines = []
+                        for step_line in lines[lines.index(line)+1:]:
+                            if step_line.strip().startswith('Expected Result:'):
+                                break
+                            if step_line.strip() and not step_line.strip().startswith('Test Case'):
+                                step_lines.append(step_line.strip())
+                        steps = step_lines
+                    elif line.startswith('Expected Result:'):
+                        expected_result = line.replace('Expected Result:', '').strip()
+                
+                # Create test case
+                test_case = TestCase(
+                    title=title,
+                    description=description or f"Test case for {title}",
+                    steps=steps,
+                    expected_result=expected_result or "Test should pass",
+                    test_type=test_types[0] if test_types else TestCaseType.FUNCTIONAL,
+                    priority=TestPriority.HIGH,
+                    tags=['generated', 'ai'],
+                    preconditions=[],
+                    test_data={},
+                    acceptance_criteria=[]
+                )
+                test_cases.append(test_case)
+            
+            return test_cases
+            
+        except Exception as e:
+            print(f"Error parsing plain text test cases: {e}")
+            # Return a single fallback test case
+            return [TestCase(
+                title="Generated Test Case",
+                description="AI-generated test case",
+                steps=["1. Execute test", "2. Verify result"],
+                expected_result="Test should pass",
+                test_type=TestCaseType.FUNCTIONAL,
+                priority=TestPriority.MEDIUM,
+                tags=['generated', 'ai'],
+                preconditions=[],
+                test_data={},
+                acceptance_criteria=[]
+            )]
 
     def _parse_single_test_case(self, response: str) -> TestCase:
         """Parse single test case from response"""

@@ -164,7 +164,7 @@ class EnterpriseConfigManager:
                         INSERT OR REPLACE INTO enterprise_settings 
                         (setting_key, setting_value, updated_at)
                         VALUES (?, ?, CURRENT_TIMESTAMP)
-                    ''', (key, json.dumps(value)))
+                    ''', (key, value))
                 
                 conn.commit()
                 logger.info("Enterprise settings saved successfully")
@@ -196,7 +196,16 @@ class EnterpriseConfigManager:
                         except:
                             value = None
                     
-                    settings_dict[key] = json.loads(value)
+                    # Handle different value types
+                    if isinstance(value, str):
+                        try:
+                            # Try to parse as JSON first
+                            settings_dict[key] = json.loads(value)
+                        except:
+                            # If not JSON, use as string
+                            settings_dict[key] = value
+                    else:
+                        settings_dict[key] = value
                 
                 # Create EnterpriseSettings object
                 return EnterpriseSettings(**settings_dict)
