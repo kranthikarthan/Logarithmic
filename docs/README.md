@@ -1,323 +1,103 @@
-# 📚 Assertly Documentation
+# Assertly Documentation
 
-Welcome to the comprehensive documentation for Assertly - the modern test management platform with AI-powered test generation, microservices architecture, and enterprise capabilities.
+## 📚 **Complete Documentation Hub**
 
-## 🚀 Quick Start
+Welcome to the Assertly documentation hub. This directory contains comprehensive documentation for all aspects of the Assertly platform.
 
-### **For Deployment**
-- **[DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md)** - ✅ **RECOMMENDED** - Complete deployment guide
-- **[README.md](../README.md)** - Main project documentation
+## 📖 **Documentation Structure**
+
+### **User Documentation**
+- **[Enterprise User Guide](user-guides/enterprise-user-guide.md)** - Complete user manual for enterprise features
+- **[API Documentation](api/enterprise-api.md)** - Complete API reference and examples
+
+### **Deployment Documentation**
+- **[README.md](../README.md)** - Main project documentation and quick start
+- **[DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md)** - Complete deployment guide
 - **[PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md)** - Project overview and features
 
-### **For Users**
-- **[Enterprise User Guide](user-guides/enterprise-user-guide.md)** - Complete user manual
-- **[API Documentation](api/enterprise-api.md)** - REST API reference
-- **[AI Features Guide](../static/docs/ai-features.md)** - AI test generation features
+## 🚀 **Quick Start Guides**
 
 ### **For Developers**
-- **[Integration Examples](../integrations/)** - VS Code, IntelliJ, CI/CD integrations
-- **[Test Framework Integrations](../integrations/)** - Selenium, Cypress, Playwright
-- **[Enterprise Features](../static/brand/)** - Brand guidelines and enterprise setup
-
-## 📖 Current Architecture
-
-### **🏗️ Monolithic Application**
-- **Single Flask App** - 3,700+ lines with all features
-- **AI Integration** - OpenAI/Anthropic with mock fallbacks
-- **Enterprise Features** - Compliance and audit logging
-- **Real-time** - WebSocket support for live collaboration
-- **Caching** - Redis with intelligent fallback
-- **Monitoring** - Prometheus and Grafana integration
-
-### **🏢 Microservices Architecture**
-- **API Gateway** - Central routing and authentication
-- **User Service** - User management and authentication
-- **Test Service** - Test case and execution management
-- **AI Service** - AI test generation and analysis
-- **Integration Service** - External tool integrations
-- **Notification Service** - Real-time notifications
-
-### **🤖 AI-Powered Features**
-- **Test Generation** - Generate test cases from user stories
-- **BDD Scenarios** - AI-generated Gherkin scenarios
-- **Test Data** - AI-powered test data generation
-- **Coverage Analysis** - AI-driven coverage analysis
-- **Local AI** - Enterprise on-premise AI integration
-
-## 📋 Getting Started
-
-### **1. Simple Deployment (Recommended)**
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the application
-python app.py
-
-# Access: http://localhost:5000
-```
-
-### **2. Docker Deployment**
-```bash
-# Monolithic deployment
-docker-compose up -d
-
-# Microservices deployment
-docker-compose -f docker-compose.microservices.yml up -d
-```
-
-### **3. Enterprise Configuration**
-1. Navigate to Enterprise Settings
-2. Configure local AI service (optional)
-3. Set up security policies
-4. Configure audit logging
-
-#### Local AI Service
-```bash
-# Configure AI service URL
-LOCAL_AI_URL=http://internal-ai.company.com:8080/api
-ENTERPRISE_MODEL=local-copilot
-LOCAL_AI_API_KEY=your-internal-api-key
-```
-
-### 3. First Steps
-
-#### Create Your First Test Case
-1. Navigate to AI Test Generator
-2. Enter your user story
-3. Generate test cases
-4. Review and customize
-5. Save to your test repository
-
-#### Generate BDD Scenarios
-1. Access BDD Generator
-2. Input your feature description
-3. Generate Gherkin scenarios
-4. Export to your BDD framework
-
-## 🎨 User Interface
-
-### Dashboard
-- **Overview**: Key metrics and recent activity
-- **Quick Actions**: Generate tests, view reports, access settings
-- **Navigation**: Easy access to all features
-
-### AI Test Generator
-- **User Story Input**: Detailed form for user story information
-- **Generation Options**: Configure test types and parameters
-- **Results Review**: Review and customize generated test cases
-
-### Test Management
-- **Test Cases**: Organize and manage test cases
-- **Test Suites**: Group related test cases
-- **Execution**: Track test execution and results
-
-### Reports and Analytics
-- **Test Reports**: Execution results and coverage
-- **AI Reports**: AI usage and generation statistics
-- **Enterprise Reports**: Compliance and audit reports
-
-## 🔒 Security and Compliance
-
-### Data Privacy
-- **Complete On-Premise**: All data stays within your network
-- **No External Calls**: No internet access required
-- **Local AI Only**: Uses your internal AI services
-- **Encrypted Storage**: All data encrypted at rest
-
-### Security Features
-- **Authentication**: Multi-factor authentication support
-- **Authorization**: Role-based access control
-- **Audit Logging**: Complete activity tracking
-- **Security Monitoring**: Real-time security event monitoring
-
-### Compliance
-- **Audit Reports**: Automated compliance reporting
-- **Data Retention**: Configurable data retention policies
-- **Access Control**: Granular permissions management
-- **Security Policies**: Configurable security policies
-
-## 🌐 API Reference
-
-### Base URL
-```
-https://your-assertly-instance.com/api
-```
-
-### Authentication
-```http
-Authorization: Bearer <your-api-key>
-Content-Type: application/json
-```
-
-### Key Endpoints
-
-#### AI Generation
-- `POST /api/ai/generate-test-cases` - Generate test cases
-- `POST /api/ai/improve-test-case` - Improve existing test case
-- `POST /api/ai/generate-bdd-scenarios` - Generate BDD scenarios
-- `POST /api/ai/generate-test-data` - Generate test data
-
-#### Enterprise Features
-- `POST /api/enterprise/ai/configure` - Configure enterprise AI
-- `GET /api/enterprise/ai/test-connection` - Test AI connection
-- `GET /api/enterprise/audit/logs` - Get audit logs
-- `POST /api/enterprise/compliance/report` - Generate compliance report
-
-### SDK Examples
-
-#### Python
-```python
-from assertly import AssertlyClient
-
-client = AssertlyClient("https://your-instance.com", "your-api-key")
-
-# Generate test cases
-test_cases = client.generate_test_cases({
-    "title": "User Login Test",
-    "description": "As a user, I want to log in to my account",
-    "acceptance_criteria": ["User can enter credentials", "User is logged in successfully"],
-    "business_value": "Enables secure access to user accounts",
-    "user_persona": "Registered user"
-})
-```
-
-#### JavaScript
-```javascript
-const assertly = new AssertlyClient('https://your-instance.com', 'your-api-key');
-
-// Generate test cases
-const testCases = await assertly.generateTestCases({
-    title: 'User Login Test',
-    description: 'As a user, I want to log in to my account',
-    acceptance_criteria: ['User can enter credentials', 'User is logged in successfully'],
-    business_value: 'Enables secure access to user accounts',
-    user_persona: 'Registered user'
-});
-```
-
-## 🛠️ Development
-
-### Setup Development Environment
-```bash
-# Clone repository
-git clone https://github.com/assertly/assertly-enterprise.git
-cd assertly-enterprise
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run development server
-python app.py
-```
-
-### Running Tests
-```bash
-# Run all tests
-python run-comprehensive-tests.py
-
-# Run specific test categories
-python -m pytest tests/test_enterprise_features.py
-```
-
-### Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📊 Monitoring and Observability
-
-### Metrics
-- **Application Metrics**: Request rates, response times, error rates
-- **AI Metrics**: Generation requests, success rates, latency
-- **Security Metrics**: Security events, failed authentications
-- **System Metrics**: CPU, memory, disk usage
-
-### Dashboards
-- **Grafana**: Comprehensive monitoring dashboards
-- **Prometheus**: Metrics collection and alerting
-- **Custom Dashboards**: Configurable enterprise dashboards
-
-### Alerting
-- **Service Health**: Automatic alerts for service issues
-- **Security Events**: Real-time security event alerts
-- **Performance**: Performance degradation alerts
-- **Compliance**: Compliance violation alerts
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### Service Not Starting
-```bash
-# Check service status
-sudo systemctl status assertly-enterprise
-
-# Check logs
-sudo journalctl -u assertly-enterprise -f
-
-# Check Docker logs
-docker-compose -f docker-compose.enterprise.yml logs
-```
-
-#### AI Service Connection Issues
-```bash
-# Test AI service connection
-curl http://localhost:5000/api/enterprise/ai/test-connection
-
-# Check AI service logs
-docker logs assertly-local-ai
-```
-
-#### Performance Issues
-```bash
-# Check system resources
-htop
-df -h
-free -h
-
-# Check database performance
-docker exec assertly-postgres psql -U assertly -d assertly_enterprise -c "SELECT * FROM pg_stat_activity;"
-```
-
-### Log Locations
-- **Application Logs**: `/var/log/assertly/`
-- **Nginx Logs**: `/var/log/nginx/`
-- **Docker Logs**: `docker logs <container-name>`
-- **System Logs**: `sudo journalctl -u assertly-enterprise`
-
-## 📞 Support
-
-### Enterprise Support
-- **Email**: enterprise-support@assertly.com
-- **Phone**: +1-800-ASSERTLY
-- **Documentation**: https://docs.assertly.com/enterprise
-- **Community**: https://community.assertly.com
-
-### Professional Services
-- **Implementation**: Custom deployment assistance
-- **Training**: Comprehensive training programs
-- **Consulting**: Strategic consulting services
-- **Custom Development**: Custom features and integrations
-
-### Resources
-- **Knowledge Base**: Comprehensive documentation
-- **Video Tutorials**: Step-by-step video guides
-- **Webinars**: Regular training sessions
-- **Community Forum**: User community support
-
-## 📄 License
-
-Assertly Enterprise is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
-
-## 🏷️ Version Information
-
-- **Current Version**: 1.0.0
-- **Last Updated**: 2024-01-15
-- **Documentation Version**: 1.0.0
+1. **[README.md](../README.md)** - Start here for development setup
+2. **[DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md)** - Deployment options
+3. **[API Documentation](api/enterprise-api.md)** - API integration
+
+### **For Users**
+1. **[Enterprise User Guide](user-guides/enterprise-user-guide.md)** - Complete user manual
+2. **[README.md](../README.md)** - Feature overview
+3. **[PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md)** - Business value and benefits
+
+### **For Enterprise**
+1. **[Enterprise User Guide](user-guides/enterprise-user-guide.md)** - Enterprise features
+2. **[API Documentation](api/enterprise-api.md)** - Enterprise API
+3. **[DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md)** - Enterprise deployment
+
+## 🎯 **Documentation by Role**
+
+### **QA Engineers**
+- **Getting Started**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#getting-started)
+- **AI Test Generation**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#ai-powered-test-generation)
+- **Test Management**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#test-management)
+
+### **Test Managers**
+- **Dashboard Overview**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#monitoring-and-analytics)
+- **Reporting**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#monitoring-and-analytics)
+- **Team Management**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#test-management)
+
+### **DevOps Engineers**
+- **Deployment**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md)
+- **Monitoring**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#monitoring-setup)
+- **CI/CD Integration**: [API Documentation](api/enterprise-api.md#integrations)
+
+### **Enterprise Architects**
+- **Architecture**: [PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md#architecture-overview)
+- **Security**: [PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md#security-features)
+- **Scalability**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#microservices-deployment)
+
+## 🔧 **Technical Documentation**
+
+### **API Reference**
+- **[Enterprise API](api/enterprise-api.md)** - Complete API documentation
+- **Authentication**: JWT-based authentication
+- **Rate Limiting**: API rate limits and quotas
+- **Error Handling**: Error codes and responses
+
+### **Integration Guides**
+- **Jira Integration**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#jira-integration)
+- **AI Providers**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#api-key-management)
+- **CI/CD**: [API Documentation](api/enterprise-api.md#integrations)
+
+### **Configuration**
+- **Environment Variables**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#configuration-guide)
+- **Database Setup**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#database-configuration)
+- **AI Configuration**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#ai-provider-setup)
+
+## 🏢 **Enterprise Documentation**
+
+### **Enterprise Features**
+- **On-Premise Deployment**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#option-3-microservices-deployment-enterprise)
+- **Local AI Integration**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#enterprise-configuration)
+- **Compliance**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#enterprise-configuration)
+- **Security**: [PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md#security-features)
+
+### **Enterprise API**
+- **Enterprise Endpoints**: [API Documentation](api/enterprise-api.md#enterprise-api)
+- **Audit Logging**: [API Documentation](api/enterprise-api.md#get-audit-logs)
+- **Compliance Reporting**: [API Documentation](api/enterprise-api.md#generate-compliance-report)
+- **Health Monitoring**: [API Documentation](api/enterprise-api.md#get-enterprise-health)
+
+## 🔧 **Troubleshooting**
+
+### **Common Issues**
+- **AI Generation**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#troubleshooting)
+- **Jira Integration**: [Enterprise User Guide](user-guides/enterprise-user-guide.md#troubleshooting)
+- **Performance**: [DEPLOYMENT_GUIDE_LATEST.md](../DEPLOYMENT_GUIDE_LATEST.md#troubleshooting)
+
+### **Support Resources**
+- **GitHub Issues**: Bug reports and feature requests
+- **Community Forum**: User discussions and support
+- **Enterprise Support**: Direct support for enterprise customers
 
 ---
 
-**Need Help?** Check out our [FAQ](faq.md) or contact [enterprise-support@assertly.com](mailto:enterprise-support@assertly.com)
+**Made with ❤️ by the Assertly Team**

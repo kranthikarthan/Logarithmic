@@ -1,173 +1,204 @@
-# 🚀 Assertly Deployment Guide - Latest Version
+# Assertly Deployment Guide - Latest Version
 
-## ✅ **UPDATED FOR MICROSERVICES & ENHANCEMENTS**
+## 🚀 **Complete Deployment Guide for Assertly**
 
-This guide reflects the latest Assertly architecture with microservices, AI features, enterprise capabilities, and comprehensive testing.
+This guide covers all deployment options for Assertly, from simple laptop deployment to enterprise production environments.
 
----
+## 📋 **Prerequisites**
 
-## 🏗️ **Current Architecture**
+### **System Requirements**
+- **Python**: 3.11+ (recommended 3.11 or 3.12)
+- **Memory**: 2GB RAM minimum, 4GB+ recommended
+- **Storage**: 1GB free space minimum
+- **Network**: Internet access for AI providers (optional with local LLM)
 
-### **Monolithic Deployment (Simple)**
-- Single Flask application with all features
-- Best for: Development, testing, small teams
-- File: `app.py` (3,700+ lines)
+### **Optional Dependencies**
+- **Docker**: 20.10+ (for containerized deployment)
+- **Docker Compose**: 2.0+ (for multi-service deployment)
+- **Redis**: 6.0+ (for caching and real-time features)
+- **PostgreSQL**: 13+ (for production database)
 
-### **Microservices Deployment (Advanced)**
-- API Gateway + 5 microservices
-- Best for: Production, enterprise, scalability
-- Files: `docker-compose.microservices.yml`
+## 🎯 **Deployment Options**
 
----
+### **Option 1: Simple Python Deployment (Recommended for Development)**
 
-## 🚀 **Deployment Options**
+**Best for**: Development, testing, laptop deployment
 
-### **Option 1: Simple Monolithic Deployment (RECOMMENDED FOR LAPTOP)**
-
-#### **Prerequisites**
-```bash
-# Python 3.11+
-python --version
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-#### **Quick Start**
 ```bash
 # 1. Clone the repository
-git clone <repository-url>
+git clone https://github.com/your-org/assertly.git
 cd assertly
 
-# 2. Install dependencies
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 3. Set environment variables (optional)
+# 4. Set environment variables (optional)
 export FLASK_APP=app.py
 export FLASK_ENV=development
-export SECRET_KEY=your-secret-key
+export SECRET_KEY=your-secret-key-here
 
-# 4. Run the application
+# 5. Run the application
 python app.py
 
-# 5. Access the application
+# 6. Access the application
 open http://localhost:5000
 ```
 
-#### **Features Available**
-- ✅ **Core Test Management** - All test management features
-- ✅ **AI Test Generation** - Mock AI responses (configure API keys for real AI)
-- ✅ **Enterprise Features** - Mock enterprise responses
-- ✅ **Integrations** - VS Code, GitHub Actions, Azure DevOps
-- ✅ **Monitoring** - Basic monitoring and analytics
-- ✅ **Real-time Features** - WebSocket support
-- ✅ **Caching** - Redis caching (fallback to in-memory)
-
----
+**Features Available**:
+- ✅ Core test management
+- ✅ AI test generation (with local LLM or external APIs)
+- ✅ Enterprise features (mock mode)
+- ✅ Real-time features
+- ✅ Basic monitoring
 
 ### **Option 2: Docker Monolithic Deployment**
 
-#### **Quick Start**
+**Best for**: Production deployment, easy scaling
+
 ```bash
-# 1. Build and run with Docker Compose
+# 1. Clone the repository
+git clone https://github.com/your-org/assertly.git
+cd assertly
+
+# 2. Create environment file
+cat > .env << EOF
+FLASK_APP=app.py
+FLASK_ENV=production
+SECRET_KEY=your-production-secret-key
+DATABASE_URL=postgresql://user:pass@db:5432/assertly
+REDIS_URL=redis://redis:6379/0
+OPENAI_API_KEY=sk-your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+JIRA_URL=https://your-company.atlassian.net
+JIRA_USERNAME=your-email@company.com
+JIRA_API_TOKEN=your-jira-api-token
+EOF
+
+# 3. Start services
 docker-compose up -d
 
-# 2. Access the application
+# 4. Access the application
 open http://localhost:5000
 
-# 3. Access monitoring
-open http://localhost:3000  # Grafana
+# 5. Access monitoring
+open http://localhost:3000  # Grafana (admin/admin)
 open http://localhost:9090  # Prometheus
 ```
 
-#### **Services Included**
-- **Main App**: `http://localhost:5000`
-- **PostgreSQL**: `localhost:5432`
-- **Redis**: `localhost:6379`
-- **Nginx**: `http://localhost:80`
-- **Prometheus**: `http://localhost:9090`
-- **Grafana**: `http://localhost:3000`
+**Features Available**:
+- ✅ All core features
+- ✅ Full AI integration
+- ✅ Enterprise features
+- ✅ Real-time features
+- ✅ Complete monitoring stack
+- ✅ Production database
 
----
+### **Option 3: Microservices Deployment (Enterprise)**
 
-### **Option 3: Microservices Deployment (PRODUCTION)**
+**Best for**: Large-scale production, enterprise environments
 
-#### **Architecture**
-```
-┌─────────────────┐    ┌─────────────────┐
-│   API Gateway   │────│  User Service   │
-│   (Port 8000)   │    │  (Port 5001)    │
-└─────────────────┘    └─────────────────┘
-         │
-    ┌────┴────┐
-    │         │
-┌───▼───┐ ┌──▼───┐ ┌─────────┐
-│ Test  │ │  AI  │ │Integration│
-│Service│ │Service│ │ Service  │
-│5002   │ │5003  │ │  5004    │
-└───────┘ └──────┘ └─────────┘
-```
-
-#### **Quick Start**
 ```bash
-# 1. Set environment variables
-export SECRET_KEY=your-secret-key
-export OPENAI_API_KEY=your-openai-key
-export ANTHROPIC_API_KEY=your-anthropic-key
-export JIRA_URL=your-jira-url
-export JIRA_USERNAME=your-username
-export JIRA_API_TOKEN=your-token
+# 1. Clone the repository
+git clone https://github.com/your-org/assertly.git
+cd assertly
 
-# 2. Start microservices
+# 2. Create microservices environment
+cat > .env.microservices << EOF
+# API Gateway
+GATEWAY_PORT=8000
+GATEWAY_SECRET=your-gateway-secret
+
+# User Service
+USER_SERVICE_PORT=5001
+USER_DB_URL=postgresql://user:pass@user-db:5432/users
+
+# Test Service
+TEST_SERVICE_PORT=5002
+TEST_DB_URL=postgresql://user:pass@test-db:5432/tests
+
+# AI Service
+AI_SERVICE_PORT=5003
+AI_OPENAI_KEY=sk-your-openai-key
+AI_ANTHROPIC_KEY=your-anthropic-key
+
+# Integration Service
+INTEGRATION_SERVICE_PORT=5004
+INTEGRATION_JIRA_URL=https://your-company.atlassian.net
+
+# Notification Service
+NOTIFICATION_SERVICE_PORT=5005
+NOTIFICATION_REDIS_URL=redis://redis:6379/0
+EOF
+
+# 3. Start microservices stack
 docker-compose -f docker-compose.microservices.yml up -d
 
-# 3. Access the application
-open http://localhost:8000  # API Gateway
+# 4. Access API Gateway
+open http://localhost:8000
+
+# 5. Access individual services
+# User Service: http://localhost:5001
+# Test Service: http://localhost:5002
+# AI Service: http://localhost:5003
+# Integration Service: http://localhost:5004
+# Notification Service: http://localhost:5005
 ```
 
-#### **Services Included**
-- **API Gateway**: `http://localhost:8000`
-- **User Service**: `http://localhost:5001`
-- **Test Service**: `http://localhost:5002`
-- **AI Service**: `http://localhost:5003`
-- **Integration Service**: `http://localhost:5004`
-- **Notification Service**: `http://localhost:5005`
-- **Service Discovery**: `http://localhost:8500` (Consul)
-- **Monitoring**: Prometheus + Grafana
+**Features Available**:
+- ✅ All features with microservices architecture
+- ✅ Independent service scaling
+- ✅ High availability
+- ✅ Enterprise-grade performance
+- ✅ Complete monitoring and observability
 
----
-
-## 🔧 **Configuration**
+## 🔧 **Configuration Guide**
 
 ### **Environment Variables**
 
 #### **Core Configuration**
 ```bash
-# Flask Configuration
+# Application Settings
 FLASK_APP=app.py
-FLASK_ENV=development  # or production
-SECRET_KEY=your-secret-key
+FLASK_ENV=production  # or development
+SECRET_KEY=your-secret-key-here
+DEBUG=False  # Set to True for development
 
-# Database (for monolithic)
-DATABASE_URL=sqlite:///app.db  # or postgresql://user:pass@host:5432/db
+# Database Configuration
+DATABASE_URL=sqlite:///app.db  # Default SQLite
+# DATABASE_URL=postgresql://user:pass@host:5432/db  # PostgreSQL
 
-# Redis (optional)
+# Redis Configuration (Optional)
 REDIS_URL=redis://localhost:6379/0
 ```
 
-#### **AI Configuration**
+#### **AI Provider Configuration**
 ```bash
-# OpenAI
+# OpenAI (Optional)
 OPENAI_API_KEY=sk-your-openai-key
 
-# Anthropic
+# Anthropic (Optional)
 ANTHROPIC_API_KEY=your-anthropic-key
 
-# Local AI (Enterprise)
-LOCAL_AI_URL=http://your-ai-server:8080/api
+# Google AI (Optional)
+GOOGLE_AI_KEY=your-google-ai-key
+
+# Azure OpenAI (Optional)
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_KEY=your-azure-key
+
+# Hugging Face (Optional)
+HUGGINGFACE_API_KEY=hf_your-huggingface-key
+
+# Local LLM (Recommended for Enterprise)
+LOCAL_AI_URL=http://localhost:11434  # Ollama default
+LOCAL_AI_MODEL=llama2  # or any Ollama model
 ```
 
-#### **Jira Integration**
+#### **Jira Integration (Optional)**
 ```bash
 JIRA_URL=https://your-company.atlassian.net
 JIRA_USERNAME=your-email@company.com
@@ -176,178 +207,340 @@ JIRA_API_TOKEN=your-jira-api-token
 
 #### **Enterprise Configuration**
 ```bash
-# Enterprise AI
-ENTERPRISE_AI_URL=http://enterprise-ai.company.com:8080/api
-ENTERPRISE_AI_MODEL=enterprise-model
-
-# Compliance
-COMPLIANCE_ENABLED=true
-AUDIT_LOGGING=true
+# Enterprise Settings
+ENTERPRISE_MODE=True
+AUDIT_LOGGING=True
+DATA_ENCRYPTION=True
+COMPLIANCE_MODE=standard  # or strict
+OFFLINE_MODE=False  # Set to True for air-gapped environments
 ```
 
----
+### **Database Configuration**
 
-## 📊 **Features Matrix**
-
-| Feature | Monolithic | Docker | Microservices |
-|---------|------------|--------|---------------|
-| **Core Test Management** | ✅ | ✅ | ✅ |
-| **AI Test Generation** | ✅ (Mock) | ✅ (Mock) | ✅ (Real) |
-| **Enterprise Features** | ✅ (Mock) | ✅ (Mock) | ✅ (Real) |
-| **Integrations** | ✅ | ✅ | ✅ |
-| **Monitoring** | ✅ (Basic) | ✅ (Full) | ✅ (Full) |
-| **Real-time** | ✅ | ✅ | ✅ |
-| **Caching** | ✅ (Fallback) | ✅ (Redis) | ✅ (Redis) |
-| **Scalability** | ❌ | ⚠️ | ✅ |
-| **Production Ready** | ⚠️ | ✅ | ✅ |
-
----
-
-## 🎯 **Recommended Deployment**
-
-### **For Laptop/Development**
+#### **SQLite (Default)**
 ```bash
-# Simple Python deployment
-pip install -r requirements.txt
-python app.py
+# No additional configuration needed
+# Database file: app.db (created automatically)
 ```
 
-### **For Production**
+#### **PostgreSQL (Production)**
 ```bash
-# Docker Compose with monitoring
-docker-compose up -d
+# Install PostgreSQL
+sudo apt-get install postgresql postgresql-contrib
+
+# Create database and user
+sudo -u postgres psql
+CREATE DATABASE assertly;
+CREATE USER assertly_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE assertly TO assertly_user;
+\q
+
+# Set environment variable
+export DATABASE_URL=postgresql://assertly_user:your_password@localhost:5432/assertly
 ```
 
-### **For Enterprise**
+### **Redis Configuration (Optional)**
+
+#### **Local Redis**
 ```bash
-# Microservices with full features
-docker-compose -f docker-compose.microservices.yml up -d
+# Install Redis
+sudo apt-get install redis-server
+
+# Start Redis
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+
+# Set environment variable
+export REDIS_URL=redis://localhost:6379/0
 ```
 
----
-
-## 🔍 **Testing & Validation**
-
-### **Run Comprehensive Tests**
+#### **Docker Redis**
 ```bash
-# Level 1: Database Integration
-python test_database_integration.py
+# Start Redis container
+docker run -d --name redis -p 6379:6379 redis:alpine
 
-# Level 2: Performance Testing
-python test_load_performance.py
-python test_stress_performance.py
-
-# Level 4: End-to-End Testing
-python test_user_workflows.py
-python test_ai_workflows.py
-python test_enterprise_workflows.py
+# Set environment variable
+export REDIS_URL=redis://localhost:6379/0
 ```
+
+## 🤖 **AI Provider Setup**
+
+### **Option 1: External AI Providers**
+
+#### **OpenAI Setup**
+```bash
+# Get API key from https://platform.openai.com/api-keys
+export OPENAI_API_KEY=sk-your-openai-key
+
+# Test connection
+curl -X POST http://localhost:5000/api/ai/generate-test-cases \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test", "description": "Test description"}'
+```
+
+#### **Anthropic Setup**
+```bash
+# Get API key from https://console.anthropic.com/
+export ANTHROPIC_API_KEY=your-anthropic-key
+
+# Test connection
+curl -X POST http://localhost:5000/api/ai/generate-test-cases \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test", "description": "Test description"}'
+```
+
+### **Option 2: Local LLM (Recommended for Enterprise)**
+
+#### **Ollama Setup**
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Start Ollama
+ollama serve
+
+# Pull a model (in another terminal)
+ollama pull llama2
+# or
+ollama pull mistral
+# or
+ollama pull codellama
+
+# Configure Assertly
+export LOCAL_AI_URL=http://localhost:11434
+export LOCAL_AI_MODEL=llama2
+
+# Test connection
+curl http://localhost:11434/api/tags
+```
+
+#### **Custom Local AI**
+```bash
+# Set custom local AI endpoint
+export LOCAL_AI_URL=http://your-ai-server:8080/api
+export LOCAL_AI_MODEL=your-model-name
+```
+
+## 🔌 **Integration Setup**
+
+### **Jira Integration**
+```bash
+# Set Jira credentials
+export JIRA_URL=https://your-company.atlassian.net
+export JIRA_USERNAME=your-email@company.com
+export JIRA_API_TOKEN=your-jira-api-token
+
+# Test connection
+curl http://localhost:5000/api/jira/projects
+```
+
+### **VS Code Extension**
+```bash
+# Install VS Code extension
+code --install-extension assertly.vscode-extension
+
+# Configure extension
+# Open VS Code settings and add:
+# "assertly.serverUrl": "http://localhost:5000"
+# "assertly.apiKey": "your-api-key"
+```
+
+### **GitHub Actions Integration**
+```yaml
+# .github/workflows/assertly-test.yml
+name: Assertly Test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Assertly Tests
+        uses: your-org/assertly-test-action@v1
+        with:
+          server-url: 'http://localhost:5000'
+          api-key: ${{ secrets.ASSERTLY_API_KEY }}
+```
+
+## 📊 **Monitoring Setup**
+
+### **Grafana Dashboard**
+```bash
+# Access Grafana
+open http://localhost:3000
+
+# Login credentials
+Username: admin
+Password: admin
+
+# Import dashboards
+# 1. Go to Dashboards > Import
+# 2. Upload the dashboard JSON files from monitoring/grafana/dashboards/
+```
+
+### **Prometheus Metrics**
+```bash
+# Access Prometheus
+open http://localhost:9090
+
+# View metrics
+# 1. Go to Status > Targets
+# 2. Check that all targets are UP
+# 3. Go to Graph and query metrics
+```
+
+### **Application Monitoring**
+```bash
+# Access application monitoring
+open http://localhost:5000/monitoring
+
+# View metrics
+# - System metrics
+# - Performance metrics
+# - Cache statistics
+# - Health status
+```
+
+## 🧪 **Testing Deployment**
 
 ### **Health Checks**
 ```bash
 # Application health
 curl http://localhost:5000/health
 
-# API Gateway health
-curl http://localhost:8000/health
-
 # Service discovery
 curl http://localhost:5000/api/services
+
+# Metrics endpoint
+curl http://localhost:5000/metrics
 ```
 
----
+### **Feature Testing**
+```bash
+# Test AI features
+curl -X POST http://localhost:5000/api/ai/generate-test-cases \
+  -H "Content-Type: application/json" \
+  -d '{"title": "User Login", "description": "Test user login functionality"}'
 
-## 📈 **Performance & Monitoring**
+# Test enterprise features
+curl http://localhost:5000/api/enterprise/health
 
-### **Monitoring Endpoints**
-- **Application**: `http://localhost:5000/monitoring`
-- **Grafana**: `http://localhost:3000` (admin/admin)
-- **Prometheus**: `http://localhost:9090`
+# Test integrations
+curl http://localhost:5000/api/jira/projects
+```
 
-### **Key Metrics**
-- **Response Time**: < 100ms average
-- **Throughput**: 200+ requests/second
-- **Concurrent Users**: 150+ supported
-- **Memory Usage**: < 512MB base
-- **CPU Usage**: < 10% idle
+### **Comprehensive Testing**
+```bash
+# Run full test suite
+python run_100_percent_tests.py
 
----
+# Run specific test levels
+python test_database_integration.py      # Level 1
+python test_load_performance.py         # Level 2
+python test_user_workflows.py           # Level 4
+```
 
-## 🚨 **Troubleshooting**
+## 🚀 **Production Deployment**
+
+### **Security Checklist**
+- [ ] Change default passwords
+- [ ] Enable HTTPS/TLS
+- [ ] Configure firewall rules
+- [ ] Set up backup procedures
+- [ ] Enable audit logging
+- [ ] Configure monitoring alerts
+
+### **Performance Optimization**
+- [ ] Configure Redis caching
+- [ ] Optimize database queries
+- [ ] Set up CDN for static assets
+- [ ] Configure load balancing
+- [ ] Enable compression
+
+### **Monitoring Setup**
+- [ ] Configure Prometheus alerts
+- [ ] Set up Grafana dashboards
+- [ ] Enable log aggregation
+- [ ] Configure health checks
+- [ ] Set up backup monitoring
+
+## 🔧 **Troubleshooting**
 
 ### **Common Issues**
 
-#### **AI Features Not Working**
+#### **Application Won't Start**
 ```bash
-# Check API keys
-echo $OPENAI_API_KEY
-echo $ANTHROPIC_API_KEY
+# Check Python version
+python --version  # Should be 3.11+
 
-# Test AI endpoint
-curl -X POST http://localhost:5000/api/ai/generate-test-cases \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Test", "description": "Test", "acceptance_criteria": "Test", "business_value": "High", "user_persona": "User"}'
+# Check dependencies
+pip install -r requirements.txt
+
+# Check environment variables
+echo $FLASK_APP
+echo $SECRET_KEY
 ```
 
 #### **Database Connection Issues**
 ```bash
-# Check database connection
+# Check database URL
+echo $DATABASE_URL
+
+# Test database connection
 python -c "import sqlite3; print('SQLite OK')"
 # or
 python -c "import psycopg2; print('PostgreSQL OK')"
 ```
 
-#### **Redis Connection Issues**
+#### **AI Provider Issues**
 ```bash
-# Check Redis connection
-redis-cli ping
-# Should return: PONG
+# Test OpenAI
+curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
+
+# Test Anthropic
+curl -H "x-api-key: $ANTHROPIC_API_KEY" https://api.anthropic.com/v1/messages
+
+# Test Local LLM
+curl http://localhost:11434/api/tags
 ```
 
----
+#### **Redis Connection Issues**
+```bash
+# Check Redis
+redis-cli ping  # Should return PONG
 
-## 📚 **Documentation References**
+# Check Redis URL
+echo $REDIS_URL
+```
 
-- **API Documentation**: `docs/api/enterprise-api.md`
-- **User Guide**: `docs/user-guides/enterprise-user-guide.md`
-- **Test Results**: `LEVEL_4_E2E_TESTING_REPORT.md`
-- **Fixes Applied**: `LEVEL_4_FIXES_REPORT.md`
-- **Enterprise Guide**: `ENTERPRISE_DEPLOYMENT.md`
+### **Log Analysis**
+```bash
+# Application logs
+tail -f app.log
 
----
+# Docker logs
+docker-compose logs -f
 
-## ✅ **Deployment Checklist**
+# System logs
+journalctl -u assertly -f
+```
 
-### **Pre-Deployment**
-- [ ] Python 3.11+ installed
-- [ ] Dependencies installed (`pip install -r requirements.txt`)
-- [ ] Environment variables set
-- [ ] Database accessible
-- [ ] Network ports available
+## 📞 **Support**
 
-### **Post-Deployment**
-- [ ] Application accessible (`http://localhost:5000`)
-- [ ] Health check passes (`/health`)
-- [ ] AI features working (mock or real)
-- [ ] Enterprise features accessible
-- [ ] Monitoring dashboards working
-- [ ] All tests passing
+### **Documentation**
+- **[README.md](README.md)** - Main documentation
+- **[docs/README.md](docs/README.md)** - Enterprise documentation
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Project overview
 
----
+### **API Documentation**
+- **[docs/api/enterprise-api.md](docs/api/enterprise-api.md)** - Complete API reference
+- **[docs/user-guides/enterprise-user-guide.md](docs/user-guides/enterprise-user-guide.md)** - User manual
 
-## 🎉 **Success!**
-
-Your Assertly deployment is ready with:
-- ✅ **100% Test Coverage** - All features tested
-- ✅ **Microservices Architecture** - Scalable and maintainable
-- ✅ **AI Integration** - Mock and real AI capabilities
-- ✅ **Enterprise Features** - Compliance and audit logging
-- ✅ **Production Ready** - Monitoring and error handling
-
-**Happy Testing! 🚀**
+### **Community**
+- **GitHub Issues**: Report bugs and request features
+- **Discussions**: Community support and questions
+- **Wiki**: Additional documentation and guides
 
 ---
 
-*Updated: $(date)*
-*Version: 2.0.0 (Microservices)*
-*Status: PRODUCTION READY*
+**Made with ❤️ by the Assertly Team**
