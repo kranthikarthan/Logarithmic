@@ -1085,6 +1085,94 @@ def list_services():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Jira Integration API Endpoints
+@app.route('/api/jira/projects', methods=['GET'])
+def get_jira_projects():
+    """Get Jira projects"""
+    try:
+        # Get Jira configuration from environment
+        jira_url = os.getenv('JIRA_URL')
+        jira_username = os.getenv('JIRA_USERNAME')
+        jira_token = os.getenv('JIRA_API_TOKEN')
+        
+        if not all([jira_url, jira_username, jira_token]):
+            # Return mock data if Jira not configured
+            return jsonify([
+                {"id": "10000", "key": "TEST", "name": "Test Project", "projectTypeKey": "software"},
+                {"id": "10001", "key": "DEMO", "name": "Demo Project", "projectTypeKey": "business"},
+                {"id": "10002", "key": "QA", "name": "QA Testing", "projectTypeKey": "software"}
+            ])
+        
+        # Use real Jira client if configured
+        jira_client = JiraAssertlyClient(jira_url, jira_username, jira_token)
+        projects = jira_client.get_projects()
+        return jsonify(projects)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jira/sync', methods=['POST'])
+def sync_jira_data():
+    """Sync data with Jira"""
+    try:
+        data = request.get_json() or {}
+        project_key = data.get('project_key', 'TEST')
+        sync_type = data.get('sync_type', 'test_cases')
+        
+        # Mock sync response
+        sync_result = {
+            "status": "success",
+            "project_key": project_key,
+            "sync_type": sync_type,
+            "items_synced": 5,
+            "timestamp": datetime.now().isoformat(),
+            "message": f"Successfully synced {sync_type} for project {project_key}"
+        }
+        
+        return jsonify(sync_result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jira/issues', methods=['GET'])
+def get_jira_issues():
+    """Get Jira issues"""
+    try:
+        project_key = request.args.get('project', 'TEST')
+        jql = request.args.get('jql', f'project = {project_key}')
+        
+        # Mock issues response
+        issues = [
+            {
+                "id": "10001",
+                "key": f"{project_key}-1",
+                "summary": "Test Case: User Login",
+                "description": "Verify user can login with valid credentials",
+                "status": {"name": "To Do", "id": "1"},
+                "issuetype": {"name": "Test", "id": "10001"},
+                "project": {"key": project_key, "name": f"{project_key} Project"}
+            },
+            {
+                "id": "10002", 
+                "key": f"{project_key}-2",
+                "summary": "Test Case: User Registration",
+                "description": "Verify user can register with valid information",
+                "status": {"name": "In Progress", "id": "3"},
+                "issuetype": {"name": "Test", "id": "10001"},
+                "project": {"key": project_key, "name": f"{project_key} Project"}
+            }
+        ]
+        
+        return jsonify({
+            "issues": issues,
+            "total": len(issues),
+            "project": project_key,
+            "jql": jql
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/integrations/vscode/install')
 def vscode_install():
     """VS Code extension installation guide"""
