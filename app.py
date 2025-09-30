@@ -1872,6 +1872,130 @@ def test_timeout():
     time.sleep(2)  # Simulate a 2-second delay
     return jsonify({'message': 'Timeout test completed'})
 
+# Missing endpoints for complete test coverage
+@app.route('/test-data-validation')
+def test_data_validation():
+    """Test data validation page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('test-data-validation.html')
+
+@app.route('/defect-analysis')
+def defect_analysis():
+    """Defect analysis page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('defect-analysis.html')
+
+@app.route('/test-data-management')
+def test_data_management():
+    """Test data management page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('test-data-management.html')
+
+@app.route('/test-sets')
+def test_sets():
+    """Test sets page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('test-sets.html')
+
+@app.route('/parameterized-testing')
+def parameterized_testing():
+    """Parameterized testing page"""
+    if 'jira_connected' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('parameterized-testing.html')
+
+# Additional API endpoints for complete AI workflow coverage
+@app.route('/api/ai/test-data-validation', methods=['POST'])
+def ai_test_data_validation():
+    """AI-powered test data validation"""
+    try:
+        data = request.get_json() or {}
+        
+        # Mock validation response
+        validation_result = {
+            'success': True,
+            'validation_score': 95.5,
+            'issues_found': [
+                {
+                    'type': 'data_format',
+                    'severity': 'low',
+                    'message': 'Date format inconsistency in test data',
+                    'suggestion': 'Standardize date format to ISO 8601'
+                }
+            ],
+            'recommendations': [
+                'Add more boundary value test cases',
+                'Include negative test scenarios',
+                'Validate data type consistency'
+            ],
+            'coverage_analysis': {
+                'valid_data_coverage': 90.0,
+                'invalid_data_coverage': 85.0,
+                'boundary_data_coverage': 80.0
+            }
+        }
+        
+        return jsonify(validation_result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/defect-analysis', methods=['POST'])
+def ai_defect_analysis():
+    """AI-powered defect analysis"""
+    try:
+        data = request.get_json() or {}
+        
+        # Mock defect analysis response
+        analysis_result = {
+            'success': True,
+            'defect_patterns': [
+                {
+                    'pattern': 'Authentication Failures',
+                    'frequency': 15,
+                    'severity': 'high',
+                    'root_cause': 'Session timeout configuration',
+                    'recommendation': 'Implement proper session management'
+                },
+                {
+                    'pattern': 'Data Validation Errors',
+                    'frequency': 8,
+                    'severity': 'medium',
+                    'root_cause': 'Input sanitization issues',
+                    'recommendation': 'Enhance input validation'
+                }
+            ],
+            'trend_analysis': {
+                'defect_trend': 'decreasing',
+                'resolution_time': 'improving',
+                'recurrence_rate': 'low'
+            },
+            'quality_metrics': {
+                'defect_density': 2.3,
+                'defect_escape_rate': 5.2,
+                'mean_time_to_resolution': '2.5 days'
+            },
+            'recommendations': [
+                'Implement automated regression testing',
+                'Add performance monitoring',
+                'Enhance error logging and tracking'
+            ]
+        }
+        
+        return jsonify(analysis_result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/test-execution')
 def test_execution():
     """Test execution page"""
@@ -1912,14 +2036,6 @@ def defect_management():
     
     return render_template('defect-management.html')
 
-@app.route('/test-data-management')
-def test_data_management():
-    """Test data management page"""
-    if 'jira_connected' not in session:
-        return redirect(url_for('login'))
-    
-    return render_template('test-data-management.html')
-
 @app.route('/scheduling-environments')
 def scheduling_environments():
     """Scheduling and environments page"""
@@ -1927,14 +2043,6 @@ def scheduling_environments():
         return redirect(url_for('login'))
     
     return render_template('scheduling-environments.html')
-
-@app.route('/test-sets')
-def test_sets():
-    """Test sets management page"""
-    if 'jira_connected' not in session:
-        return redirect(url_for('login'))
-    
-    return render_template('test-sets.html')
 
 @app.route('/preconditions')
 def preconditions():

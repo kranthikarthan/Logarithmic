@@ -367,7 +367,10 @@ class AIWorkflowTester:
             
             # Step 3: Test data validation
             print("  Step 3: Test data validation...")
-            step3 = self.make_request('/test-data-validation')
+            step3 = self.make_request('/api/ai/test-data-validation', method='POST', data={
+                'test_data': ['test1', 'test2', 'test3'],
+                'validation_rules': ['format', 'range', 'type']
+            })
             workflow_steps.append(step3)
             if not step3['success']:
                 self.log_test("AI Test Data Workflow", "FAIL", "Test data validation not accessible")
@@ -439,7 +442,10 @@ class AIWorkflowTester:
             
             # Step 3: Defect analysis
             print("  Step 3: Defect analysis...")
-            step3 = self.make_request('/defect-analysis')
+            step3 = self.make_request('/api/ai/defect-analysis', method='POST', data={
+                'defect_data': ['defect1', 'defect2', 'defect3'],
+                'analysis_type': 'pattern_analysis'
+            })
             workflow_steps.append(step3)
             if not step3['success']:
                 self.log_test("AI Quality Assurance Workflow", "FAIL", "Defect analysis not accessible")

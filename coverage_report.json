@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-09-30T18:11:07.756504",
+  "overall_coverage": {
+    "line_coverage": 85.5,
+    "branch_coverage": 78.2,
+    "total_lines": 1250,
+    "covered_lines": 1069,
+    "missing_lines": 181
+  },
+  "file_reports": {
+    "app.py": {
+      "lines": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        10,
+        11,
+        12
+      ],
+      "missing": [
+        4,
+        9
+      ],
+      "excluded": [],
+      "coverage_percentage": 83.3
+    },
+    "ai_test_generator.py": {
+      "lines": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "missing": [
+        16,
+        17
+      ],
+      "excluded": [],
+      "coverage_percentage": 88.2
+    }
+  },
+  "status": "mock",
+  "recommendations": [
+    "Add more test cases for edge conditions",
+    "Improve error handling test coverage",
+    "Add integration tests for AI features",
+    "Test enterprise functionality more thoroughly"
+  ]
+}

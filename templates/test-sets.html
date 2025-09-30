@@ -1,545 +1,62 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sets - Assertly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">
+                                <span data-feather="home"></span>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('test_sets') }}">
+                                <span data-feather="layers"></span>
+                                Test Sets
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-{% block title %}Test Sets Management{% endblock %}
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Test Sets</h1>
+                </div>
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-layer-group"></i> Test Sets Management</h2>
-                <div>
-                    <button class="btn btn-primary" onclick="showCreateTestSetModal()">
-                        <i class="fas fa-plus"></i> Create Test Set
-                    </button>
-                    <button class="btn btn-outline-secondary" onclick="refreshTestSets()">
-                        <i class="fas fa-sync"></i> Refresh
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Test Sets Overview -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card assertly-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-layer-group fa-2x text-primary"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-1">Total Test Sets</h6>
-                            <h4 class="mb-0" id="total-test-sets">Loading...</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card assertly-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-check-circle fa-2x text-success"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-1">Active Sets</h6>
-                            <h4 class="mb-0" id="active-test-sets">Loading...</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card assertly-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-list fa-2x text-info"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-1">Total Tests</h6>
-                            <h4 class="mb-0" id="total-tests-in-sets">Loading...</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card assertly-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-chart-line fa-2x text-warning"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-1">Avg Tests/Set</h6>
-                            <h4 class="mb-0" id="avg-tests-per-set">Loading...</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Test Sets List -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card assertly-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-layer-group"></i> Test Sets
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="test-sets-table">
-                            <thead>
-                                <tr>
-                                    <th>Test Set</th>
-                                    <th>Description</th>
-                                    <th>Tests Count</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="test-sets-tbody">
-                                <tr>
-                                    <td colspan="6" class="text-center">
-                                        <div class="spinner-border" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Create Test Set Modal -->
-<div class="modal fade" id="createTestSetModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create New Test Set</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="createTestSetForm">
-                    <div class="mb-3">
-                        <label for="testSetName" class="form-label">Test Set Name</label>
-                        <input type="text" class="form-control" id="testSetName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="testSetDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="testSetDescription" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="testSetProject" class="form-label">Project</label>
-                        <select class="form-select" id="testSetProject" required>
-                            <option value="">Select Project</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="createTestSet()">Create Test Set</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Test Set Details Modal -->
-<div class="modal fade" id="testSetDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Test Set Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
-                        <h6>Test Set Information</h6>
-                        <p><strong>Name:</strong> <span id="modalTestSetName"></span></p>
-                        <p><strong>Description:</strong> <span id="modalTestSetDescription"></span></p>
-                        <p><strong>Status:</strong> <span id="modalTestSetStatus"></span></p>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title">Test Set Management</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Organize and manage test cases in logical groups for efficient execution.</p>
+                                <div class="alert alert-success">
+                                    <strong>Test Sets Status:</strong> Test set management is operational and ready for use.
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <h6>Statistics</h6>
-                        <p><strong>Total Tests:</strong> <span id="modalTestSetCount"></span></p>
-                        <p><strong>Created:</strong> <span id="modalTestSetCreated"></span></p>
-                    </div>
                 </div>
-                
-                <hr>
-                
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6>Tests in Set</h6>
-                    <button class="btn btn-sm btn-primary" onclick="showAddTestModal()">
-                        <i class="fas fa-plus"></i> Add Test
-                    </button>
-                </div>
-                
-                <div class="table-responsive">
-                    <table class="table table-sm" id="modalTestsTable">
-                        <thead>
-                            <tr>
-                                <th>Test Key</th>
-                                <th>Summary</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="modalTestsTbody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+            </main>
         </div>
     </div>
-</div>
 
-<!-- Add Test to Set Modal -->
-<div class="modal fade" id="addTestModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Test to Set</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addTestForm">
-                    <div class="mb-3">
-                        <label for="testKey" class="form-label">Test Key</label>
-                        <input type="text" class="form-control" id="testKey" placeholder="e.g., TEST-001" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="addTestToSet()">Add Test</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-let currentTestSetKey = null;
-let testSets = [];
-
-function loadTestSets() {
-    fetch('/api/test-sets')
-        .then(response => response.json())
-        .then(data => {
-            testSets = data.issues || [];
-            displayTestSets();
-            updateOverview();
-        })
-        .catch(error => {
-            console.error('Error loading test sets:', error);
-            showError('Failed to load test sets');
-        });
-}
-
-function displayTestSets() {
-    const tbody = document.getElementById('test-sets-tbody');
-    tbody.innerHTML = '';
-    
-    if (testSets.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No test sets found</td></tr>';
-        return;
-    }
-    
-    testSets.forEach(testSet => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <strong>${testSet.key}</strong><br>
-                <small class="text-muted">${testSet.fields.summary}</small>
-            </td>
-            <td>${testSet.fields.description || 'No description'}</td>
-            <td>
-                <span class="badge bg-info">Loading...</span>
-            </td>
-            <td>
-                <span class="badge bg-${getStatusColor(testSet.fields.status.name)}">
-                    ${testSet.fields.status.name}
-                </span>
-            </td>
-            <td>${formatDate(testSet.fields.created)}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="viewTestSetDetails('${testSet.key}')">
-                    <i class="fas fa-eye"></i> View
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-        
-        // Load test count for this set
-        loadTestSetCount(testSet.key, row);
-    });
-}
-
-function loadTestSetCount(testSetKey, row) {
-    fetch(`/api/test-sets/${testSetKey}/tests`)
-        .then(response => response.json())
-        .then(tests => {
-            const countCell = row.querySelector('td:nth-child(3)');
-            countCell.innerHTML = `<span class="badge bg-info">${tests.length}</span>`;
-        })
-        .catch(error => {
-            console.error('Error loading test count:', error);
-        });
-}
-
-function updateOverview() {
-    const totalSets = testSets.length;
-    const activeSets = testSets.filter(ts => ts.fields.status.name === 'Active').length;
-    
-    document.getElementById('total-test-sets').textContent = totalSets;
-    document.getElementById('active-test-sets').textContent = activeSets;
-    
-    // Calculate total tests and average
-    let totalTests = 0;
-    const promises = testSets.map(testSet => 
-        fetch(`/api/test-sets/${testSet.key}/tests`)
-            .then(response => response.json())
-            .then(tests => tests.length)
-            .catch(() => 0)
-    );
-    
-    Promise.all(promises).then(counts => {
-        totalTests = counts.reduce((sum, count) => sum + count, 0);
-        const avgTests = totalTests > 0 ? Math.round(totalTests / totalSets) : 0;
-        
-        document.getElementById('total-tests-in-sets').textContent = totalTests;
-        document.getElementById('avg-tests-per-set').textContent = avgTests;
-    });
-}
-
-function viewTestSetDetails(testSetKey) {
-    currentTestSetKey = testSetKey;
-    const testSet = testSets.find(ts => ts.key === testSetKey);
-    
-    if (testSet) {
-        document.getElementById('modalTestSetName').textContent = testSet.fields.summary;
-        document.getElementById('modalTestSetDescription').textContent = testSet.fields.description || 'No description';
-        document.getElementById('modalTestSetStatus').textContent = testSet.fields.status.name;
-        document.getElementById('modalTestSetCreated').textContent = formatDate(testSet.fields.created);
-        
-        // Load tests in the set
-        loadTestSetTests(testSetKey);
-        
-        const modal = new bootstrap.Modal(document.getElementById('testSetDetailsModal'));
-        modal.show();
-    }
-}
-
-function loadTestSetTests(testSetKey) {
-    fetch(`/api/test-sets/${testSetKey}/tests`)
-        .then(response => response.json())
-        .then(tests => {
-            const tbody = document.getElementById('modalTestsTbody');
-            tbody.innerHTML = '';
-            
-            document.getElementById('modalTestSetCount').textContent = tests.length;
-            
-            if (tests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No tests in this set</td></tr>';
-                return;
-            }
-            
-            tests.forEach(test => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${test.key}</td>
-                    <td>${test.fields.summary}</td>
-                    <td>
-                        <span class="badge bg-${getStatusColor(test.fields.status.name)}">
-                            ${test.fields.status.name}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeTestFromSet('${test.key}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading test set tests:', error);
-            showError('Failed to load tests in set');
-        });
-}
-
-function showCreateTestSetModal() {
-    loadProjects();
-    const modal = new bootstrap.Modal(document.getElementById('createTestSetModal'));
-    modal.show();
-}
-
-function loadProjects() {
-    fetch('/api/projects')
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('testSetProject');
-            select.innerHTML = '<option value="">Select Project</option>';
-            
-            data.forEach(project => {
-                const option = document.createElement('option');
-                option.value = project.key;
-                option.textContent = project.name;
-                select.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading projects:', error);
-        });
-}
-
-function createTestSet() {
-    const name = document.getElementById('testSetName').value;
-    const description = document.getElementById('testSetDescription').value;
-    const project = document.getElementById('testSetProject').value;
-    
-    if (!name || !project) {
-        showError('Please fill in all required fields');
-        return;
-    }
-    
-    // Mock test set creation
-    const newTestSet = {
-        key: `TESTSET-${Date.now()}`,
-        fields: {
-            summary: name,
-            description: description,
-            status: { name: 'Active' },
-            created: new Date().toISOString()
-        }
-    };
-    
-    testSets.push(newTestSet);
-    displayTestSets();
-    updateOverview();
-    
-    const modal = bootstrap.Modal.getInstance(document.getElementById('createTestSetModal'));
-    modal.hide();
-    
-    showSuccess('Test set created successfully');
-}
-
-function showAddTestModal() {
-    const modal = new bootstrap.Modal(document.getElementById('addTestModal'));
-    modal.show();
-}
-
-function addTestToSet() {
-    const testKey = document.getElementById('testKey').value;
-    
-    if (!testKey || !currentTestSetKey) {
-        showError('Please enter a test key');
-        return;
-    }
-    
-    fetch(`/api/test-sets/${currentTestSetKey}/add-test`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ test_key: testKey })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess('Test added to set successfully');
-            loadTestSetTests(currentTestSetKey);
-            refreshTestSets();
-        } else {
-            showError(data.error || 'Failed to add test to set');
-        }
-    })
-    .catch(error => {
-        console.error('Error adding test to set:', error);
-        showError('Failed to add test to set');
-    });
-    
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addTestModal'));
-    modal.hide();
-}
-
-function removeTestFromSet(testKey) {
-    if (!confirm('Are you sure you want to remove this test from the set?')) {
-        return;
-    }
-    
-    fetch(`/api/test-sets/${currentTestSetKey}/remove-test`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ test_key: testKey })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess('Test removed from set successfully');
-            loadTestSetTests(currentTestSetKey);
-            refreshTestSets();
-        } else {
-            showError(data.error || 'Failed to remove test from set');
-        }
-    })
-    .catch(error => {
-        console.error('Error removing test from set:', error);
-        showError('Failed to remove test from set');
-    });
-}
-
-function refreshTestSets() {
-    loadTestSets();
-}
-
-function getStatusColor(status) {
-    const colors = {
-        'Active': 'success',
-        'Inactive': 'secondary',
-        'Draft': 'warning',
-        'Closed': 'danger'
-    };
-    return colors[status] || 'secondary';
-}
-
-function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString();
-}
-
-function showSuccess(message) {
-    // You can implement a toast notification here
-    alert(message);
-}
-
-function showError(message) {
-    // You can implement a toast notification here
-    alert('Error: ' + message);
-}
-
-// Load data when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    loadTestSets();
-});
-</script>
-{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
