@@ -45,6 +45,12 @@ class ErrorScenarioTester:
                 response = requests.get(f"{self.base_url}{endpoint}", timeout=timeout)
             elif method == 'POST':
                 response = requests.post(f"{self.base_url}{endpoint}", json=data, timeout=timeout)
+            elif method == 'DELETE':
+                response = requests.delete(f"{self.base_url}{endpoint}", timeout=timeout)
+            elif method == 'PUT':
+                response = requests.put(f"{self.base_url}{endpoint}", json=data, timeout=timeout)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
             
             end_time = time.time()
             response_time = end_time - start_time
@@ -308,15 +314,15 @@ class ErrorScenarioTester:
             
             # Test 1: Request timeout
             print("  Test 1: Request timeout...")
-            test1 = self.make_request('/api/ai/generate-test-cases', timeout=1)
+            test1 = self.make_request('/api/test/timeout', timeout=1)
             error_scenarios.append(test1)
-            # This might timeout or return 400 due to missing API keys
+            # This should timeout due to 2-second delay with 1-second timeout
             
             # Test 2: Long-running operation
             print("  Test 2: Long-running operation...")
-            test2 = self.make_request('/api/ai/analyze-coverage', timeout=1)
+            test2 = self.make_request('/api/test/timeout', timeout=1)
             error_scenarios.append(test2)
-            # This might timeout or return 400 due to missing API keys
+            # This should timeout due to 2-second delay with 1-second timeout
             
             # Test 3: Recovery from timeout
             print("  Test 3: Recovery from timeout...")

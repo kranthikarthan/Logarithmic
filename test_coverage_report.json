@@ -1,20 +1,19 @@
 {
-  "timestamp": "2025-09-30T17:46:43.696916",
+  "timestamp": "2025-09-30T18:03:27.906097",
   "test_results": {
     "Database Integration": true,
     "Load Performance": true,
     "Stress Performance": true,
-    "User Workflows": false,
+    "User Workflows": true,
     "AI Workflows": false,
-    "Enterprise Workflows": false,
-    "Data Flow": false,
-    "Error Scenarios": false,
+    "Enterprise Workflows": true,
+    "Data Flow": true,
+    "Error Scenarios": true,
     "Jira Integration": true
   },
   "coverage": 0,
-  "success_rate": 44.44444444444444,
+  "success_rate": 88.88888888888889,
   "recommendations": [
-    "Focus on fixing failing test suites",
     "Add more unit tests for uncovered code",
     "Improve test reliability and stability",
     "Add integration tests for edge cases"

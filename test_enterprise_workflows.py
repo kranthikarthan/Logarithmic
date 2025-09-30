@@ -397,8 +397,11 @@ class EnterpriseWorkflowTester:
             # Step 4: Enterprise AI test generation
             print("  Step 4: Enterprise AI test generation...")
             step4 = self.make_request('/api/enterprise/ai/generate-test-cases', method='POST', data={
-                'user_story': 'As a user, I want to login to the system',
-                'test_type': 'functional'
+                'title': 'User Login',
+                'description': 'As a user, I want to login to the system',
+                'acceptance_criteria': 'User can login with valid credentials',
+                'business_value': 'Access to user account',
+                'user_persona': 'Registered user'
             })
             workflow_steps.append(step4)
             if not step4['success']:

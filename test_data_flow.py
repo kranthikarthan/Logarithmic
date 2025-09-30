@@ -227,16 +227,38 @@ class DataFlowTester:
             
             # Step 2: AI processing (test generation)
             print("  Step 2: AI processing (test generation)...")
-            step2 = self.make_request('/api/ai/generate-test-cases')
+            step2 = self.make_request('/api/ai/generate-test-cases', method='POST', data={
+                'user_story': {
+                    'title': 'User Login',
+                    'description': 'As a user, I want to login to the system',
+                    'acceptance_criteria': 'User can login with valid credentials',
+                    'business_value': 'Access to user account',
+                    'user_persona': 'Registered user'
+                }
+            })
             data_flow_steps.append(step2)
-            # Expected to return 400 due to missing API keys, which is acceptable
+            # Expected to return 200 or 400, which is acceptable
             if step2['status_code'] not in [200, 400]:
                 self.log_test("AI Data Flow", "FAIL", "AI processing not accessible")
                 return False
             
             # Step 3: AI data storage (test improvement)
             print("  Step 3: AI data storage (test improvement)...")
-            step3 = self.make_request('/api/ai/improve-test-case')
+            step3 = self.make_request('/api/ai/improve-test-case', method='POST', data={
+                'test_case': {
+                    'title': 'Test Case',
+                    'description': 'Test description',
+                    'steps': ['Step 1', 'Step 2'],
+                    'expected_result': 'Expected result',
+                    'test_type': 'functional',
+                    'priority': 'high',
+                    'tags': ['test'],
+                    'preconditions': ['Precondition'],
+                    'test_data': {},
+                    'acceptance_criteria': ['Criteria']
+                },
+                'improvement_prompts': ['Make it better']
+            })
             data_flow_steps.append(step3)
             if step3['status_code'] not in [200, 400]:
                 self.log_test("AI Data Flow", "FAIL", "AI data storage not accessible")
@@ -244,7 +266,13 @@ class DataFlowTester:
             
             # Step 4: AI data retrieval (BDD scenarios)
             print("  Step 4: AI data retrieval (BDD scenarios)...")
-            step4 = self.make_request('/api/ai/generate-bdd-scenarios')
+            step4 = self.make_request('/api/ai/generate-bdd-scenarios', method='POST', data={
+                'title': 'User Login',
+                'description': 'As a user, I want to login to the system',
+                'acceptance_criteria': 'User can login with valid credentials',
+                'business_value': 'Access to user account',
+                'user_persona': 'Registered user'
+            })
             data_flow_steps.append(step4)
             if step4['status_code'] not in [200, 400]:
                 self.log_test("AI Data Flow", "FAIL", "AI data retrieval not accessible")
@@ -252,7 +280,10 @@ class DataFlowTester:
             
             # Step 5: AI data output (coverage analysis)
             print("  Step 5: AI data output (coverage analysis)...")
-            step5 = self.make_request('/api/ai/analyze-coverage')
+            step5 = self.make_request('/api/ai/analyze-coverage', method='POST', data={
+                'test_cases': ['test1', 'test2'],
+                'requirements': ['req1', 'req2']
+            })
             data_flow_steps.append(step5)
             if step5['status_code'] not in [200, 400]:
                 self.log_test("AI Data Flow", "FAIL", "AI data output not accessible")

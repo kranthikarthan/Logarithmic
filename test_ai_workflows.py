@@ -228,8 +228,11 @@ class AIWorkflowTester:
             # Step 4: Enterprise AI test generation
             print("  Step 4: Enterprise AI test generation...")
             step4 = self.make_request('/api/enterprise/ai/generate-test-cases', method='POST', data={
-                'user_story': 'As a user, I want to login to the system',
-                'test_type': 'functional'
+                'title': 'User Login',
+                'description': 'As a user, I want to login to the system',
+                'acceptance_criteria': 'User can login with valid credentials',
+                'business_value': 'Access to user account',
+                'user_persona': 'Registered user'
             })
             workflow_steps.append(step4)
             if not step4['success']:
@@ -352,7 +355,10 @@ class AIWorkflowTester:
             
             # Step 2: AI test data generation
             print("  Step 2: AI test data generation...")
-            step2 = self.make_request('/api/ai/generate-test-data')
+            step2 = self.make_request('/api/ai/generate-test-data', method='POST', data={
+                'test_type': 'user_authentication',
+                'num_samples': 5
+            })
             workflow_steps.append(step2)
             # This might not be implemented yet, which is acceptable
             if step2['status_code'] not in [200, 400, 404]:
@@ -422,7 +428,10 @@ class AIWorkflowTester:
             
             # Step 2: Test coverage analysis
             print("  Step 2: Test coverage analysis...")
-            step2 = self.make_request('/api/ai/analyze-coverage')
+            step2 = self.make_request('/api/ai/analyze-coverage', method='POST', data={
+                'test_cases': ['test1', 'test2'],
+                'requirements': ['req1', 'req2']
+            })
             workflow_steps.append(step2)
             if step2['status_code'] not in [200, 400]:
                 self.log_test("AI Quality Assurance Workflow", "FAIL", "Test coverage analysis not accessible")
