@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-30T17:27:32.645350",
+  "timestamp": "2025-09-30T17:46:43.696916",
   "test_results": {
     "Database Integration": true,
     "Load Performance": true,
@@ -9,10 +9,10 @@
     "Enterprise Workflows": false,
     "Data Flow": false,
     "Error Scenarios": false,
-    "Jira Integration": false
+    "Jira Integration": true
   },
   "coverage": 0,
-  "success_rate": 33.33333333333333,
+  "success_rate": 44.44444444444444,
   "recommendations": [
     "Focus on fixing failing test suites",
     "Add more unit tests for uncovered code",
