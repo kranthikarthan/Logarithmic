@@ -235,16 +235,36 @@ class UserWorkflowTester:
             
             # Step 2: Check AI endpoint availability
             print("  Step 2: AI endpoints check...")
-            step2 = self.make_request('/api/ai/generate-test-cases')
+            step2 = self.make_request('/api/ai/generate-test-cases', method='POST', data={
+                'title': 'Test User Story',
+                'description': 'Test description',
+                'acceptance_criteria': 'Test criteria',
+                'business_value': 'High',
+                'user_persona': 'User'
+            })
             workflow_steps.append(step2)
-            # This might return 400 due to missing API keys, which is expected
+            # This should return 200 with mock data or 400 due to missing API keys
             if step2['status_code'] not in [200, 400]:
                 self.log_test("AI Test Generation Workflow", "FAIL", "AI endpoints not accessible")
                 return False
             
             # Step 3: Test AI test case improvement
             print("  Step 3: AI test case improvement...")
-            step3 = self.make_request('/api/ai/improve-test-case')
+            step3 = self.make_request('/api/ai/improve-test-case', method='POST', data={
+                'test_case': {
+                    'title': 'Test Case',
+                    'description': 'Test description',
+                    'steps': ['Step 1', 'Step 2'],
+                    'expected_result': 'Expected result',
+                    'test_type': 'functional',
+                    'priority': 'high',
+                    'tags': ['test'],
+                    'preconditions': ['Precondition'],
+                    'test_data': {},
+                    'acceptance_criteria': ['Criteria']
+                },
+                'improvement_prompts': ['Make it better']
+            })
             workflow_steps.append(step3)
             if step3['status_code'] not in [200, 400]:
                 self.log_test("AI Test Generation Workflow", "FAIL", "AI improvement not accessible")
@@ -252,7 +272,13 @@ class UserWorkflowTester:
             
             # Step 4: Test BDD scenario generation
             print("  Step 4: BDD scenario generation...")
-            step4 = self.make_request('/api/ai/generate-bdd-scenarios')
+            step4 = self.make_request('/api/ai/generate-bdd-scenarios', method='POST', data={
+                'title': 'Test User Story',
+                'description': 'Test description',
+                'acceptance_criteria': 'Test criteria',
+                'business_value': 'High',
+                'user_persona': 'User'
+            })
             workflow_steps.append(step4)
             if step4['status_code'] not in [200, 400]:
                 self.log_test("AI Test Generation Workflow", "FAIL", "BDD generation not accessible")
@@ -260,7 +286,29 @@ class UserWorkflowTester:
             
             # Step 5: Test coverage analysis
             print("  Step 5: Coverage analysis...")
-            step5 = self.make_request('/api/ai/analyze-coverage')
+            step5 = self.make_request('/api/ai/analyze-coverage', method='POST', data={
+                'user_story': {
+                    'title': 'Test User Story',
+                    'description': 'Test description',
+                    'acceptance_criteria': 'Test criteria',
+                    'business_value': 'High',
+                    'user_persona': 'User'
+                },
+                'existing_test_cases': [
+                    {
+                        'title': 'Test Case 1',
+                        'description': 'Test description',
+                        'steps': ['Step 1'],
+                        'expected_result': 'Expected result',
+                        'test_type': 'functional',
+                        'priority': 'high',
+                        'tags': ['test'],
+                        'preconditions': ['Precondition'],
+                        'test_data': {},
+                        'acceptance_criteria': ['Criteria']
+                    }
+                ]
+            })
             workflow_steps.append(step5)
             if step5['status_code'] not in [200, 400]:
                 self.log_test("AI Test Generation Workflow", "FAIL", "Coverage analysis not accessible")
