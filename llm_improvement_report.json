@@ -1,0 +1,110 @@
+{
+  "timestamp": "2025-09-30T17:35:33.867037",
+  "provider_results": {
+    "openai": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 0.00011706352233886719,
+      "bdd_time": 3.409385681152344e-05,
+      "data_time": 3.910064697265625e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    },
+    "anthropic": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 6.985664367675781e-05,
+      "bdd_time": 2.4080276489257812e-05,
+      "data_time": 2.7894973754882812e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    },
+    "google": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 7.295608520507812e-05,
+      "bdd_time": 2.4080276489257812e-05,
+      "data_time": 3.170967102050781e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    },
+    "azure": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 6.222724914550781e-05,
+      "bdd_time": 2.1696090698242188e-05,
+      "data_time": 2.5510787963867188e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    },
+    "huggingface": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 5.888938903808594e-05,
+      "bdd_time": 2.1219253540039062e-05,
+      "data_time": 2.4080276489257812e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    },
+    "ollama": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 7.557868957519531e-05,
+      "bdd_time": 3.3855438232421875e-05,
+      "data_time": 2.8371810913085938e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    },
+    "mock": {
+      "success_rate": 100.0,
+      "quality_score": 79.0,
+      "generation_time": 6.461143493652344e-05,
+      "bdd_time": 2.1219253540039062e-05,
+      "data_time": 2.3365020751953125e-05,
+      "test_cases_count": 1,
+      "bdd_length": 487,
+      "data_categories": 4,
+      "status": "success"
+    }
+  },
+  "improvement_metrics": {
+    "Basic Test Generation": {
+      "test_cases_improvement": 6,
+      "coverage_improvement": 45.0,
+      "quality_improvement": 50.0,
+      "overall_improvement": 47.5
+    },
+    "BDD Scenario Generation": {
+      "test_cases_improvement": 0,
+      "coverage_improvement": 40.0,
+      "quality_improvement": 45.0,
+      "overall_improvement": 42.5
+    },
+    "Test Data Generation": {
+      "test_cases_improvement": 0,
+      "coverage_improvement": 35.0,
+      "quality_improvement": 40.0,
+      "overall_improvement": 37.5
+    },
+    "Coverage Analysis": {
+      "test_cases_improvement": 0,
+      "coverage_improvement": 25.0,
+      "quality_improvement": 32.0,
+      "overall_improvement": 28.5
+    }
+  },
+  "best_provider": "openai",
+  "overall_improvement": 39.0
+}
