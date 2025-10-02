@@ -480,3 +480,199 @@ def analyze_coverage():
         return jsonify({"success": True, "coverage_analysis": analysis})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# --- API Key and Provider Management (migrated from app.py) ---
+@ai_bp.route("/keys", methods=["GET"])
+def get_api_keys():
+    try:
+        from api_key_manager import APIKeyManager
+        manager = APIKeyManager()
+        keys = {}
+        for provider, config in manager.keys.items():
+            keys[provider.value] = {
+                "provider": provider.value,
+                "model": config.model,
+                "max_tokens": config.max_tokens,
+                "temperature": config.temperature,
+                "timeout": config.timeout,
+                "retry_attempts": config.retry_attempts,
+                "is_active": config.is_active,
+                "created_at": config.created_at.isoformat() if config.created_at else None,
+                "last_used": config.last_used.isoformat() if config.last_used else None,
+                "usage_count": config.usage_count,
+                "monthly_limit": config.monthly_limit,
+                "cost_per_token": config.cost_per_token,
+            }
+        return jsonify({"success": True, "keys": keys})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/keys", methods=["POST"])
+def add_api_key():
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        data = request.get_json() or {}
+        provider = AIProvider(data["provider"])
+        manager = APIKeyManager()
+        success = manager.add_api_key(
+            provider=provider,
+            api_key=data["apiKey"],
+            base_url=data.get("baseUrl"),
+            model=data.get("model"),
+            max_tokens=int(data.get("maxTokens", 4000)),
+            temperature=float(data.get("temperature", 0.7)),
+            timeout=int(data.get("timeout", 30)),
+            retry_attempts=int(data.get("retryAttempts", 3)),
+            is_active=data.get("isActive", True),
+            monthly_limit=int(data.get("monthlyLimit")) if data.get("monthlyLimit") else None,
+            cost_per_token=float(data.get("costPerToken")) if data.get("costPerToken") else None,
+        )
+        if success:
+            return jsonify({"success": True, "message": "API key added successfully"})
+        return jsonify({"success": False, "error": "Failed to add API key"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/keys/<provider>", methods=["DELETE"])
+def remove_api_key(provider):
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        manager = APIKeyManager()
+        success = manager.remove_api_key(AIProvider(provider))
+        if success:
+            return jsonify({"success": True, "message": "API key removed successfully"})
+        return jsonify({"success": False, "error": "Failed to remove API key"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/keys/<provider>", methods=["PATCH"])
+def update_api_key(provider):
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        data = request.get_json() or {}
+        manager = APIKeyManager()
+        if AIProvider(provider) in manager.keys:
+            config = manager.keys[AIProvider(provider)]
+            config.is_active = data.get("isActive", config.is_active)
+            manager.save_keys()
+            return jsonify({"success": True, "message": "API key updated successfully"})
+        return jsonify({"success": False, "error": "API key not found"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/keys/<provider>/test", methods=["POST"])
+def test_api_key(provider):
+    try:
+        from api_key_manager import APIKeyManager, AIProvider
+        manager = APIKeyManager()
+        result = manager.test_api_key(AIProvider(provider))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/usage-stats", methods=["GET"])
+def get_usage_stats():
+    try:
+        from api_key_manager import APIKeyManager
+        manager = APIKeyManager()
+        stats = manager.get_usage_stats()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/providers", methods=["GET"])
+def get_available_providers():
+    try:
+        from api_key_manager import APIKeyManager
+        manager = APIKeyManager()
+        active_providers = manager.get_active_providers()
+        return jsonify(
+            {
+                "success": True,
+                "providers": [p.value for p in active_providers],
+                "default_provider": active_providers[0].value if active_providers else None,
+            }
+        )
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ai_bp.route("/test-data-validation", methods=["POST"])
+def ai_test_data_validation():
+    try:
+        data = request.get_json() or {}
+        validation_result = {
+            "success": True,
+            "validation_score": 95.5,
+            "issues_found": [
+                {
+                    "type": "data_format",
+                    "severity": "low",
+                    "message": "Date format inconsistency in test data",
+                    "suggestion": "Standardize date format to ISO 8601",
+                }
+            ],
+            "recommendations": [
+                "Add more boundary value test cases",
+                "Include negative test scenarios",
+                "Validate data type consistency",
+            ],
+            "coverage_analysis": {
+                "valid_data_coverage": 90.0,
+                "invalid_data_coverage": 85.0,
+                "boundary_data_coverage": 80.0,
+            },
+        }
+        return jsonify(validation_result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@ai_bp.route("/defect-analysis", methods=["POST"])
+def ai_defect_analysis():
+    try:
+        data = request.get_json() or {}
+        analysis_result = {
+            "success": True,
+            "defect_patterns": [
+                {
+                    "pattern": "Authentication Failures",
+                    "frequency": 15,
+                    "severity": "high",
+                    "root_cause": "Session timeout configuration",
+                    "recommendation": "Implement proper session management",
+                },
+                {
+                    "pattern": "Data Validation Errors",
+                    "frequency": 8,
+                    "severity": "medium",
+                    "root_cause": "Input sanitization issues",
+                    "recommendation": "Enhance input validation",
+                },
+            ],
+            "trend_analysis": {
+                "defect_trend": "decreasing",
+                "resolution_time": "improving",
+                "recurrence_rate": "low",
+            },
+            "quality_metrics": {
+                "defect_density": 2.3,
+                "defect_escape_rate": 5.2,
+                "mean_time_to_resolution": "2.5 days",
+            },
+            "recommendations": [
+                "Implement automated regression testing",
+                "Add performance monitoring",
+                "Enhance error logging and tracking",
+            ],
+        }
+        return jsonify(analysis_result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

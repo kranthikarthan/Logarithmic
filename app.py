@@ -1888,7 +1888,7 @@ def api_keys():
     return render_template('api-keys.html')
 
 # API Key Management Endpoints
-# TODO: move to blueprint: /api/ai/keys
+# moved to blueprint: /api/ai/keys
 def get_api_keys():
     """Get all API keys"""
     try:
@@ -1917,7 +1917,7 @@ def get_api_keys():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/keys [POST]
+# moved to blueprint: /api/ai/keys [POST]
 def add_api_key():
     """Add new API key"""
     try:
@@ -1949,7 +1949,7 @@ def add_api_key():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/keys/<provider> [DELETE]
+# moved to blueprint: /api/ai/keys/<provider> [DELETE]
 def remove_api_key(provider):
     """Remove API key"""
     try:
@@ -1966,7 +1966,7 @@ def remove_api_key(provider):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/keys/<provider> [PATCH]
+# moved to blueprint: /api/ai/keys/<provider> [PATCH]
 def update_api_key(provider):
     """Update API key settings"""
     try:
@@ -1987,7 +1987,7 @@ def update_api_key(provider):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/keys/<provider>/test [POST]
+# moved to blueprint: /api/ai/keys/<provider>/test [POST]
 def test_api_key(provider):
     """Test API key connection"""
     try:
@@ -2001,7 +2001,7 @@ def test_api_key(provider):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/usage-stats
+# moved to blueprint: /api/ai/usage-stats
 def get_usage_stats():
     """Get API usage statistics"""
     try:
@@ -2015,7 +2015,7 @@ def get_usage_stats():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/providers
+# moved to blueprint: /api/ai/providers
 def get_available_providers():
     """Get available AI providers"""
     try:
@@ -2034,7 +2034,7 @@ def get_available_providers():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # Additional API endpoints for complete AI workflow coverage
-# TODO: move to blueprint: /api/ai/test-data-validation [POST]
+# moved to blueprint: /api/ai/test-data-validation [POST]
 def ai_test_data_validation():
     """AI-powered test data validation"""
     try:
@@ -2069,7 +2069,7 @@ def ai_test_data_validation():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# TODO: move to blueprint: /api/ai/defect-analysis [POST]
+# moved to blueprint: /api/ai/defect-analysis [POST]
 def ai_defect_analysis():
     """AI-powered defect analysis"""
     try:
