@@ -1,0 +1,829 @@
+{% extends "base.html" %}
+
+{% block title %}Enterprise Settings - Assertly{% endblock %}
+
+{% block content %}
+<div class="enterprise-settings-container">
+    <div class="settings-header">
+        <h1><i class="fas fa-building"></i> Enterprise Settings</h1>
+        <p>Configure enterprise AI integration and security settings</p>
+    </div>
+
+    <div class="settings-tabs">
+        <button class="tab-button active" data-tab="ai-config">AI Configuration</button>
+        <button class="tab-button" data-tab="security">Security & Compliance</button>
+        <button class="tab-button" data-tab="network">Network Settings</button>
+        <button class="tab-button" data-tab="audit">Audit & Logs</button>
+    </div>
+
+    <!-- AI Configuration Tab -->
+    <div class="tab-content active" id="ai-config">
+        <div class="config-section">
+            <h2><i class="fas fa-robot"></i> Local AI Provider</h2>
+            <form id="ai-config-form">
+                <div class="form-group">
+                    <label for="local_ai_url">AI Service URL *</label>
+                    <input type="url" id="local_ai_url" name="local_ai_url" 
+                           placeholder="http://internal-ai.company.com:8080/api" required>
+                    <small>URL of your internal AI service (e.g., local Copilot, internal LLM)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="local_ai_model">Model Name</label>
+                    <select id="local_ai_model" name="local_ai_model">
+                        <option value="local-copilot">Local Copilot</option>
+                        <option value="internal-llm">Internal LLM</option>
+                        <option value="custom-model">Custom Model</option>
+                        <option value="offline-model">Offline Model</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="local_api_key">API Key (Optional)</label>
+                    <input type="password" id="local_api_key" name="local_api_key" 
+                           placeholder="Internal API key if required">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="offline_mode" name="offline_mode">
+                        Enable Offline Mode
+                    </label>
+                    <small>Work without internet connection using cached responses</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="custom_models" name="custom_models">
+                        Enable Custom Models
+                    </label>
+                    <small>Allow custom AI model configurations</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="testAIConnection()">
+                        <i class="fas fa-vial"></i> Test Connection
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Security & Compliance Tab -->
+    <div class="tab-content" id="security">
+        <div class="config-section">
+            <h2><i class="fas fa-shield-alt"></i> Security Settings</h2>
+            <form id="security-config-form">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="audit_enabled" name="audit_enabled" checked>
+                        Enable Audit Logging
+                    </label>
+                    <small>Log all AI usage and system activities for compliance</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="data_encryption" name="data_encryption" checked>
+                        Enable Data Encryption
+                    </label>
+                    <small>Encrypt sensitive data at rest and in transit</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="session_timeout">Session Timeout (seconds)</label>
+                    <input type="number" id="session_timeout" name="session_timeout" 
+                           value="3600" min="300" max="86400">
+                </div>
+
+                <div class="form-group">
+                    <label for="compliance_mode">Compliance Mode</label>
+                    <select id="compliance_mode" name="compliance_mode">
+                        <option value="standard">Standard</option>
+                        <option value="strict">Strict</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="data_retention_days">Data Retention (days)</label>
+                    <input type="number" id="data_retention_days" name="data_retention_days" 
+                           value="365" min="30" max="2555">
+                </div>
+
+                <div class="form-group">
+                    <label for="log_retention_days">Log Retention (days)</label>
+                    <input type="number" id="log_retention_days" name="log_retention_days" 
+                           value="90" min="7" max="365">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Security Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Network Settings Tab -->
+    <div class="tab-content" id="network">
+        <div class="config-section">
+            <h2><i class="fas fa-network-wired"></i> Network Configuration</h2>
+            <form id="network-config-form">
+                <div class="form-group">
+                    <label for="proxy_url">Proxy URL (Optional)</label>
+                    <input type="url" id="proxy_url" name="proxy_url" 
+                           placeholder="http://proxy.company.com:8080">
+                    <small>Corporate proxy for external connections</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="cert_path">Certificate Path (Optional)</label>
+                    <input type="text" id="cert_path" name="cert_path" 
+                           placeholder="/path/to/company-cert.pem">
+                    <small>Path to corporate SSL certificate</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="verify_ssl" name="verify_ssl" checked>
+                        Verify SSL Certificates
+                    </label>
+                    <small>Validate SSL certificates for secure connections</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="external_integrations" name="external_integrations">
+                        Allow External Integrations
+                    </label>
+                    <small>Enable integrations with external services</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Network Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Audit & Logs Tab -->
+    <div class="tab-content" id="audit">
+        <div class="config-section">
+            <h2><i class="fas fa-clipboard-list"></i> Audit Logs</h2>
+            
+            <div class="audit-filters">
+                <div class="filter-group">
+                    <label for="audit_start_date">Start Date</label>
+                    <input type="date" id="audit_start_date" name="audit_start_date">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="audit_end_date">End Date</label>
+                    <input type="date" id="audit_end_date" name="audit_end_date">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="audit_user">User</label>
+                    <input type="text" id="audit_user" name="audit_user" placeholder="Filter by user">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="audit_action">Action</label>
+                    <select id="audit_action" name="audit_action">
+                        <option value="">All Actions</option>
+                        <option value="configure_enterprise_ai">Configure AI</option>
+                        <option value="test_enterprise_ai_connection">Test Connection</option>
+                        <option value="generate_test_cases_enterprise">Generate Tests</option>
+                        <option value="generate_compliance_report">Generate Report</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" onclick="loadAuditLogs()">
+                    <i class="fas fa-search"></i> Filter Logs
+                </button>
+            </div>
+
+            <div class="audit-logs-container">
+                <div id="audit-logs-list">
+                    <!-- Audit logs will be loaded here -->
+                </div>
+            </div>
+
+            <div class="compliance-reports">
+                <h3>Compliance Reports</h3>
+                <div class="report-actions">
+                    <button class="btn btn-outline" onclick="generateReport('audit_summary')">
+                        <i class="fas fa-chart-bar"></i> Audit Summary
+                    </button>
+                    <button class="btn btn-outline" onclick="generateReport('security_policy_compliance')">
+                        <i class="fas fa-shield-alt"></i> Security Compliance
+                    </button>
+                    <button class="btn btn-outline" onclick="generateReport('data_usage')">
+                        <i class="fas fa-database"></i> Data Usage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Status -->
+    <div class="system-health">
+        <h3><i class="fas fa-heartbeat"></i> System Health</h3>
+        <div id="health-status">
+            <div class="health-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Checking...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enterprise Settings Styles */
+.enterprise-settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.settings-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.settings-header h1 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.settings-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    color: var(--text-muted);
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+    background: var(--background-light);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.config-section {
+    background: var(--background-light);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.config-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.audit-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--background-light);
+    border-radius: 4px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.audit-logs-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+.audit-log-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.audit-log-item:last-child {
+    border-bottom: none;
+}
+
+.audit-log-info {
+    flex: 1;
+}
+
+.audit-log-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.audit-log-action {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.compliance-reports {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.report-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.system-health {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--background-light);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.health-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--warning-color);
+    animation: pulse 2s infinite;
+}
+
+.status-dot.healthy {
+    background: var(--success-color);
+    animation: none;
+}
+
+.status-dot.error {
+    background: var(--error-color);
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.status-text {
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .enterprise-settings-container {
+        padding: 1rem;
+    }
+    
+    .settings-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-button {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .audit-filters {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .report-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Enterprise Settings JavaScript
+class EnterpriseSettingsManager {
+    constructor() {
+        this.currentTab = 'ai-config';
+        this.init();
+    }
+
+    init() {
+        this.setupTabs();
+        this.setupForms();
+        this.loadSystemHealth();
+        this.loadAuditLogs();
+    }
+
+    setupTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                this.switchTab(tabId);
+            });
+        });
+    }
+
+    switchTab(tabId) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+
+        this.currentTab = tabId;
+    }
+
+    setupForms() {
+        // AI Configuration Form
+        document.getElementById('ai-config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.saveAIConfiguration();
+        });
+
+        // Security Configuration Form
+        document.getElementById('security-config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.saveSecurityConfiguration();
+        });
+
+        // Network Configuration Form
+        document.getElementById('network-config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.saveNetworkConfiguration();
+        });
+    }
+
+    async saveAIConfiguration() {
+        const form = document.getElementById('ai-config-form');
+        const formData = new FormData(form);
+        
+        const data = {
+            local_ai_url: formData.get('local_ai_url'),
+            local_ai_model: formData.get('local_ai_model'),
+            local_api_key: formData.get('local_api_key'),
+            offline_mode: formData.get('offline_mode') === 'on',
+            custom_models: formData.get('custom_models') === 'on'
+        };
+
+        try {
+            const response = await fetch('/api/enterprise/ai/configure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification('AI configuration saved successfully!', 'success');
+            } else {
+                this.showNotification(result.error || 'Failed to save AI configuration', 'error');
+            }
+        } catch (error) {
+            this.showNotification('Failed to save AI configuration: ' + error.message, 'error');
+        }
+    }
+
+    async saveSecurityConfiguration() {
+        const form = document.getElementById('security-config-form');
+        const formData = new FormData(form);
+        
+        const data = {
+            audit_enabled: formData.get('audit_enabled') === 'on',
+            data_encryption: formData.get('data_encryption') === 'on',
+            session_timeout: parseInt(formData.get('session_timeout')),
+            compliance_mode: formData.get('compliance_mode'),
+            data_retention_days: parseInt(formData.get('data_retention_days')),
+            log_retention_days: parseInt(formData.get('log_retention_days'))
+        };
+
+        try {
+            const response = await fetch('/api/enterprise/ai/configure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification('Security configuration saved successfully!', 'success');
+            } else {
+                this.showNotification(result.error || 'Failed to save security configuration', 'error');
+            }
+        } catch (error) {
+            this.showNotification('Failed to save security configuration: ' + error.message, 'error');
+        }
+    }
+
+    async saveNetworkConfiguration() {
+        const form = document.getElementById('network-config-form');
+        const formData = new FormData(form);
+        
+        const data = {
+            proxy_url: formData.get('proxy_url'),
+            cert_path: formData.get('cert_path'),
+            verify_ssl: formData.get('verify_ssl') === 'on',
+            external_integrations: formData.get('external_integrations') === 'on'
+        };
+
+        try {
+            const response = await fetch('/api/enterprise/ai/configure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification('Network configuration saved successfully!', 'success');
+            } else {
+                this.showNotification(result.error || 'Failed to save network configuration', 'error');
+            }
+        } catch (error) {
+            this.showNotification('Failed to save network configuration: ' + error.message, 'error');
+        }
+    }
+
+    async testAIConnection() {
+        try {
+            const response = await fetch('/api/enterprise/ai/test-connection');
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification('AI connection test successful!', 'success');
+            } else {
+                this.showNotification('AI connection test failed: ' + result.message, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Failed to test AI connection: ' + error.message, 'error');
+        }
+    }
+
+    async loadAuditLogs() {
+        const startDate = document.getElementById('audit_start_date').value;
+        const endDate = document.getElementById('audit_end_date').value;
+        const user = document.getElementById('audit_user').value;
+        const action = document.getElementById('audit_action').value;
+
+        const params = new URLSearchParams();
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        if (user) params.append('user', user);
+        if (action) params.append('action', action);
+
+        try {
+            const response = await fetch(`/api/enterprise/audit/logs?${params}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                this.displayAuditLogs(result.logs);
+            } else {
+                this.showNotification('Failed to load audit logs: ' + result.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Failed to load audit logs: ' + error.message, 'error');
+        }
+    }
+
+    displayAuditLogs(logs) {
+        const container = document.getElementById('audit-logs-list');
+        
+        if (logs.length === 0) {
+            container.innerHTML = '<p class="text-muted">No audit logs found</p>';
+            return;
+        }
+
+        container.innerHTML = logs.map(log => `
+            <div class="audit-log-item">
+                <div class="audit-log-info">
+                    <div class="audit-log-meta">
+                        ${new Date(log.timestamp).toLocaleString()} | ${log.user} | ${log.ip_address || 'N/A'}
+                    </div>
+                    <div class="audit-log-action">${log.action}</div>
+                    <div class="audit-log-resource">Resource: ${log.resource}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async generateReport(reportType) {
+        try {
+            const response = await fetch('/api/enterprise/compliance/report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    report_type: reportType,
+                    start_date: document.getElementById('audit_start_date').value,
+                    end_date: document.getElementById('audit_end_date').value
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification(`Compliance report generated: ${result.report_id}`, 'success');
+            } else {
+                this.showNotification('Failed to generate report: ' + result.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Failed to generate report: ' + error.message, 'error');
+        }
+    }
+
+    async loadSystemHealth() {
+        try {
+            const response = await fetch('/api/enterprise/health');
+            const health = await response.json();
+            
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            
+            if (health.status === 'healthy') {
+                statusDot.classList.add('healthy');
+                statusText.textContent = 'System Healthy';
+            } else {
+                statusDot.classList.add('error');
+                statusText.textContent = 'System Error: ' + (health.error || 'Unknown error');
+            }
+        } catch (error) {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            statusDot.classList.add('error');
+            statusText.textContent = 'Failed to check system health';
+        }
+    }
+
+    showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        // Style the notification
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        if (type === 'success') {
+            notification.style.backgroundColor = 'var(--success-color)';
+        } else if (type === 'error') {
+            notification.style.backgroundColor = 'var(--error-color)';
+        } else {
+            notification.style.backgroundColor = 'var(--primary-color)';
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+}
+
+// Global functions for form actions
+function testAIConnection() {
+    window.enterpriseManager.testAIConnection();
+}
+
+function loadAuditLogs() {
+    window.enterpriseManager.loadAuditLogs();
+}
+
+function generateReport(reportType) {
+    window.enterpriseManager.generateReport(reportType);
+}
+
+// Initialize enterprise settings manager
+document.addEventListener('DOMContentLoaded', function() {
+    window.enterpriseManager = new EnterpriseSettingsManager();
+});
+</script>
+{% endblock %}

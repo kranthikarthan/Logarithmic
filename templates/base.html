@@ -1,127 +1,345 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Xray Test Management Tool{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>{% block title %}Assertly Test Management Platform{% endblock %}</title>
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Modern CSS -->
+    <link href="{{ url_for('static', filename='css/modern-design.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Modern Test Management Platform - AI-powered test generation with comprehensive traceability and advanced reporting">
+    <meta name="theme-color" content="#0ea5e9">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-vial"></i> Xray Test Manager
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
+<body style="background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans);">
+    <!-- Modern Navigation -->
+    <nav class="navbar" style="position: sticky; top: 0; z-index: 1000; background: var(--bg-primary); border-bottom: 1px solid var(--border-primary); backdrop-filter: blur(10px);">
+        <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; height: 64px;">
+                <!-- Brand -->
+                <a href="{{ url_for('index') }}" class="navbar-brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-vial" style="font-size: 14px;"></i>
+                    </div>
+                    <span class="text-gradient">Assertly</span>
+                </a>
+
+                <!-- Navigation Links -->
+                <div class="nav-links">
+                    <a href="{{ url_for('index') }}" class="nav-link" data-tooltip="Dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('test_sets') }}" class="nav-link" data-tooltip="Test Sets">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Test Sets</span>
+                    </a>
+                    <a href="{{ url_for('preconditions') }}" class="nav-link" data-tooltip="Preconditions">
+                        <i class="fas fa-list-check"></i>
+                        <span>Preconditions</span>
+                    </a>
+                    <a href="{{ url_for('advanced_reporting') }}" class="nav-link" data-tooltip="Advanced Reporting">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Advanced Reporting</span>
+                    </a>
+                        <a href="{{ url_for('workflow_approval') }}" class="nav-link" data-tooltip="Workflow & Approval">
+                            <i class="fas fa-user-check"></i>
+                            <span>Workflow & Approval</span>
                         </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="testCasesDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-list-check"></i> Test Cases
+                        <a href="{{ url_for('ai_test_generator') }}" class="nav-link" data-tooltip="AI Test Generator">
+                            <i class="fas fa-robot"></i>
+                            <span>AI Test Generator</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="loadTestCases()">
-                                <i class="fas fa-eye"></i> View All Test Cases
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="createTestCase()">
-                                <i class="fas fa-plus"></i> Create Test Case
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="importTestCases()">
-                                <i class="fas fa-upload"></i> Import Test Cases
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="executionsDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-play-circle"></i> Test Executions
+                        <a href="{{ url_for('integrations') }}" class="nav-link" data-tooltip="Integrations">
+                            <i class="fas fa-plug"></i>
+                            <span>Integrations</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="loadTestExecutions()">
-                                <i class="fas fa-eye"></i> View All Executions
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="createTestExecution()">
-                                <i class="fas fa-plus"></i> Create Test Execution
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="loadActiveExecutions()">
-                                <i class="fas fa-play"></i> Active Executions
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="plansDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-clipboard-list"></i> Test Plans
+                        <a href="{{ url_for('enterprise_settings') }}" class="nav-link" data-tooltip="Enterprise Settings">
+                            <i class="fas fa-building"></i>
+                            <span>Enterprise Settings</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="loadTestPlans()">
-                                <i class="fas fa-eye"></i> View All Plans
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="createTestPlan()">
-                                <i class="fas fa-plus"></i> Create Test Plan
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="loadActivePlans()">
-                                <i class="fas fa-clipboard-check"></i> Active Plans
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showReports()">
-                            <i class="fas fa-chart-bar"></i> Reports
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
+                </div>
+
+                <!-- Right Side (Theme Toggle, User Menu) -->
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="theme-toggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
                     {% if session.jira_connected %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> {{ session.username }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </a></li>
-                        </ul>
-                    </li>
+                    <div class="dropdown">
+                        <button class="user-menu" onclick="toggleUserMenu()">
+                            <div class="user-avatar">
+                                {{ session.username[0].upper() if session.username else 'U' }}
+                            </div>
+                            <span>{{ session.username }}</span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+                        </button>
+                        <div class="dropdown-menu" id="user-menu">
+                            <a href="{{ url_for('logout') }}" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </a>
-                    </li>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </a>
                     {% endif %}
-                </ul>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <!-- Main Content -->
+    <main style="min-height: calc(100vh - 64px);">
+        <!-- Flash Messages (redesigned) -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
+                <div id="flash-messages" style="position: fixed; top: 80px; right: 2rem; z-index: var(--z-tooltip); display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for category, message in messages %}
+                        <div class="flash-message animate-slideIn">
+                            <div class="flash-icon {{ category }}">
+                                <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                            </div>
+                            <div class="flash-content">
+                                <div class="flash-title">
+                                    {% if category == 'error' %}Error{% elif category == 'success' %}Success{% elif category == 'warning' %}Warning{% else %}Info{% endif %}
+                                </div>
+                                <div class="flash-message-text">{{ message }}</div>
+                            </div>
+                            <button class="flash-close" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
-        {% block content %}{% endblock %}
-    </div>
+        <!-- Page Content -->
+        <div style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <!-- Modern JavaScript -->
+    <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const icon = document.getElementById('theme-icon');
+            icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            
+            // Add smooth transition
+            html.style.transition = 'background-color var(--transition-normal), color var(--transition-normal)';
+            setTimeout(() => {
+                html.style.transition = '';
+            }, 250);
+        }
+
+        // Load saved theme
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const icon = document.getElementById('theme-icon');
+            icon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        });
+
+        // User Menu Toggle
+        function toggleUserMenu() {
+            const menu = document.getElementById('user-menu');
+            const isVisible = menu.style.visibility === 'visible';
+            
+            if (isVisible) {
+                menu.style.opacity = '0';
+                menu.style.visibility = 'hidden';
+                menu.style.transform = 'translateY(-10px)';
+            } else {
+                menu.style.opacity = '1';
+                menu.style.visibility = 'visible';
+                menu.style.transform = 'translateY(0)';
+            }
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('user-menu');
+            const userButton = document.querySelector('.user-menu');
+            
+            if (userMenu && userButton && !userMenu.contains(e.target) && !userButton.contains(e.target)) {
+                userMenu.style.opacity = '0';
+                userMenu.style.visibility = 'hidden';
+                userMenu.style.transform = 'translateY(-10px)';
+            }
+        });
+
+        // Nav link hover effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.background = 'var(--bg-secondary)';
+                    this.style.color = 'var(--primary-600)';
+                    this.style.transform = 'translateY(-1px)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    this.style.background = 'transparent';
+                    this.style.color = 'var(--text-secondary)';
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a[href^="#"]');
+            
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Auto-hide flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            
+            flashMessages.forEach(message => {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+
+        // Loading states
+        function showLoading(element, text = 'Loading...') {
+            if (element) {
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; padding: 2rem; color: var(--text-muted);">
+                        <div style="text-align: center;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                            <p style="margin: 0;">${text}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Error states
+        function showError(element, message = 'An error occurred') {
+            if (element) {
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; padding: 2rem; color: var(--error-600);">
+                        <div style="text-align: center;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                            <p style="margin: 0;">${message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Success states
+        function showSuccess(element, message = 'Success!') {
+            if (element) {
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; padding: 2rem; color: var(--success-600);">
+                        <div style="text-align: center;">
+                            <i class="fas fa-check-circle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                            <p style="margin: 0;">${message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Tooltip functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const elementsWithTooltips = document.querySelectorAll('[data-tooltip]');
+            
+            elementsWithTooltips.forEach(element => {
+                element.addEventListener('mouseenter', function() {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    tooltip.textContent = this.getAttribute('data-tooltip');
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: var(--bg-elevated);
+                        color: var(--text-primary);
+                        padding: 0.5rem 0.75rem;
+                        border-radius: var(--radius-lg);
+                        font-size: var(--text-sm);
+                        box-shadow: var(--shadow-lg);
+                        border: 1px solid var(--border-primary);
+                        z-index: var(--z-tooltip);
+                        pointer-events: none;
+                        opacity: 0;
+                        transform: translateY(5px);
+                        transition: all var(--transition-fast);
+                    `;
+                    
+                    document.body.appendChild(tooltip);
+                    
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+                    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+                    
+                    setTimeout(() => {
+                        tooltip.style.opacity = '1';
+                        tooltip.style.transform = 'translateY(0)';
+                    }, 10);
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    const tooltip = document.querySelector('.tooltip');
+                    if (tooltip) {
+                        tooltip.style.opacity = '0';
+                        tooltip.style.transform = 'translateY(5px)';
+                        setTimeout(() => {
+                            tooltip.remove();
+                        }, 150);
+                    }
+                });
+            });
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

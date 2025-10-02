@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Reporting & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-line"></i> Advanced Reporting & Analytics</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="exportReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="refreshData()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Type Selector -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card assertly-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">Report Type</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="reportType" onchange="loadReport()">
+                                <option value="executive">Executive Summary</option>
+                                <option value="manager">Management Dashboard</option>
+                                <option value="tester">Tester Dashboard</option>
+                                <option value="analytics">Test Analytics</option>
+                                <option value="metrics">Advanced Metrics</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div id="executive-report" class="report-section">
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+                        <h4 id="exec-test-coverage">Loading...</h4>
+                        <p class="text-muted">Test Coverage</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bug fa-3x text-danger mb-3"></i>
+                        <h4 id="exec-defect-rate">Loading...</h4>
+                        <p class="text-muted">Defect Escape Rate</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-rocket fa-3x text-success mb-3"></i>
+                        <h4 id="exec-release-readiness">Loading...</h4>
+                        <p class="text-muted">Release Readiness</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-3x text-info mb-3"></i>
+                        <h4 id="exec-overall-health">Loading...</h4>
+                        <p class="text-muted">Overall Health</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Dashboard -->
+    <div id="manager-report" class="report-section" style="display: none;">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card assertly-card">
+                    <div class="card-body">
+                        <h6 class="card-title">Team Velocity</h6>
+                        <h3 id="mgr-team-velocity">Loading...</h3>
+                        <small class="text-muted">Tests per week</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card assertly-card">
+                    <div class="card-body">
+                        <h6 class="card-title">Automation Ratio</h6>
+                        <h3 id="mgr-automation-ratio">Loading...</h3>
+                        <small class="text-muted">% Automated</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card assertly-card">
+                    <div class="card-body">
+                        <h6 class="card-title">Defect Resolution</h6>
+                        <h3 id="mgr-defect-resolution">Loading...</h3>
+                        <small class="text-muted">Days average</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Analytics -->
+    <div id="analytics-report" class="report-section" style="display: none;">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Test Execution Trends</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="executionTrendsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Test Coverage Metrics</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="coverageChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Bottlenecks & Issues</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="bottlenecks-list">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Recommendations</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendations-list">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Metrics -->
+    <div id="metrics-report" class="report-section" style="display: none;">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Test Execution Trends</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dailyTrendsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Defect Metrics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 id="metrics-total-defects">Loading...</h4>
+                                <small class="text-muted">Total Defects</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 id="metrics-open-defects">Loading...</h4>
+                                <small class="text-muted">Open Defects</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 id="metrics-defect-density">Loading...</h4>
+                                <small class="text-muted">Defect Density</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 id="metrics-resolution-time">Loading...</h4>
+                                <small class="text-muted">Resolution Time (days)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Automation Metrics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 id="metrics-automation-coverage">Loading...</h4>
+                                <small class="text-muted">Automation Coverage</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 id="metrics-automation-success">Loading...</h4>
+                                <small class="text-muted">Success Rate</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 id="metrics-automated-tests">Loading...</h4>
+                                <small class="text-muted">Automated Tests</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 id="metrics-manual-tests">Loading...</h4>
+                                <small class="text-muted">Manual Tests</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card assertly-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Performance Metrics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h4 id="metrics-avg-execution-time">Loading...</h4>
+                            <small class="text-muted">Average Execution Time (minutes)</small>
+                        </div>
+                        <hr>
+                        <h6>Slowest Tests</h6>
+                        <div id="slowest-tests-list">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tester Dashboard -->
+    <div id="tester-report" class="report-section" style="display: none;">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                        <h4 id="tester-tests-created">Loading...</h4>
+                        <p class="text-muted">Tests Created</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-play-circle fa-3x text-success mb-3"></i>
+                        <h4 id="tester-tests-executed">Loading...</h4>
+                        <p class="text-muted">Tests Executed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card assertly-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bug fa-3x text-warning mb-3"></i>
+                        <h4 id="tester-defects-found">Loading...</h4>
+                        <p class="text-muted">Defects Found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let currentReportType = 'executive';
+let charts = {};
+
+function loadReport() {
+    currentReportType = document.getElementById('reportType').value;
+    
+    // Hide all report sections
+    document.querySelectorAll('.report-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show selected report section
+    const selectedSection = document.getElementById(currentReportType + '-report');
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+    }
+    
+    // Load data based on report type
+    switch(currentReportType) {
+        case 'executive':
+            loadExecutiveReport();
+            break;
+        case 'manager':
+            loadManagerReport();
+            break;
+        case 'tester':
+            loadTesterReport();
+            break;
+        case 'analytics':
+            loadAnalyticsReport();
+            break;
+        case 'metrics':
+            loadMetricsReport();
+            break;
+    }
+}
+
+function loadExecutiveReport() {
+    fetch('/api/custom-reports?report_type=executive')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('exec-test-coverage').textContent = data.metrics.test_coverage + '%';
+            document.getElementById('exec-defect-rate').textContent = data.metrics.defect_escape_rate + '%';
+            document.getElementById('exec-release-readiness').textContent = data.metrics.release_readiness + '%';
+            
+            // Calculate overall health
+            const overallHealth = (data.metrics.test_coverage + data.metrics.release_readiness) / 2;
+            document.getElementById('exec-overall-health').textContent = overallHealth.toFixed(1) + '%';
+        })
+        .catch(error => {
+            console.error('Error loading executive report:', error);
+        });
+}
+
+function loadManagerReport() {
+    fetch('/api/custom-reports?report_type=manager')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('mgr-team-velocity').textContent = data.metrics.team_velocity;
+            document.getElementById('mgr-automation-ratio').textContent = data.metrics.test_automation_ratio + '%';
+            document.getElementById('mgr-defect-resolution').textContent = data.metrics.defect_resolution_time;
+        })
+        .catch(error => {
+            console.error('Error loading manager report:', error);
+        });
+}
+
+function loadTesterReport() {
+    fetch('/api/custom-reports?report_type=tester')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('tester-tests-created').textContent = data.metrics.tests_created;
+            document.getElementById('tester-tests-executed').textContent = data.metrics.tests_executed;
+            document.getElementById('tester-defects-found').textContent = data.metrics.defects_found;
+        })
+        .catch(error => {
+            console.error('Error loading tester report:', error);
+        });
+}
+
+function loadAnalyticsReport() {
+    fetch('/api/test-analytics')
+        .then(response => response.json())
+        .then(data => {
+            // Load bottlenecks
+            const bottlenecksList = document.getElementById('bottlenecks-list');
+            bottlenecksList.innerHTML = '';
+            data.bottlenecks.forEach(bottleneck => {
+                const item = document.createElement('div');
+                item.className = 'mb-2';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span><strong>${bottleneck.area}</strong>: ${bottleneck.issue}</span>
+                        <span class="badge bg-${getImpactColor(bottleneck.impact)}">${bottleneck.impact}</span>
+                    </div>
+                `;
+                bottlenecksList.appendChild(item);
+            });
+            
+            // Load recommendations
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+            data.recommendations.forEach(recommendation => {
+                const item = document.createElement('div');
+                item.className = 'mb-2';
+                item.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-lightbulb text-warning me-2 mt-1"></i>
+                        <span>${recommendation}</span>
+                    </div>
+                `;
+                recommendationsList.appendChild(item);
+            });
+            
+            // Create charts
+            createExecutionTrendsChart(data);
+            createCoverageChart(data);
+        })
+        .catch(error => {
+            console.error('Error loading analytics report:', error);
+        });
+}
+
+function loadMetricsReport() {
+    fetch('/api/advanced-metrics')
+        .then(response => response.json())
+        .then(data => {
+            // Update metrics
+            document.getElementById('metrics-total-defects').textContent = data.defect_metrics.total_defects;
+            document.getElementById('metrics-open-defects').textContent = data.defect_metrics.open_defects;
+            document.getElementById('metrics-defect-density').textContent = data.defect_metrics.defect_density;
+            document.getElementById('metrics-resolution-time').textContent = data.defect_metrics.defect_resolution_time;
+            
+            document.getElementById('metrics-automation-coverage').textContent = data.test_automation_metrics.automation_coverage + '%';
+            document.getElementById('metrics-automation-success').textContent = data.test_automation_metrics.automation_success_rate + '%';
+            document.getElementById('metrics-automated-tests').textContent = data.test_automation_metrics.automated_tests;
+            document.getElementById('metrics-manual-tests').textContent = data.test_automation_metrics.manual_tests;
+            
+            document.getElementById('metrics-avg-execution-time').textContent = data.performance_metrics.avg_execution_time;
+            
+            // Load slowest tests
+            const slowestTestsList = document.getElementById('slowest-tests-list');
+            slowestTestsList.innerHTML = '';
+            data.performance_metrics.slowest_tests.forEach(test => {
+                const item = document.createElement('div');
+                item.className = 'mb-2';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span>${test.test}</span>
+                        <span class="text-muted">${test.duration}s</span>
+                    </div>
+                `;
+                slowestTestsList.appendChild(item);
+            });
+            
+            // Create daily trends chart
+            createDailyTrendsChart(data);
+        })
+        .catch(error => {
+            console.error('Error loading metrics report:', error);
+        });
+}
+
+function createExecutionTrendsChart(data) {
+    const ctx = document.getElementById('executionTrendsChart').getContext('2d');
+    
+    if (charts.executionTrends) {
+        charts.executionTrends.destroy();
+    }
+    
+    charts.executionTrends = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3'],
+            datasets: [{
+                label: 'Executed',
+                data: [234, 267, 289],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }, {
+                label: 'Passed',
+                data: [220, 251, 273],
+                borderColor: 'rgb(54, 162, 235)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function createCoverageChart(data) {
+    const ctx = document.getElementById('coverageChart').getContext('2d');
+    
+    if (charts.coverage) {
+        charts.coverage.destroy();
+    }
+    
+    charts.coverage = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Requirements', 'Code', 'Functional', 'Regression'],
+            datasets: [{
+                data: [85.5, 78.2, 92.1, 88.7],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+function createDailyTrendsChart(data) {
+    const ctx = document.getElementById('dailyTrendsChart').getContext('2d');
+    
+    if (charts.dailyTrends) {
+        charts.dailyTrends.destroy();
+    }
+    
+    const dailyData = data.test_execution_trends.daily;
+    
+    charts.dailyTrends = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dailyData.map(d => d.date),
+            datasets: [{
+                label: 'Executed',
+                data: dailyData.map(d => d.executed),
+                backgroundColor: 'rgb(54, 162, 235)'
+            }, {
+                label: 'Passed',
+                data: dailyData.map(d => d.passed),
+                backgroundColor: 'rgb(75, 192, 192)'
+            }, {
+                label: 'Failed',
+                data: dailyData.map(d => d.failed),
+                backgroundColor: 'rgb(255, 99, 132)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function getImpactColor(impact) {
+    const colors = {
+        'High': 'danger',
+        'Medium': 'warning',
+        'Low': 'success'
+    };
+    return colors[impact] || 'secondary';
+}
+
+function exportReport() {
+    // Implement report export functionality
+    alert('Report export functionality would be implemented here');
+}
+
+function refreshData() {
+    loadReport();
+}
+
+// Load initial report when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadReport();
+});
+</script>
+{% endblock %}

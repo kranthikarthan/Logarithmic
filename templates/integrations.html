@@ -1,0 +1,773 @@
+{% extends "base.html" %}
+
+{% block title %}Integrations - Assertly{% endblock %}
+
+{% block content %}
+<div class="integrations-container">
+    <!-- Header Section -->
+    <div class="integrations-header">
+        <div class="integrations-header-content">
+            <div class="integrations-header-icon">
+                <i class="fas fa-plug"></i>
+            </div>
+            <div class="integrations-header-text">
+                <h1 class="integrations-title">Integrations</h1>
+                <p class="integrations-subtitle">Connect Assertly with your favorite tools and workflows</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integration Categories -->
+    <div class="integration-categories">
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="ide">
+                <i class="fas fa-code"></i>
+                IDEs
+            </button>
+            <button class="category-tab" data-category="cicd">
+                <i class="fas fa-sync-alt"></i>
+                CI/CD
+            </button>
+            <button class="category-tab" data-category="testing">
+                <i class="fas fa-vial"></i>
+                Testing
+            </button>
+            <button class="category-tab" data-category="communication">
+                <i class="fas fa-comments"></i>
+                Communication
+            </button>
+            <button class="category-tab" data-category="webhooks">
+                <i class="fas fa-link"></i>
+                Webhooks
+            </button>
+        </div>
+
+        <!-- IDE Integrations -->
+        <div class="category-content active" id="ide-category">
+            <div class="integration-grid">
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-microsoft"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Visual Studio Code</h3>
+                            <p>Generate test cases directly in VS Code</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> AI test case generation</li>
+                            <li><i class="fas fa-check"></i> BDD scenario creation</li>
+                            <li><i class="fas fa-check"></i> Coverage analysis</li>
+                            <li><i class="fas fa-check"></i> Jira synchronization</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installVSCodeExtension()">
+                            <i class="fas fa-download"></i> Install Extension
+                        </button>
+                        <button class="btn btn-outline" onclick="viewVSCodeDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-jetbrains"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>IntelliJ IDEA</h3>
+                            <p>Plugin for IntelliJ and other JetBrains IDEs</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Test case generation</li>
+                            <li><i class="fas fa-check"></i> Code coverage integration</li>
+                            <li><i class="fas fa-check"></i> Debug support</li>
+                            <li><i class="fas fa-check"></i> Project management</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installIntelliJPlugin()">
+                            <i class="fas fa-download"></i> Install Plugin
+                        </button>
+                        <button class="btn btn-outline" onclick="viewIntelliJDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-vim"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Vim/Neovim</h3>
+                            <p>Plugin for Vim and Neovim editors</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Command-line integration</li>
+                            <li><i class="fas fa-check"></i> Test case generation</li>
+                            <li><i class="fas fa-check"></i> Quick navigation</li>
+                            <li><i class="fas fa-check"></i> Custom keybindings</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installVimPlugin()">
+                            <i class="fas fa-download"></i> Install Plugin
+                        </button>
+                        <button class="btn btn-outline" onclick="viewVimDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CI/CD Integrations -->
+        <div class="category-content" id="cicd-category">
+            <div class="integration-grid">
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>GitHub Actions</h3>
+                            <p>Automated test generation in CI/CD pipelines</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Automatic test generation</li>
+                            <li><i class="fas fa-check"></i> PR comment integration</li>
+                            <li><i class="fas fa-check"></i> Coverage reporting</li>
+                            <li><i class="fas fa-check"></i> Jira issue creation</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="copyGitHubAction()">
+                            <i class="fas fa-copy"></i> Copy Template
+                        </button>
+                        <button class="btn btn-outline" onclick="viewGitHubDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-gitlab"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>GitLab CI</h3>
+                            <p>GitLab CI/CD pipeline integration</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Pipeline integration</li>
+                            <li><i class="fas fa-check"></i> Merge request comments</li>
+                            <li><i class="fas fa-check"></i> Test result reporting</li>
+                            <li><i class="fas fa-check"></i> Artifact generation</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="copyGitLabCI()">
+                            <i class="fas fa-copy"></i> Copy Template
+                        </button>
+                        <button class="btn btn-outline" onclick="viewGitLabDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Jenkins</h3>
+                            <p>Jenkins pipeline integration</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Pipeline plugin</li>
+                            <li><i class="fas fa-check"></i> Test result publishing</li>
+                            <li><i class="fas fa-check"></i> Notification integration</li>
+                            <li><i class="fas fa-check"></i> Report generation</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installJenkinsPlugin()">
+                            <i class="fas fa-download"></i> Install Plugin
+                        </button>
+                        <button class="btn btn-outline" onclick="viewJenkinsDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-microsoft"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Azure DevOps</h3>
+                            <p>Azure DevOps pipeline integration</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Azure Pipelines integration</li>
+                            <li><i class="fas fa-check"></i> Pull request comments</li>
+                            <li><i class="fas fa-check"></i> Test result publishing</li>
+                            <li><i class="fas fa-check"></i> Work item integration</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="copyAzureDevOpsTemplate()">
+                            <i class="fas fa-copy"></i> Copy Template
+                        </button>
+                        <button class="btn btn-outline" onclick="viewAzureDevOpsDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Integrations -->
+        <div class="category-content" id="testing-category">
+            <div class="integration-grid">
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fas fa-spider"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Selenium</h3>
+                            <p>Generate and execute Selenium test cases</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> AI-generated test cases</li>
+                            <li><i class="fas fa-check"></i> Cross-browser testing</li>
+                            <li><i class="fas fa-check"></i> Screenshot capture</li>
+                            <li><i class="fas fa-check"></i> Test reporting</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installSelenium()">
+                            <i class="fas fa-download"></i> Install
+                        </button>
+                        <button class="btn btn-outline" onclick="viewSeleniumDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fas fa-cypress"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Cypress</h3>
+                            <p>Generate Cypress test cases and scenarios</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Component testing</li>
+                            <li><i class="fas fa-check"></i> E2E testing</li>
+                            <li><i class="fas fa-check"></i> Visual testing</li>
+                            <li><i class="fas fa-check"></i> Test recording</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installCypress()">
+                            <i class="fas fa-download"></i> Install
+                        </button>
+                        <button class="btn btn-outline" onclick="viewCypressDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fas fa-playwright"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Playwright</h3>
+                            <p>Generate Playwright test cases</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Multi-browser testing</li>
+                            <li><i class="fas fa-check"></i> API testing</li>
+                            <li><i class="fas fa-check"></i> Mobile testing</li>
+                            <li><i class="fas fa-check"></i> Test debugging</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="installPlaywright()">
+                            <i class="fas fa-download"></i> Install
+                        </button>
+                        <button class="btn btn-outline" onclick="viewPlaywrightDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Communication Integrations -->
+        <div class="category-content" id="communication-category">
+            <div class="integration-grid">
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-slack"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Slack</h3>
+                            <p>Get test results and notifications in Slack</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Test result notifications</li>
+                            <li><i class="fas fa-check"></i> Coverage reports</li>
+                            <li><i class="fas fa-check"></i> Team collaboration</li>
+                            <li><i class="fas fa-check"></i> Custom channels</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="connectSlack()">
+                            <i class="fas fa-link"></i> Connect
+                        </button>
+                        <button class="btn btn-outline" onclick="viewSlackDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fab fa-microsoft"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Microsoft Teams</h3>
+                            <p>Integrate with Microsoft Teams</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Test notifications</li>
+                            <li><i class="fas fa-check"></i> Report sharing</li>
+                            <li><i class="fas fa-check"></i> Team updates</li>
+                            <li><i class="fas fa-check"></i> Bot integration</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="connectTeams()">
+                            <i class="fas fa-link"></i> Connect
+                        </button>
+                        <button class="btn btn-outline" onclick="viewTeamsDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-card-header">
+                        <div class="integration-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="integration-info">
+                            <h3>Email</h3>
+                            <p>Email notifications and reports</p>
+                        </div>
+                    </div>
+                    <div class="integration-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Test result emails</li>
+                            <li><i class="fas fa-check"></i> Coverage reports</li>
+                            <li><i class="fas fa-check"></i> Scheduled reports</li>
+                            <li><i class="fas fa-check"></i> Custom templates</li>
+                        </ul>
+                    </div>
+                    <div class="integration-actions">
+                        <button class="btn btn-primary" onclick="configureEmail()">
+                            <i class="fas fa-cog"></i> Configure
+                        </button>
+                        <button class="btn btn-outline" onclick="viewEmailDocs()">
+                            <i class="fas fa-book"></i> Documentation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Webhook Integrations -->
+        <div class="category-content" id="webhooks-category">
+            <div class="webhook-section">
+                <div class="webhook-header">
+                    <h3>Webhook Configuration</h3>
+                    <p>Set up webhooks for real-time integrations</p>
+                </div>
+                
+                <div class="webhook-form">
+                    <form id="webhook-form">
+                        <div class="form-group">
+                            <label for="webhook-url" class="form-label">Webhook URL</label>
+                            <input type="url" id="webhook-url" name="url" class="form-control" 
+                                   placeholder="https://your-app.com/webhook" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="webhook-events" class="form-label">Events</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="events" value="test_case.created">
+                                    <span class="checkmark"></span>
+                                    Test Case Created
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="events" value="test_case.updated">
+                                    <span class="checkmark"></span>
+                                    Test Case Updated
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="events" value="test_execution.completed">
+                                    <span class="checkmark"></span>
+                                    Test Execution Completed
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="events" value="coverage_analysis.completed">
+                                    <span class="checkmark"></span>
+                                    Coverage Analysis Completed
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="webhook-secret" class="form-label">Secret (Optional)</label>
+                            <input type="text" id="webhook-secret" name="secret" class="form-control" 
+                                   placeholder="Your webhook secret">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Register Webhook
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="testWebhook()">
+                                <i class="fas fa-vial"></i> Test Webhook
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="webhook-list" id="webhook-list">
+                    <h4>Registered Webhooks</h4>
+                    <div class="webhook-items" id="webhook-items">
+                        <!-- Webhooks will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/integrations.js') }}"></script>
+
+<style>
+/* Integrations Styles */
+.integrations-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.integrations-header {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: var(--radius-2xl);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.integrations-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.integrations-header-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+.integrations-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.integrations-subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.integration-categories {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.category-tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.category-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+
+.category-tab:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.category-tab.active {
+    background: var(--primary-100);
+    color: var(--primary-700);
+    border-bottom-color: var(--primary-600);
+}
+
+.category-content {
+    display: none;
+    padding: 2rem;
+}
+
+.category-content.active {
+    display: block;
+}
+
+.integration-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.integration-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: all var(--transition-fast);
+}
+
+.integration-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.integration-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.integration-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-100);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary-600);
+}
+
+.integration-info h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.integration-info p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.integration-features {
+    margin-bottom: 1.5rem;
+}
+
+.integration-features ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.integration-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.integration-features li i {
+    color: var(--success-500);
+    font-size: 0.75rem;
+}
+
+.integration-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.webhook-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.webhook-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.webhook-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.webhook-header p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.webhook-form {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.webhook-list h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.webhook-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 0.5rem;
+}
+
+.webhook-info h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.webhook-info p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.webhook-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .integrations-header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .category-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .integration-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .integration-actions {
+        flex-direction: column;
+    }
+    
+    .webhook-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .webhook-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+</style>
+{% endblock %}

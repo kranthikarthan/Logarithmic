@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Xray Test Management Tool Startup Script
+# Assertly Test Management Platform Startup Script
 
-echo "🚀 Starting Xray Test Management Tool..."
+echo "🚀 Starting Assertly Test Management Platform..."
 
 # Check if Python is available
 if ! command -v python3 &> /dev/null; then

@@ -1,4 +1,4 @@
-// Xray Test Management Tool - JavaScript functionality
+// Assertly Test Management Platform - JavaScript functionality
 
 // Global application state
 const AppState = {
@@ -432,5 +432,5 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Popover(popoverTriggerEl);
     });
     
-    console.log('Xray Test Management Tool initialized');
+    console.log('Assertly Test Management Platform initialized');
 });

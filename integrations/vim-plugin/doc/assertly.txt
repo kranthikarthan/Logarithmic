@@ -1,0 +1,215 @@
+*assertly.txt*	Assertly Test Manager Vim Plugin
+
+Author: Assertly Team
+Version: 1.0.0
+License: MIT
+
+==============================================================================
+CONTENTS
+
+1. Introduction
+2. Installation
+3. Configuration
+4. Commands
+5. Key Mappings
+6. Enterprise Features
+7. Examples
+8. Troubleshooting
+
+==============================================================================
+1. INTRODUCTION
+
+Assertly Test Manager is a Vim plugin that provides AI-powered test case
+generation and management capabilities. It supports both cloud-based AI
+services and enterprise/local AI solutions for organizations with strict
+security requirements.
+
+Features:
+- AI-powered test case generation
+- BDD scenario generation
+- Test coverage analysis
+- Enterprise/local AI integration
+- User story detection and completion
+- Integration with Jira and other tools
+
+==============================================================================
+2. INSTALLATION
+
+Using vim-plug:
+>
+    Plug 'assertly/vim-assertly'
+<
+
+Using Vundle:
+>
+    Plugin 'assertly/vim-assertly'
+<
+
+Using Pathogen:
+>
+    git clone https://github.com/assertly/vim-assertly.git ~/.vim/bundle/vim-assertly
+<
+
+Manual Installation:
+1. Download the plugin files
+2. Copy them to your Vim runtime directory
+3. Restart Vim
+
+==============================================================================
+3. CONFIGURATION
+
+Basic Configuration:
+>
+    " API Configuration
+    let g:assertly_api_url = 'http://localhost:5000'
+    let g:assertly_api_key = 'your-api-key'
+<
+
+Enterprise Configuration:
+>
+    " Enable Enterprise Mode
+    let g:assertly_enterprise_mode = 1
+    let g:assertly_enterprise_ai_url = 'http://internal-ai.company.com:8080/api'
+    let g:assertly_enterprise_ai_model = 'local-copilot'
+    let g:assertly_enterprise_api_key = 'internal-api-key'
+    
+    " Network Configuration
+    let g:assertly_proxy_url = 'http://proxy.company.com:8080'
+    let g:assertly_cert_path = '/path/to/company-cert.pem'
+    let g:assertly_verify_ssl = 1
+<
+
+==============================================================================
+4. COMMANDS
+
+:AssertlyGenerateTests [user_story]
+    Generate test cases from a user story. If no user story is provided,
+    the plugin will try to extract one from the current buffer.
+
+:AssertlyGenerateBDD [user_story]
+    Generate BDD scenarios from a user story. If no user story is provided,
+    the plugin will try to extract one from the current buffer.
+
+:AssertlyAnalyzeCoverage [user_story]
+    Analyze test coverage for a user story against existing test cases.
+
+:AssertlyConfigureEnterprise
+    Configure enterprise AI settings interactively.
+
+:AssertlyTestConnection
+    Test connection to enterprise AI service.
+
+:AssertlyOpenSettings
+    Open enterprise settings in web browser.
+
+==============================================================================
+5. KEY MAPPINGS
+
+<leader>at    Generate test cases
+<leader>ab    Generate BDD scenarios
+<leader>ac    Analyze test coverage
+<leader>ae    Configure enterprise AI
+
+You can customize these mappings:
+>
+    nmap <leader>gt <Plug>AssertlyGenerateTests
+    nmap <leader>gb <Plug>AssertlyGenerateBDD
+    nmap <leader>gc <Plug>AssertlyAnalyzeCoverage
+    nmap <leader>ge <Plug>AssertlyConfigureEnterprise
+<
+
+==============================================================================
+6. ENTERPRISE FEATURES
+
+The plugin supports enterprise environments with the following features:
+
+Enterprise AI Integration:
+- Local AI service integration
+- Custom model support
+- Offline mode capabilities
+- Proxy and SSL certificate support
+
+Security Features:
+- All data stays within corporate network
+- No external internet access required
+- Audit logging for compliance
+- Encrypted data transmission
+
+Configuration:
+- Interactive enterprise setup
+- Connection testing
+- Settings management
+- Status monitoring
+
+==============================================================================
+7. EXAMPLES
+
+Generate test cases from user story in buffer:
+>
+    " Open a file containing a user story
+    " As a user, I want to log in so that I can access my account
+    :AssertlyGenerateTests
+<
+
+Generate test cases from specific user story:
+>
+    :AssertlyGenerateTests "As a user, I want to search for products so that I can find what I need"
+<
+
+Generate BDD scenarios:
+>
+    :AssertlyGenerateBDD
+<
+
+Analyze test coverage:
+>
+    :AssertlyAnalyzeCoverage
+<
+
+Configure enterprise AI:
+>
+    :AssertlyConfigureEnterprise
+<
+
+Test enterprise connection:
+>
+    :AssertlyTestConnection
+<
+
+==============================================================================
+8. TROUBLESHOOTING
+
+Common Issues:
+
+1. "API request failed" error:
+   - Check your API URL and key configuration
+   - Verify network connectivity
+   - Check proxy settings if using corporate network
+
+2. "No user story found" error:
+   - Ensure your buffer contains a user story in the format:
+     "As a [persona], I want [goal] so that [benefit]"
+   - Or provide the user story as a command argument
+
+3. Enterprise connection issues:
+   - Verify your local AI service is running
+   - Check enterprise AI URL configuration
+   - Test connection using :AssertlyTestConnection
+
+4. SSL certificate errors:
+   - Set g:assertly_verify_ssl = 0 to disable SSL verification
+   - Or configure proper certificate path
+
+5. Proxy issues:
+   - Configure g:assertly_proxy_url with your corporate proxy
+   - Check proxy authentication if required
+
+Debug Mode:
+>
+    let g:assertly_debug = 1
+<
+
+This will show detailed API request information.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

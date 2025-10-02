@@ -1,0 +1,165 @@
+# Azure DevOps Pipeline for Assertly Test Generation
+# This pipeline integrates with Assertly AI to generate test cases from user stories
+
+trigger:
+- main
+- develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  ASSERTLY_API_KEY: $(ASSERTLY_API_KEY)
+  ASSERTLY_API_URL: $(ASSERTLY_API_URL)
+  JIRA_URL: $(JIRA_URL)
+  JIRA_TOKEN: $(JIRA_TOKEN)
+  PROJECT_KEY: $(PROJECT_KEY)
+
+stages:
+- stage: TestGeneration
+  displayName: 'Generate Tests with Assertly'
+  jobs:
+  - job: GenerateTests
+    displayName: 'Generate Test Cases'
+    steps:
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: '18.x'
+    
+    - task: PowerShell@2
+      displayName: 'Install Assertly CLI'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Install Assertly CLI globally
+          npm install -g @assertly/cli
+          
+          # Verify installation
+          assertly --version
+          
+          # Configure Assertly
+          assertly config set api-key $(ASSERTLY_API_KEY)
+          assertly config set api-url $(ASSERTLY_API_URL)
+    
+    - task: PowerShell@2
+      displayName: 'Generate Test Cases from User Stories'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Create output directories
+          mkdir -p ./generated-tests
+          mkdir -p ./test-results
+          
+          # Generate test cases from user stories
+          assertly generate-tests \
+            --project-key $(PROJECT_KEY) \
+            --output-format jira \
+            --include-bdd-scenarios \
+            --output-dir ./generated-tests \
+            --jira-url $(JIRA_URL) \
+            --jira-token $(JIRA_TOKEN)
+          
+          # Generate test data for the test cases
+          assertly generate-test-data \
+            --test-cases ./generated-tests/test-cases.json \
+            --output-format csv \
+            --output-dir ./generated-tests/test-data
+          
+          # Generate BDD scenarios
+          assertly generate-bdd-scenarios \
+            --user-stories ./user-stories.json \
+            --output-format gherkin \
+            --output-dir ./generated-tests/bdd-scenarios
+    
+    - task: PowerShell@2
+      displayName: 'Analyze Test Coverage'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Analyze test coverage
+          assertly analyze-coverage \
+            --user-stories ./user-stories.json \
+            --test-cases ./generated-tests/test-cases.json \
+            --output-format html \
+            --output-dir ./generated-tests/coverage-report
+    
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results'
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/test-results.xml'
+        mergeTestResults: true
+        testRunTitle: 'Assertly Generated Tests'
+    
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Generated Tests'
+      inputs:
+        pathToPublish: 'generated-tests'
+        artifactName: 'assertly-generated-tests'
+        publishLocation: 'Container'
+    
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Test Data'
+      inputs:
+        pathToPublish: 'generated-tests/test-data'
+        artifactName: 'assertly-test-data'
+        publishLocation: 'Container'
+    
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish BDD Scenarios'
+      inputs:
+        pathToPublish: 'generated-tests/bdd-scenarios'
+        artifactName: 'assertly-bdd-scenarios'
+        publishLocation: 'Container'
+    
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Coverage Report'
+      inputs:
+        pathToPublish: 'generated-tests/coverage-report'
+        artifactName: 'assertly-coverage-report'
+        publishLocation: 'Container'
+
+- stage: Notify
+  displayName: 'Send Notifications'
+  dependsOn: TestGeneration
+  condition: always()
+  jobs:
+  - job: NotifyTeam
+    displayName: 'Notify Team'
+    steps:
+    - task: PowerShell@2
+      displayName: 'Send Slack Notification'
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Send notification to Slack (if configured)
+          if ($env:SLACK_WEBHOOK_URL) {
+            $message = @{
+              text = "Assertly test generation completed for $(Build.SourceBranchName)"
+              attachments = @(
+                @{
+                  color = "good"
+                  fields = @(
+                    @{
+                      title = "Build"
+                      value = "$(Build.BuildNumber)"
+                      short = $true
+                    },
+                    @{
+                      title = "Branch"
+                      value = "$(Build.SourceBranchName)"
+                      short = $true
+                    },
+                    @{
+                      title = "Generated Tests"
+                      value = "Check artifacts for generated test cases"
+                      short = $false
+                    }
+                  )
+                }
+              )
+            }
+            
+            Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body ($message | ConvertTo-Json -Depth 10) -ContentType 'application/json'
+          }

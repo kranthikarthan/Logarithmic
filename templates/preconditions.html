@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+
+{% block title %}Preconditions Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-clipboard-check"></i> Preconditions Management</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="showCreatePreconditionModal()">
+                        <i class="fas fa-plus"></i> Create Precondition
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="refreshPreconditions()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preconditions Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card assertly-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clipboard-check fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Total Preconditions</h6>
+                            <h4 class="mb-0" id="total-preconditions">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card assertly-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Active Preconditions</h6>
+                            <h4 class="mb-0" id="active-preconditions">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card assertly-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-link fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Linked Tests</h6>
+                            <h4 class="mb-0" id="linked-tests-count">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card assertly-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Avg Tests/Precondition</h6>
+                            <h4 class="mb-0" id="avg-tests-per-precondition">Loading...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preconditions List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card assertly-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check"></i> Preconditions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="preconditions-table">
+                            <thead>
+                                <tr>
+                                    <th>Precondition</th>
+                                    <th>Description</th>
+                                    <th>Linked Tests</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preconditions-tbody">
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Precondition Modal -->
+<div class="modal fade" id="createPreconditionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Precondition</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPreconditionForm">
+                    <div class="mb-3">
+                        <label for="preconditionName" class="form-label">Precondition Name</label>
+                        <input type="text" class="form-control" id="preconditionName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="preconditionDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="preconditionDescription" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="preconditionProject" class="form-label">Project</label>
+                        <select class="form-select" id="preconditionProject" required>
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createPrecondition()">Create Precondition</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Precondition Details Modal -->
+<div class="modal fade" id="preconditionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Precondition Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Precondition Information</h6>
+                        <p><strong>Name:</strong> <span id="modalPreconditionName"></span></p>
+                        <p><strong>Description:</strong> <span id="modalPreconditionDescription"></span></p>
+                        <p><strong>Status:</strong> <span id="modalPreconditionStatus"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Statistics</h6>
+                        <p><strong>Linked Tests:</strong> <span id="modalPreconditionCount"></span></p>
+                        <p><strong>Created:</strong> <span id="modalPreconditionCreated"></span></p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6>Tests Using This Precondition</h6>
+                    <button class="btn btn-sm btn-primary" onclick="showLinkTestModal()">
+                        <i class="fas fa-link"></i> Link Test
+                    </button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm" id="modalTestsTable">
+                        <thead>
+                            <tr>
+                                <th>Test Key</th>
+                                <th>Summary</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalTestsTbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Test Modal -->
+<div class="modal fade" id="linkTestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link Test to Precondition</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="linkTestForm">
+                    <div class="mb-3">
+                        <label for="testKey" class="form-label">Test Key</label>
+                        <input type="text" class="form-control" id="testKey" placeholder="e.g., TEST-001" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="linkTestToPrecondition()">Link Test</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPreconditionKey = null;
+let preconditions = [];
+
+function loadPreconditions() {
+    fetch('/api/preconditions')
+        .then(response => response.json())
+        .then(data => {
+            preconditions = data.issues || [];
+            displayPreconditions();
+            updateOverview();
+        })
+        .catch(error => {
+            console.error('Error loading preconditions:', error);
+            showError('Failed to load preconditions');
+        });
+}
+
+function displayPreconditions() {
+    const tbody = document.getElementById('preconditions-tbody');
+    tbody.innerHTML = '';
+    
+    if (preconditions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No preconditions found</td></tr>';
+        return;
+    }
+    
+    preconditions.forEach(precondition => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <strong>${precondition.key}</strong><br>
+                <small class="text-muted">${precondition.fields.summary}</small>
+            </td>
+            <td>${precondition.fields.description || 'No description'}</td>
+            <td>
+                <span class="badge bg-info">Loading...</span>
+            </td>
+            <td>
+                <span class="badge bg-${getStatusColor(precondition.fields.status.name)}">
+                    ${precondition.fields.status.name}
+                </span>
+            </td>
+            <td>${formatDate(precondition.fields.created)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewPreconditionDetails('${precondition.key}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+        
+        // Load linked tests count for this precondition
+        loadPreconditionTestsCount(precondition.key, row);
+    });
+}
+
+function loadPreconditionTestsCount(preconditionKey, row) {
+    fetch(`/api/preconditions/${preconditionKey}/tests`)
+        .then(response => response.json())
+        .then(tests => {
+            const countCell = row.querySelector('td:nth-child(3)');
+            countCell.innerHTML = `<span class="badge bg-info">${tests.length}</span>`;
+        })
+        .catch(error => {
+            console.error('Error loading linked tests count:', error);
+        });
+}
+
+function updateOverview() {
+    const totalPreconditions = preconditions.length;
+    const activePreconditions = preconditions.filter(p => p.fields.status.name === 'Active').length;
+    
+    document.getElementById('total-preconditions').textContent = totalPreconditions;
+    document.getElementById('active-preconditions').textContent = activePreconditions;
+    
+    // Calculate linked tests and average
+    let totalLinkedTests = 0;
+    const promises = preconditions.map(precondition => 
+        fetch(`/api/preconditions/${precondition.key}/tests`)
+            .then(response => response.json())
+            .then(tests => tests.length)
+            .catch(() => 0)
+    );
+    
+    Promise.all(promises).then(counts => {
+        totalLinkedTests = counts.reduce((sum, count) => sum + count, 0);
+        const avgTests = totalLinkedTests > 0 ? Math.round(totalLinkedTests / totalPreconditions) : 0;
+        
+        document.getElementById('linked-tests-count').textContent = totalLinkedTests;
+        document.getElementById('avg-tests-per-precondition').textContent = avgTests;
+    });
+}
+
+function viewPreconditionDetails(preconditionKey) {
+    currentPreconditionKey = preconditionKey;
+    const precondition = preconditions.find(p => p.key === preconditionKey);
+    
+    if (precondition) {
+        document.getElementById('modalPreconditionName').textContent = precondition.fields.summary;
+        document.getElementById('modalPreconditionDescription').textContent = precondition.fields.description || 'No description';
+        document.getElementById('modalPreconditionStatus').textContent = precondition.fields.status.name;
+        document.getElementById('modalPreconditionCreated').textContent = formatDate(precondition.fields.created);
+        
+        // Load linked tests
+        loadPreconditionTests(preconditionKey);
+        
+        const modal = new bootstrap.Modal(document.getElementById('preconditionDetailsModal'));
+        modal.show();
+    }
+}
+
+function loadPreconditionTests(preconditionKey) {
+    fetch(`/api/preconditions/${preconditionKey}/tests`)
+        .then(response => response.json())
+        .then(tests => {
+            const tbody = document.getElementById('modalTestsTbody');
+            tbody.innerHTML = '';
+            
+            document.getElementById('modalPreconditionCount').textContent = tests.length;
+            
+            if (tests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No tests linked to this precondition</td></tr>';
+                return;
+            }
+            
+            tests.forEach(test => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${test.key}</td>
+                    <td>${test.fields.summary}</td>
+                    <td>
+                        <span class="badge bg-${getStatusColor(test.fields.status.name)}">
+                            ${test.fields.status.name}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="unlinkTestFromPrecondition('${test.key}')">
+                            <i class="fas fa-unlink"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading precondition tests:', error);
+            showError('Failed to load linked tests');
+        });
+}
+
+function showCreatePreconditionModal() {
+    loadProjects();
+    const modal = new bootstrap.Modal(document.getElementById('createPreconditionModal'));
+    modal.show();
+}
+
+function loadProjects() {
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('preconditionProject');
+            select.innerHTML = '<option value="">Select Project</option>';
+            
+            data.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.key;
+                option.textContent = project.name;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+        });
+}
+
+function createPrecondition() {
+    const name = document.getElementById('preconditionName').value;
+    const description = document.getElementById('preconditionDescription').value;
+    const project = document.getElementById('preconditionProject').value;
+    
+    if (!name || !description || !project) {
+        showError('Please fill in all required fields');
+        return;
+    }
+    
+    // Mock precondition creation
+    const newPrecondition = {
+        key: `PRECOND-${Date.now()}`,
+        fields: {
+            summary: name,
+            description: description,
+            status: { name: 'Active' },
+            created: new Date().toISOString()
+        }
+    };
+    
+    preconditions.push(newPrecondition);
+    displayPreconditions();
+    updateOverview();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createPreconditionModal'));
+    modal.hide();
+    
+    showSuccess('Precondition created successfully');
+}
+
+function showLinkTestModal() {
+    const modal = new bootstrap.Modal(document.getElementById('linkTestModal'));
+    modal.show();
+}
+
+function linkTestToPrecondition() {
+    const testKey = document.getElementById('testKey').value;
+    
+    if (!testKey || !currentPreconditionKey) {
+        showError('Please enter a test key');
+        return;
+    }
+    
+    fetch('/api/preconditions/link', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            test_key: testKey, 
+            precondition_key: currentPreconditionKey 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Test linked to precondition successfully');
+            loadPreconditionTests(currentPreconditionKey);
+            refreshPreconditions();
+        } else {
+            showError(data.error || 'Failed to link test to precondition');
+        }
+    })
+    .catch(error => {
+        console.error('Error linking test to precondition:', error);
+        showError('Failed to link test to precondition');
+    });
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('linkTestModal'));
+    modal.hide();
+}
+
+function unlinkTestFromPrecondition(testKey) {
+    if (!confirm('Are you sure you want to unlink this test from the precondition?')) {
+        return;
+    }
+    
+    fetch('/api/preconditions/unlink', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            test_key: testKey, 
+            precondition_key: currentPreconditionKey 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Test unlinked from precondition successfully');
+            loadPreconditionTests(currentPreconditionKey);
+            refreshPreconditions();
+        } else {
+            showError(data.error || 'Failed to unlink test from precondition');
+        }
+    })
+    .catch(error => {
+        console.error('Error unlinking test from precondition:', error);
+        showError('Failed to unlink test from precondition');
+    });
+}
+
+function refreshPreconditions() {
+    loadPreconditions();
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'Active': 'success',
+        'Inactive': 'secondary',
+        'Draft': 'warning',
+        'Closed': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString();
+}
+
+function showSuccess(message) {
+    // You can implement a toast notification here
+    alert(message);
+}
+
+function showError(message) {
+    // You can implement a toast notification here
+    alert('Error: ' + message);
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadPreconditions();
+});
+</script>
+{% endblock %}

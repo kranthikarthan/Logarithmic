@@ -1,0 +1,240 @@
+/* Assertly Brand Colors */
+
+:root {
+  /* Primary Brand Colors */
+  --assertly-blue: #0ea5e9;
+  --assertly-blue-dark: #0284c7;
+  --assertly-blue-light: #38bdf8;
+  --assertly-blue-50: #f0f9ff;
+  --assertly-blue-100: #e0f2fe;
+  --assertly-blue-200: #bae6fd;
+  --assertly-blue-300: #7dd3fc;
+  --assertly-blue-400: #38bdf8;
+  --assertly-blue-500: #0ea5e9;
+  --assertly-blue-600: #0284c7;
+  --assertly-blue-700: #0369a1;
+  --assertly-blue-800: #075985;
+  --assertly-blue-900: #0c4a6e;
+
+  /* Secondary Colors */
+  --assertly-success: #22c55e;
+  --assertly-success-dark: #16a34a;
+  --assertly-success-light: #4ade80;
+  --assertly-warning: #f59e0b;
+  --assertly-warning-dark: #d97706;
+  --assertly-warning-light: #fbbf24;
+  --assertly-error: #ef4444;
+  --assertly-error-dark: #dc2626;
+  --assertly-error-light: #f87171;
+
+  /* Neutral Colors */
+  --assertly-gray-50: #f8fafc;
+  --assertly-gray-100: #f1f5f9;
+  --assertly-gray-200: #e2e8f0;
+  --assertly-gray-300: #cbd5e1;
+  --assertly-gray-400: #94a3b8;
+  --assertly-gray-500: #64748b;
+  --assertly-gray-600: #475569;
+  --assertly-gray-700: #334155;
+  --assertly-gray-800: #1e293b;
+  --assertly-gray-900: #0f172a;
+
+  /* Semantic Colors */
+  --assertly-text-primary: var(--assertly-gray-900);
+  --assertly-text-secondary: var(--assertly-gray-600);
+  --assertly-text-muted: var(--assertly-gray-400);
+  --assertly-bg-primary: #ffffff;
+  --assertly-bg-secondary: var(--assertly-gray-50);
+  --assertly-bg-tertiary: var(--assertly-gray-100);
+  --assertly-border: var(--assertly-gray-200);
+  --assertly-border-dark: var(--assertly-gray-300);
+
+  /* Brand Gradients */
+  --assertly-gradient-primary: linear-gradient(135deg, var(--assertly-blue-500), var(--assertly-blue-600));
+  --assertly-gradient-success: linear-gradient(135deg, var(--assertly-success), var(--assertly-success-dark));
+  --assertly-gradient-warning: linear-gradient(135deg, var(--assertly-warning), var(--assertly-warning-dark));
+  --assertly-gradient-error: linear-gradient(135deg, var(--assertly-error), var(--assertly-error-dark));
+
+  /* Brand Shadows */
+  --assertly-shadow-sm: 0 1px 2px 0 rgba(14, 165, 233, 0.05);
+  --assertly-shadow-md: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06);
+  --assertly-shadow-lg: 0 10px 15px -3px rgba(14, 165, 233, 0.1), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+  --assertly-shadow-xl: 0 20px 25px -5px rgba(14, 165, 233, 0.1), 0 10px 10px -5px rgba(14, 165, 233, 0.04);
+}
+
+/* Dark Theme Brand Colors */
+[data-theme="dark"] {
+  --assertly-text-primary: var(--assertly-gray-50);
+  --assertly-text-secondary: var(--assertly-gray-300);
+  --assertly-text-muted: var(--assertly-gray-500);
+  --assertly-bg-primary: var(--assertly-gray-900);
+  --assertly-bg-secondary: var(--assertly-gray-800);
+  --assertly-bg-tertiary: var(--assertly-gray-700);
+  --assertly-border: var(--assertly-gray-700);
+  --assertly-border-dark: var(--assertly-gray-600);
+
+  /* Dark theme gradients */
+  --assertly-gradient-primary: linear-gradient(135deg, var(--assertly-blue-400), var(--assertly-blue-500));
+  --assertly-gradient-success: linear-gradient(135deg, var(--assertly-success-light), var(--assertly-success));
+  --assertly-gradient-warning: linear-gradient(135deg, var(--assertly-warning-light), var(--assertly-warning));
+  --assertly-gradient-error: linear-gradient(135deg, var(--assertly-error-light), var(--assertly-error));
+}
+
+/* Brand Color Utilities */
+.text-assertly-blue { color: var(--assertly-blue); }
+.text-assertly-success { color: var(--assertly-success); }
+.text-assertly-warning { color: var(--assertly-warning); }
+.text-assertly-error { color: var(--assertly-error); }
+
+.bg-assertly-blue { background-color: var(--assertly-blue); }
+.bg-assertly-success { background-color: var(--assertly-success); }
+.bg-assertly-warning { background-color: var(--assertly-warning); }
+.bg-assertly-error { background-color: var(--assertly-error); }
+
+.bg-assertly-gradient { background: var(--assertly-gradient-primary); }
+.bg-assertly-gradient-success { background: var(--assertly-gradient-success); }
+.bg-assertly-gradient-warning { background: var(--assertly-gradient-warning); }
+.bg-assertly-gradient-error { background: var(--assertly-gradient-error); }
+
+/* Brand Button Styles */
+.btn-assertly {
+  background: var(--assertly-gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: var(--assertly-shadow-sm);
+}
+
+.btn-assertly:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--assertly-shadow-md);
+}
+
+.btn-assertly-outline {
+  background: transparent;
+  color: var(--assertly-blue);
+  border: 2px solid var(--assertly-blue);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-assertly-outline:hover {
+  background: var(--assertly-blue);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Brand Card Styles */
+.card-assertly {
+  background: var(--assertly-bg-primary);
+  border: 1px solid var(--assertly-border);
+  border-radius: 1rem;
+  box-shadow: var(--assertly-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.card-assertly:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--assertly-shadow-lg);
+}
+
+/* Brand Typography */
+.font-assertly {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.font-assertly-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', monospace;
+}
+
+/* Brand Logo Styles */
+.logo-assertly {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--assertly-blue);
+  text-decoration: none;
+}
+
+.logo-assertly-icon {
+  width: 2rem;
+  height: 2rem;
+  background: var(--assertly-gradient-primary);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: var(--assertly-shadow-sm);
+}
+
+/* Brand Animations */
+@keyframes assertly-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes assertly-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-assertly-pulse {
+  animation: assertly-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-assertly-bounce {
+  animation: assertly-bounce 1s infinite;
+}
+
+/* Brand Focus States */
+.focus-assertly:focus {
+  outline: 2px solid var(--assertly-blue);
+  outline-offset: 2px;
+}
+
+/* Brand Loading States */
+.loading-assertly {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-assertly::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(14, 165, 233, 0.2),
+    transparent
+  );
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}

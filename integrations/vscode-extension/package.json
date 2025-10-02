@@ -1,0 +1,201 @@
+{
+  "name": "assertly-test-manager",
+  "displayName": "Assertly Test Manager",
+  "description": "AI-powered test management and generation for VS Code",
+  "version": "1.0.0",
+  "publisher": "assertly",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "keywords": [
+    "testing",
+    "test-management",
+    "ai",
+    "test-generation",
+    "jira",
+    "bdd"
+  ],
+  "activationEvents": [
+    "onCommand:assertly.generateTestCases",
+    "onCommand:assertly.openDashboard",
+    "onCommand:assertly.syncWithJira",
+    "onCommand:assertly.configureEnterprise",
+    "onCommand:assertly.testEnterpriseConnection"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "assertly.generateTestCases",
+        "title": "Generate Test Cases",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.openDashboard",
+        "title": "Open Dashboard",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.syncWithJira",
+        "title": "Sync with Jira",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.createBDDScenario",
+        "title": "Create BDD Scenario",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.analyzeCoverage",
+        "title": "Analyze Test Coverage",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.configureEnterprise",
+        "title": "Configure Enterprise AI",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.testEnterpriseConnection",
+        "title": "Test Enterprise AI Connection",
+        "category": "Assertly"
+      },
+      {
+        "command": "assertly.openEnterpriseSettings",
+        "title": "Open Enterprise Settings",
+        "category": "Assertly"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "assertly.generateTestCases",
+          "when": "editorTextFocus",
+          "group": "assertly"
+        },
+        {
+          "command": "assertly.createBDDScenario",
+          "when": "editorTextFocus",
+          "group": "assertly"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "assertly.generateTestCases",
+          "when": "resourceExtname == .feature",
+          "group": "assertly"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "assertlyTestExplorer",
+          "name": "Assertly Tests",
+          "when": "assertly.connected"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "assertly",
+          "title": "Assertly",
+          "icon": "$(testing)"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Assertly",
+      "properties": {
+        "assertly.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:5000",
+          "description": "Assertly API URL"
+        },
+        "assertly.apiKey": {
+          "type": "string",
+          "description": "Assertly API Key"
+        },
+        "assertly.jiraUrl": {
+          "type": "string",
+          "description": "Jira URL"
+        },
+        "assertly.jiraUsername": {
+          "type": "string",
+          "description": "Jira Username"
+        },
+        "assertly.jiraApiToken": {
+          "type": "string",
+          "description": "Jira API Token"
+        },
+        "assertly.aiProvider": {
+          "type": "string",
+          "enum": ["openai", "anthropic"],
+          "default": "openai",
+          "description": "AI Provider"
+        },
+        "assertly.aiApiKey": {
+          "type": "string",
+          "description": "AI API Key"
+        },
+        "assertly.enterpriseMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Enterprise Mode"
+        },
+        "assertly.enterpriseAiUrl": {
+          "type": "string",
+          "description": "Enterprise AI Service URL"
+        },
+        "assertly.enterpriseAiModel": {
+          "type": "string",
+          "default": "local-copilot",
+          "description": "Enterprise AI Model Name"
+        },
+        "assertly.enterpriseApiKey": {
+          "type": "string",
+          "description": "Enterprise AI API Key"
+        },
+        "assertly.proxyUrl": {
+          "type": "string",
+          "description": "Corporate Proxy URL"
+        },
+        "assertly.certPath": {
+          "type": "string",
+          "description": "SSL Certificate Path"
+        },
+        "assertly.verifySsl": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify SSL Certificates"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "assertly.generateTestCases",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}

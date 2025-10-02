@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-09-30T18:43:14.888705",
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "success_rate": 83.33333333333334
+  },
+  "provider_analysis": {
+    "local_llm": 3,
+    "mock_fallback": 3,
+    "other": 0
+  },
+  "test_results": [
+    {
+      "test": "Enterprise AI Connection",
+      "status": "PASS",
+      "details": "Connection successful: Connection successful",
+      "timestamp": "2025-09-30T18:43:11.474746"
+    },
+    {
+      "test": "AI Test Generation",
+      "status": "PASS",
+      "details": "Generated 3 test cases using local LLM",
+      "timestamp": "2025-09-30T18:43:12.206901"
+    },
+    {
+      "test": "AI Test Improvement",
+      "status": "PASS",
+      "details": "Test case improved using local LLM",
+      "timestamp": "2025-09-30T18:43:14.203177"
+    },
+    {
+      "test": "BDD Scenario Generation",
+      "status": "FAIL",
+      "details": "Using mock fallback instead of local LLM",
+      "timestamp": "2025-09-30T18:43:14.220367"
+    },
+    {
+      "test": "AI Test Data Generation",
+      "status": "PASS",
+      "details": "Using mock fallback (acceptable)",
+      "timestamp": "2025-09-30T18:43:14.224616"
+    },
+    {
+      "test": "AI Coverage Analysis",
+      "status": "PASS",
+      "details": "Using mock fallback (acceptable)",
+      "timestamp": "2025-09-30T18:43:14.228258"
+    },
+    {
+      "test": "Enterprise AI Generation",
+      "status": "PASS",
+      "details": "Generated 3 test cases using enterprise_local",
+      "timestamp": "2025-09-30T18:43:14.888434"
+    }
+  ]
+}

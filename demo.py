@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Demo script for Xray Test Management Tool
+Demo script for Assertly Test Management Platform
 Shows how to use the application programmatically
 """
 
@@ -8,7 +8,7 @@ import requests
 import json
 from datetime import datetime
 
-class XrayDemo:
+class AssertlyDemo:
     def __init__(self, base_url="http://localhost:5000"):
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
@@ -107,7 +107,7 @@ class XrayDemo:
     
     def run_full_demo(self):
         """Run the complete demo"""
-        print("🚀 Xray Test Management Tool - Demo")
+        print("🚀 Assertly Test Management Platform - Demo")
         print("=" * 50)
         
         # Note: This demo assumes the app is running
@@ -134,7 +134,7 @@ class XrayDemo:
 
 def main():
     """Main demo function"""
-    demo = XrayDemo()
+    demo = AssertlyDemo()
     demo.run_full_demo()
 
 if __name__ == "__main__":

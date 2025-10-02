@@ -1,0 +1,628 @@
+{% extends "base.html" %}
+
+{% block title %}Requirements Traceability - Assertly Test Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-sitemap"></i> Requirements Traceability</h2>
+                <p class="text-muted mb-0">Track requirements coverage and test traceability</p>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="createRequirementLink()">
+                    <i class="fas fa-link"></i> Link Requirements
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="exportTraceabilityMatrix()">
+                    <i class="fas fa-download"></i> Export Matrix
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="showCoverageReport()">
+                    <i class="fas fa-chart-bar"></i> Coverage Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Traceability Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-list-check fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Requirements</h6>
+                        <h4 class="mb-0" id="requirements-count">Loading...</h4>
+                        <small class="text-muted">Total requirements</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Covered</h6>
+                        <h4 class="mb-0" id="covered-count">Loading...</h4>
+                        <small class="text-muted">Requirements with tests</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Not Covered</h6>
+                        <h4 class="mb-0" id="not-covered-count">Loading...</h4>
+                        <small class="text-muted">Requirements without tests</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-percentage fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Coverage</h6>
+                        <h4 class="mb-0" id="coverage-percentage">0%</h4>
+                        <small class="text-muted">Overall coverage</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Controls -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="project-filter" class="form-label">Project</label>
+                    <select class="form-select" id="project-filter" onchange="updateProjectFilter()">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="requirement-type-filter" class="form-label">Requirement Type</label>
+                    <select class="form-select" id="requirement-type-filter">
+                        <option value="">All Types</option>
+                        <option value="Epic">Epic</option>
+                        <option value="Story">Story</option>
+                        <option value="Requirement">Requirement</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="coverage-filter" class="form-label">Coverage Status</label>
+                    <select class="form-select" id="coverage-filter">
+                        <option value="">All</option>
+                        <option value="covered">Covered</option>
+                        <option value="not-covered">Not Covered</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Coverage Summary</h5>
+            </div>
+            <div class="card-body">
+                <div id="coverage-summary">
+                    <p class="text-muted">Loading coverage summary...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Traceability Matrix -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-table"></i> Requirements Traceability Matrix</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshMatrix()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleMatrixView()">
+                        <i class="fas fa-expand"></i> Toggle View
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="traceability-matrix">
+                        <thead>
+                            <tr>
+                                <th width="15%">Requirement</th>
+                                <th width="25%">Summary</th>
+                                <th width="10%">Status</th>
+                                <th width="10%">Coverage</th>
+                                <th width="15%">Linked Tests</th>
+                                <th width="15%">Test Status</th>
+                                <th width="10%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrix-body">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    <div class="loading-spinner"></div> Loading traceability matrix...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Requirements Modal -->
+<div class="modal fade" id="linkRequirementsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link Requirements to Tests</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Requirements</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Select Requirement</label>
+                            <select class="form-select" id="requirement-select">
+                                <option value="">Choose a requirement...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Test Cases</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Select Test Case</label>
+                            <select class="form-select" id="test-case-select">
+                                <option value="">Choose a test case...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Link Type</label>
+                    <select class="form-select" id="link-type-select">
+                        <option value="relates">Relates</option>
+                        <option value="tests">Tests</option>
+                        <option value="validates">Validates</option>
+                        <option value="blocks">Blocks</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createLink()">
+                    <i class="fas fa-link"></i> Create Link
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Coverage Report Modal -->
+<div class="modal fade" id="coverageReportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Coverage Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="coverage-report-content">
+                    <p class="text-muted">Loading coverage report...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="exportCoverageReport()">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let traceabilityData = [];
+let currentFilters = {};
+
+// Load traceability data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadTraceabilityData();
+    loadProjects();
+    loadRequirements();
+    loadTestCases();
+});
+
+function loadTraceabilityData() {
+    fetch('/api/traceability-matrix')
+        .then(response => response.json())
+        .then(data => {
+            traceabilityData = data.matrix || [];
+            updateOverviewCards(data.summary);
+            displayTraceabilityMatrix();
+        })
+        .catch(error => {
+            console.error('Error loading traceability data:', error);
+            showAlert('Failed to load traceability data', 'danger');
+        });
+}
+
+function updateOverviewCards(summary) {
+    document.getElementById('requirements-count').textContent = summary.total_requirements || 0;
+    document.getElementById('covered-count').textContent = summary.covered_requirements || 0;
+    document.getElementById('not-covered-count').textContent = (summary.total_requirements - summary.covered_requirements) || 0;
+    document.getElementById('coverage-percentage').textContent = (summary.coverage_percentage || 0) + '%';
+    
+    // Update coverage summary
+    const coverageSummary = document.getElementById('coverage-summary');
+    coverageSummary.innerHTML = `
+        <div class="row text-center">
+            <div class="col-4">
+                <div class="border-end">
+                    <h6 class="text-success mb-1">${summary.covered_requirements || 0}</h6>
+                    <small class="text-muted">Covered</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="border-end">
+                    <h6 class="text-warning mb-1">${(summary.total_requirements - summary.covered_requirements) || 0}</h6>
+                    <small class="text-muted">Not Covered</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <h6 class="text-info mb-1">${summary.total_test_cases || 0}</h6>
+                <small class="text-muted">Test Cases</small>
+            </div>
+        </div>
+    `;
+}
+
+function displayTraceabilityMatrix() {
+    const tbody = document.getElementById('matrix-body');
+    tbody.innerHTML = '';
+    
+    if (traceabilityData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No traceability data found</td></tr>';
+        return;
+    }
+    
+    traceabilityData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <a href="#" onclick="viewRequirementDetails('${item.requirement_key}')" class="text-decoration-none">
+                    ${item.requirement_key}
+                </a>
+            </td>
+            <td>${truncateText(item.requirement_summary, 50)}</td>
+            <td><span class="badge ${getStatusBadgeClass(item.requirement_status)}">${item.requirement_status}</span></td>
+            <td>
+                <span class="badge ${item.coverage_status === 'Covered' ? 'bg-success' : 'bg-warning'}">
+                    ${item.coverage_status}
+                </span>
+            </td>
+            <td>
+                <span class="badge bg-info">${item.test_count} tests</span>
+            </td>
+            <td>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar" role="progressbar" style="width: ${calculateTestProgress(item.linked_tests)}%">
+                        ${calculateTestProgress(item.linked_tests)}%
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewLinkedTests('${item.requirement_key}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="linkMoreTests('${item.requirement_key}')">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function calculateTestProgress(tests) {
+    if (!tests || tests.length === 0) return 0;
+    const executed = tests.filter(test => test.execution_status !== 'Not Executed').length;
+    return Math.round((executed / tests.length) * 100);
+}
+
+function loadProjects() {
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(projects => {
+            const select = document.getElementById('project-filter');
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.key;
+                option.textContent = `${project.key} - ${project.name}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading projects:', error));
+}
+
+function loadRequirements() {
+    fetch('/api/requirements')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('requirement-select');
+            data.issues.forEach(issue => {
+                const option = document.createElement('option');
+                option.value = issue.key;
+                option.textContent = `${issue.key} - ${issue.fields.summary}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading requirements:', error));
+}
+
+function loadTestCases() {
+    fetch('/api/test-cases')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('test-case-select');
+            data.issues.forEach(issue => {
+                const option = document.createElement('option');
+                option.value = issue.key;
+                option.textContent = `${issue.key} - ${issue.fields.summary}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading test cases:', error));
+}
+
+function createRequirementLink() {
+    const modal = new bootstrap.Modal(document.getElementById('linkRequirementsModal'));
+    modal.show();
+}
+
+function createLink() {
+    const requirement = document.getElementById('requirement-select').value;
+    const testCase = document.getElementById('test-case-select').value;
+    const linkType = document.getElementById('link-type-select').value;
+    
+    if (!requirement || !testCase) {
+        showAlert('Please select both requirement and test case', 'warning');
+        return;
+    }
+    
+    fetch('/api/issue-links', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            inward_issue: requirement,
+            outward_issue: testCase,
+            link_type: linkType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Link created successfully', 'success');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('linkRequirementsModal'));
+            modal.hide();
+            loadTraceabilityData(); // Refresh data
+        } else {
+            showAlert('Failed to create link: ' + data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating link:', error);
+        showAlert('Failed to create link', 'danger');
+    });
+}
+
+function showCoverageReport() {
+    const modal = new bootstrap.Modal(document.getElementById('coverageReportModal'));
+    modal.show();
+    
+    // Load coverage report data
+    fetch('/api/coverage-report')
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('coverage-report-content');
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Overall Coverage</h6>
+                        <div class="progress mb-3" style="height: 30px;">
+                            <div class="progress-bar" role="progressbar" style="width: ${data.overall_coverage}%">
+                                ${data.overall_coverage}%
+                            </div>
+                        </div>
+                        <p><strong>Requirements:</strong> ${data.requirements_covered}/${data.requirements_total}</p>
+                        <p><strong>Test Cases:</strong> ${data.test_cases_executed}/${data.test_cases_total}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Coverage by Component</h6>
+                        ${Object.entries(data.coverage_by_component).map(([component, coverage]) => `
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>${component}</span>
+                                    <span>${coverage}%</span>
+                                </div>
+                                <div class="progress" style="height: 15px;">
+                                    <div class="progress-bar" role="progressbar" style="width: ${coverage}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error('Error loading coverage report:', error);
+            document.getElementById('coverage-report-content').innerHTML = '<p class="text-danger">Failed to load coverage report</p>';
+        });
+}
+
+function applyFilters() {
+    const project = document.getElementById('project-filter').value;
+    const requirementType = document.getElementById('requirement-type-filter').value;
+    const coverage = document.getElementById('coverage-filter').value;
+    
+    currentFilters = { project, requirementType, coverage };
+    
+    // Reload data with filters
+    let url = '/api/traceability-matrix?';
+    if (project) url += `project=${project}&`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            let filteredData = data.matrix || [];
+            
+            // Apply client-side filters
+            if (requirementType) {
+                filteredData = filteredData.filter(item => 
+                    item.requirement_key.includes(requirementType)
+                );
+            }
+            
+            if (coverage === 'covered') {
+                filteredData = filteredData.filter(item => item.coverage_status === 'Covered');
+            } else if (coverage === 'not-covered') {
+                filteredData = filteredData.filter(item => item.coverage_status === 'Not Covered');
+            }
+            
+            traceabilityData = filteredData;
+            displayTraceabilityMatrix();
+        })
+        .catch(error => {
+            console.error('Error applying filters:', error);
+            showAlert('Failed to apply filters', 'danger');
+        });
+}
+
+function refreshMatrix() {
+    loadTraceabilityData();
+    showAlert('Traceability matrix refreshed', 'success');
+}
+
+function toggleMatrixView() {
+    // Toggle between detailed and summary view
+    showAlert('Matrix view toggled', 'info');
+}
+
+function viewRequirementDetails(requirementKey) {
+    // Navigate to requirement details
+    showAlert(`Viewing details for ${requirementKey}`, 'info');
+}
+
+function viewLinkedTests(requirementKey) {
+    // Show linked tests for requirement
+    showAlert(`Viewing linked tests for ${requirementKey}`, 'info');
+}
+
+function linkMoreTests(requirementKey) {
+    // Open modal to link more tests
+    document.getElementById('requirement-select').value = requirementKey;
+    createRequirementLink();
+}
+
+function exportTraceabilityMatrix() {
+    // Export traceability matrix
+    showAlert('Exporting traceability matrix...', 'info');
+}
+
+function exportCoverageReport() {
+    // Export coverage report
+    showAlert('Exporting coverage report...', 'info');
+}
+
+function updateProjectFilter() {
+    // Update other filters based on project selection
+    applyFilters();
+}
+
+// Utility functions
+function truncateText(text, maxLength = 50) {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+function getStatusBadgeClass(status) {
+    const statusMap = {
+        'Open': 'bg-primary',
+        'In Progress': 'bg-warning',
+        'Done': 'bg-success',
+        'Closed': 'bg-secondary',
+        'To Do': 'bg-primary',
+        'In Review': 'bg-info',
+        'Resolved': 'bg-success'
+    };
+    return statusMap[status] || 'bg-secondary';
+}
+
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

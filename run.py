@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Startup script for Xray Test Management Tool
+Startup script for Assertly Test Management Platform
 """
 
 import os
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     debug = os.getenv('DEBUG', 'True').lower() == 'true'
     
     print("=" * 60)
-    print("🚀 Xray Test Management Tool")
+    print("🚀 Assertly Test Management Platform")
     print("=" * 60)
     print(f"Starting server on http://{host}:{port}")
     print("Press Ctrl+C to stop the server")

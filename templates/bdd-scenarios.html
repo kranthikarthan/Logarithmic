@@ -1,0 +1,670 @@
+{% extends "base.html" %}
+
+{% block title %}BDD Scenarios - Assertly Test Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-code-branch"></i> BDD Scenarios</h2>
+                <p class="text-muted mb-0">Behavior-Driven Development test scenarios with Gherkin syntax</p>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="createBDDScenario()">
+                    <i class="fas fa-plus"></i> Create BDD Scenario
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="importGherkin()">
+                    <i class="fas fa-upload"></i> Import Gherkin
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="exportScenarios()">
+                    <i class="fas fa-download"></i> Export Scenarios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BDD Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-code-branch fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Features</h6>
+                        <h4 class="mb-0" id="features-count">Loading...</h4>
+                        <small class="text-muted">Total features</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-list-ol fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Scenarios</h6>
+                        <h4 class="mb-0" id="scenarios-count">Loading...</h4>
+                        <small class="text-muted">Total scenarios</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-tags fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Tags</h6>
+                        <h4 class="mb-0" id="tags-count">Loading...</h4>
+                        <small class="text-muted">Unique tags</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card assertly-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Executed</h6>
+                        <h4 class="mb-0" id="executed-count">Loading...</h4>
+                        <small class="text-muted">Executed scenarios</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Controls -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="project-filter" class="form-label">Project</label>
+                    <select class="form-select" id="project-filter" onchange="updateProjectFilter()">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="tag-filter" class="form-label">Tag</label>
+                    <select class="form-select" id="tag-filter">
+                        <option value="">All Tags</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="feature-filter" class="form-label">Feature</label>
+                    <input type="text" class="form-control" id="feature-filter" placeholder="Filter by feature name...">
+                </div>
+                
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> BDD Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div id="bdd-statistics">
+                    <p class="text-muted">Loading BDD statistics...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BDD Scenarios List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-list"></i> BDD Scenarios</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshScenarios()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleView()">
+                        <i class="fas fa-th"></i> Toggle View
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="scenarios-container">
+                    <div class="text-center text-muted">
+                        <div class="loading-spinner"></div> Loading BDD scenarios...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create BDD Scenario Modal -->
+<div class="modal fade" id="createBDDModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create BDD Scenario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Scenario Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Scenario Title</label>
+                            <input type="text" class="form-control" id="scenario-title" placeholder="Enter scenario title...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Feature</label>
+                            <input type="text" class="form-control" id="feature-name" placeholder="Enter feature name...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="scenario-tags" placeholder="@smoke @regression">
+                            <div class="form-text">Separate tags with spaces</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Gherkin Steps</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Background (Optional)</label>
+                            <textarea class="form-control" id="background-steps" rows="3" placeholder="Given I am on the login page"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Scenario Steps</label>
+                            <textarea class="form-control" id="scenario-steps" rows="5" placeholder="Given I enter valid credentials&#10;When I click login&#10;Then I should see the dashboard"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Preview</h6>
+                    <div class="border p-3 bg-light" id="gherkin-preview">
+                        <pre id="preview-content">Feature: 
+Scenario: 
+  Given 
+  When 
+  Then </pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createScenario()">
+                    <i class="fas fa-plus"></i> Create Scenario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scenario Details Modal -->
+<div class="modal fade" id="scenarioDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">BDD Scenario Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="scenario-details-content">
+                    <p class="text-muted">Loading scenario details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editScenario()">
+                    <i class="fas fa-edit"></i> Edit Scenario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let bddScenarios = [];
+let currentFilters = {};
+let viewMode = 'list'; // 'list' or 'grid'
+
+// Load BDD scenarios on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadBDDScenarios();
+    loadProjects();
+    loadTags();
+});
+
+function loadBDDScenarios() {
+    fetch('/api/bdd-scenarios')
+        .then(response => response.json())
+        .then(data => {
+            bddScenarios = data.issues || [];
+            updateOverviewCards();
+            displayScenarios();
+        })
+        .catch(error => {
+            console.error('Error loading BDD scenarios:', error);
+            showAlert('Failed to load BDD scenarios', 'danger');
+        });
+}
+
+function updateOverviewCards() {
+    const features = [...new Set(bddScenarios.map(s => s.gherkin?.feature).filter(f => f))];
+    const scenarios = bddScenarios.length;
+    const allTags = bddScenarios.flatMap(s => s.gherkin?.tags || []);
+    const uniqueTags = [...new Set(allTags)];
+    const executed = bddScenarios.filter(s => s.fields?.status?.name === 'Done').length;
+    
+    document.getElementById('features-count').textContent = features.length;
+    document.getElementById('scenarios-count').textContent = scenarios;
+    document.getElementById('tags-count').textContent = uniqueTags.length;
+    document.getElementById('executed-count').textContent = executed;
+    
+    // Update statistics
+    const statsContainer = document.getElementById('bdd-statistics');
+    statsContainer.innerHTML = `
+        <div class="row text-center">
+            <div class="col-4">
+                <div class="border-end">
+                    <h6 class="text-primary mb-1">${features.length}</h6>
+                    <small class="text-muted">Features</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="border-end">
+                    <h6 class="text-success mb-1">${scenarios}</h6>
+                    <small class="text-muted">Scenarios</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <h6 class="text-info mb-1">${uniqueTags.length}</h6>
+                <small class="text-muted">Tags</small>
+            </div>
+        </div>
+    `;
+}
+
+function displayScenarios() {
+    const container = document.getElementById('scenarios-container');
+    
+    if (bddScenarios.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted">No BDD scenarios found</div>';
+        return;
+    }
+    
+    if (viewMode === 'list') {
+        displayListView(container);
+    } else {
+        displayGridView(container);
+    }
+}
+
+function displayListView(container) {
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Feature</th>
+                        <th>Tags</th>
+                        <th>Status</th>
+                        <th>Steps</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${bddScenarios.map(scenario => `
+                        <tr>
+                            <td>
+                                <strong>${scenario.key}</strong><br>
+                                <small class="text-muted">${scenario.fields.summary}</small>
+                            </td>
+                            <td>${scenario.gherkin?.feature || 'N/A'}</td>
+                            <td>
+                                ${(scenario.gherkin?.tags || []).map(tag => `<span class="badge bg-secondary me-1">@${tag}</span>`).join('')}
+                            </td>
+                            <td><span class="badge ${getStatusBadgeClass(scenario.fields.status.name)}">${scenario.fields.status.name}</span></td>
+                            <td>${scenario.gherkin?.scenarios?.[0]?.steps?.length || 0}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewScenarioDetails('${scenario.key}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="executeScenario('${scenario.key}')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function displayGridView(container) {
+    container.innerHTML = `
+        <div class="row">
+            ${bddScenarios.map(scenario => `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0">${scenario.key}</h6>
+                            <small class="text-muted">${scenario.gherkin?.feature || 'No feature'}</small>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">${truncateText(scenario.fields.summary, 100)}</p>
+                            <div class="mb-2">
+                                ${(scenario.gherkin?.tags || []).map(tag => `<span class="badge bg-secondary me-1">@${tag}</span>`).join('')}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge ${getStatusBadgeClass(scenario.fields.status.name)}">${scenario.fields.status.name}</span>
+                                <small class="text-muted">${scenario.gherkin?.scenarios?.[0]?.steps?.length || 0} steps</small>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="viewScenarioDetails('${scenario.key}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="executeScenario('${scenario.key}')">
+                                <i class="fas fa-play"></i> Execute
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function loadProjects() {
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(projects => {
+            const select = document.getElementById('project-filter');
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.key;
+                option.textContent = `${project.key} - ${project.name}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading projects:', error));
+}
+
+function loadTags() {
+    const allTags = bddScenarios.flatMap(s => s.gherkin?.tags || []);
+    const uniqueTags = [...new Set(allTags)];
+    
+    const select = document.getElementById('tag-filter');
+    uniqueTags.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = `@${tag}`;
+        select.appendChild(option);
+    });
+}
+
+function createBDDScenario() {
+    const modal = new bootstrap.Modal(document.getElementById('createBDDModal'));
+    modal.show();
+    
+    // Add event listeners for preview
+    document.getElementById('feature-name').addEventListener('input', updatePreview);
+    document.getElementById('scenario-title').addEventListener('input', updatePreview);
+    document.getElementById('background-steps').addEventListener('input', updatePreview);
+    document.getElementById('scenario-steps').addEventListener('input', updatePreview);
+    document.getElementById('scenario-tags').addEventListener('input', updatePreview);
+}
+
+function updatePreview() {
+    const feature = document.getElementById('feature-name').value;
+    const scenario = document.getElementById('scenario-title').value;
+    const background = document.getElementById('background-steps').value;
+    const steps = document.getElementById('scenario-steps').value;
+    const tags = document.getElementById('scenario-tags').value;
+    
+    let preview = '';
+    if (tags) preview += tags.split(' ').map(tag => tag.startsWith('@') ? tag : `@${tag}`).join(' ') + '\n';
+    if (feature) preview += `Feature: ${feature}\n`;
+    if (background) {
+        preview += `Background:\n`;
+        background.split('\n').forEach(step => {
+            if (step.trim()) preview += `  ${step.trim()}\n`;
+        });
+    }
+    if (scenario) preview += `Scenario: ${scenario}\n`;
+    if (steps) {
+        steps.split('\n').forEach(step => {
+            if (step.trim()) preview += `  ${step.trim()}\n`;
+        });
+    }
+    
+    document.getElementById('preview-content').textContent = preview || 'Feature: \nScenario: \n  Given \n  When \n  Then ';
+}
+
+function createScenario() {
+    const title = document.getElementById('scenario-title').value;
+    const feature = document.getElementById('feature-name').value;
+    const tags = document.getElementById('scenario-tags').value;
+    const background = document.getElementById('background-steps').value;
+    const steps = document.getElementById('scenario-steps').value;
+    
+    if (!title || !feature || !steps) {
+        showAlert('Please fill in all required fields', 'warning');
+        return;
+    }
+    
+    // Create Gherkin description
+    let gherkin = '';
+    if (tags) gherkin += tags.split(' ').map(tag => tag.startsWith('@') ? tag : `@${tag}`).join(' ') + '\n';
+    gherkin += `Feature: ${feature}\n`;
+    if (background) {
+        gherkin += `Background:\n`;
+        background.split('\n').forEach(step => {
+            if (step.trim()) gherkin += `  ${step.trim()}\n`;
+        });
+    }
+    gherkin += `Scenario: ${title}\n`;
+    steps.split('\n').forEach(step => {
+        if (step.trim()) gherkin += `  ${step.trim()}\n`;
+    });
+    
+    // In a real implementation, this would create the issue in Jira
+    showAlert('BDD scenario created successfully!', 'success');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createBDDModal'));
+    modal.hide();
+    
+    // Clear form
+    document.getElementById('scenario-title').value = '';
+    document.getElementById('feature-name').value = '';
+    document.getElementById('scenario-tags').value = '';
+    document.getElementById('background-steps').value = '';
+    document.getElementById('scenario-steps').value = '';
+}
+
+function viewScenarioDetails(scenarioKey) {
+    const scenario = bddScenarios.find(s => s.key === scenarioKey);
+    if (!scenario) return;
+    
+    const content = document.getElementById('scenario-details-content');
+    const gherkin = scenario.gherkin || {};
+    
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Scenario Information</h6>
+                <p><strong>Key:</strong> ${scenario.key}</p>
+                <p><strong>Summary:</strong> ${scenario.fields.summary}</p>
+                <p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(scenario.fields.status.name)}">${scenario.fields.status.name}</span></p>
+                <p><strong>Feature:</strong> ${gherkin.feature || 'N/A'}</p>
+                <p><strong>Tags:</strong> ${(gherkin.tags || []).map(tag => `<span class="badge bg-secondary me-1">@${tag}</span>`).join('')}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Gherkin Steps</h6>
+                <div class="border p-3 bg-light">
+                    <pre>${formatGherkinForDisplay(gherkin)}</pre>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('scenarioDetailsModal'));
+    modal.show();
+}
+
+function formatGherkinForDisplay(gherkin) {
+    let formatted = '';
+    if (gherkin.tags && gherkin.tags.length > 0) {
+        formatted += gherkin.tags.map(tag => `@${tag}`).join(' ') + '\n';
+    }
+    if (gherkin.feature) {
+        formatted += `Feature: ${gherkin.feature}\n`;
+    }
+    if (gherkin.background && gherkin.background.length > 0) {
+        formatted += 'Background:\n';
+        gherkin.background.forEach(step => {
+            formatted += `  ${step.keyword} ${step.text}\n`;
+        });
+    }
+    if (gherkin.scenarios && gherkin.scenarios.length > 0) {
+        gherkin.scenarios.forEach(scenario => {
+            formatted += `Scenario: ${scenario.name}\n`;
+            scenario.steps.forEach(step => {
+                formatted += `  ${step.keyword} ${step.text}\n`;
+            });
+        });
+    }
+    return formatted;
+}
+
+function executeScenario(scenarioKey) {
+    showAlert(`Executing scenario ${scenarioKey}...`, 'info');
+    // In a real implementation, this would trigger test execution
+}
+
+function editScenario(scenarioKey) {
+    showAlert('Edit scenario functionality coming soon', 'info');
+}
+
+function applyFilters() {
+    const project = document.getElementById('project-filter').value;
+    const tag = document.getElementById('tag-filter').value;
+    const feature = document.getElementById('feature-filter').value;
+    
+    currentFilters = { project, tag, feature };
+    
+    // Apply filters to scenarios
+    let filteredScenarios = bddScenarios;
+    
+    if (project) {
+        filteredScenarios = filteredScenarios.filter(s => s.fields.project.key === project);
+    }
+    
+    if (tag) {
+        filteredScenarios = filteredScenarios.filter(s => 
+            s.gherkin?.tags?.includes(tag)
+        );
+    }
+    
+    if (feature) {
+        filteredScenarios = filteredScenarios.filter(s => 
+            s.gherkin?.feature?.toLowerCase().includes(feature.toLowerCase())
+        );
+    }
+    
+    bddScenarios = filteredScenarios;
+    displayScenarios();
+    updateOverviewCards();
+}
+
+function refreshScenarios() {
+    loadBDDScenarios();
+    showAlert('BDD scenarios refreshed', 'success');
+}
+
+function toggleView() {
+    viewMode = viewMode === 'list' ? 'grid' : 'list';
+    displayScenarios();
+    showAlert(`Switched to ${viewMode} view`, 'info');
+}
+
+function importGherkin() {
+    showAlert('Import Gherkin functionality coming soon', 'info');
+}
+
+function exportScenarios() {
+    showAlert('Export scenarios functionality coming soon', 'info');
+}
+
+// Utility functions
+function truncateText(text, maxLength = 50) {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+function getStatusBadgeClass(status) {
+    const statusMap = {
+        'Open': 'bg-primary',
+        'In Progress': 'bg-warning',
+        'Done': 'bg-success',
+        'Closed': 'bg-secondary',
+        'To Do': 'bg-primary',
+        'In Review': 'bg-info',
+        'Resolved': 'bg-success'
+    };
+    return statusMap[status] || 'bg-secondary';
+}
+
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Assertly{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-vial"></i>
+                </div>
+                <span class="brand-text">Assertly</span>
+            </div>
+            <h1 class="auth-title">Start your free trial</h1>
+            <p class="auth-subtitle">Join hundreds of teams already using Assertly</p>
+        </div>
+        
+        <form class="auth-form" method="POST" action="/signup">
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Work Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="company" class="form-label">Company</label>
+                <input type="text" id="company" name="company" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="team_size" class="form-label">Team Size</label>
+                <select id="team_size" name="team_size" class="form-control" required>
+                    <option value="">Select team size</option>
+                    <option value="1-5">1-5 people</option>
+                    <option value="6-20">6-20 people</option>
+                    <option value="21-50">21-50 people</option>
+                    <option value="50+">50+ people</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="terms" required>
+                    <span class="checkmark"></span>
+                    I agree to the <a href="#terms">Terms of Service</a> and <a href="#privacy">Privacy Policy</a>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                <i class="fas fa-rocket"></i>
+                Start Free Trial
+            </button>
+            
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
+            
+            <div class="social-auth">
+                <button type="button" class="btn btn-outline w-100">
+                    <i class="fab fa-google"></i>
+                    Continue with Google
+                </button>
+                <button type="button" class="btn btn-outline w-100">
+                    <i class="fab fa-microsoft"></i>
+                    Continue with Microsoft
+                </button>
+            </div>
+            
+            <p class="auth-footer">
+                Already have an account? <a href="/login">Sign in</a>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+}
+
+.auth-card {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-2xl);
+    padding: 3rem;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid var(--border-primary);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.auth-brand .brand-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: var(--primary-600);
+    border-color: var(--primary-600);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.auth-divider {
+    text-align: center;
+    position: relative;
+    margin: 1rem 0;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-primary);
+}
+
+.auth-divider span {
+    background: var(--bg-elevated);
+    padding: 0 1rem;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+.social-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.auth-footer {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-top: 1.5rem;
+}
+
+.auth-footer a {
+    color: var(--primary-600);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 1rem;
+    }
+    
+    .auth-card {
+        padding: 2rem;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

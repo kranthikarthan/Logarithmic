@@ -1,0 +1,69 @@
+# Enterprise Dockerfile for Assertly
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    gcc \
+    g++ \
+    libpq-dev \
+    libssl-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create application user
+RUN groupadd -r assertly && useradd -r -g assertly assertly
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional enterprise dependencies
+RUN pip install --no-cache-dir \
+    cryptography \
+    pyjwt \
+    bcrypt \
+    psycopg2-binary \
+    redis \
+    prometheus-client \
+    structlog
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/config /app/certs /app/data /app/logs /app/ai-models \
+    && chown -R assertly:assertly /app
+
+# Copy enterprise configuration
+COPY enterprise-config/ /app/config/
+COPY enterprise-certs/ /app/certs/
+
+# Set permissions
+RUN chown -R assertly:assertly /app \
+    && chmod -R 755 /app \
+    && chmod 600 /app/certs/* 2>/dev/null || true
+
+# Switch to non-root user
+USER assertly
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/api/enterprise/health || exit 1
+
+# Expose port
+EXPOSE 5000
+
+# Start command
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]

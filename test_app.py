@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple test script for Xray Test Management Tool
+Simple test script for Assertly Test Management Platform
 """
 
 import sys
@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 def test_imports():
     """Test that all required modules can be imported"""
     try:
-        from app import app, JiraXrayClient
+        from app import app, JiraAssertlyClient
         print("✅ App module imports successfully")
         return True
     except ImportError as e:
@@ -32,20 +32,20 @@ def test_flask_app():
         return False
 
 def test_jira_client():
-    """Test JiraXrayClient class"""
+    """Test JiraAssertlyClient class"""
     try:
-        from app import JiraXrayClient
+        from app import JiraAssertlyClient
         # Test with dummy credentials
-        client = JiraXrayClient("https://example.atlassian.net", "user", "token")
-        print("✅ JiraXrayClient can be instantiated")
+        client = JiraAssertlyClient("https://example.atlassian.net", "user", "token")
+        print("✅ JiraAssertlyClient can be instantiated")
         return True
     except Exception as e:
-        print(f"❌ JiraXrayClient error: {e}")
+        print(f"❌ JiraAssertlyClient error: {e}")
         return False
 
 def main():
     """Run all tests"""
-    print("🧪 Testing Xray Test Management Tool...")
+    print("🧪 Testing Assertly Test Management Platform...")
     print("=" * 50)
     
     tests = [
