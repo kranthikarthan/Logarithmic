@@ -54,6 +54,13 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Register blueprints (progressive refactor)
+try:
+    from assertly.routes.ai import ai_bp
+    app.register_blueprint(ai_bp, url_prefix='/api/ai')
+except Exception:
+    pass
+
 # Security: Use environment variable for secret key, generate random if not set
 import secrets
 app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
@@ -1405,148 +1412,12 @@ def health():
         'version': '1.0.0'
     })
 
-# AI Test Generation Endpoints
-@app.route('/api/ai/generate-test-cases', methods=['POST'])
-def ai_generate_test_cases():
-    """Generate test cases from user story using AI"""
-    try:
-        from ai_test_generator import AITestGenerator, UserStory, TestCaseType, TestPriority
-        
-        data = request.get_json()
-        
-        # Validate required fields
-        required_fields = ['title', 'description', 'acceptance_criteria', 'business_value', 'user_persona']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        # Create user story object
-        user_story = UserStory(
-            title=data['title'],
-            description=data['description'],
-            acceptance_criteria=data['acceptance_criteria'],
-            business_value=data['business_value'],
-            user_persona=data['user_persona'],
-            epic=data.get('epic'),
-            story_points=data.get('story_points')
-        )
-        
-        # Parse test types
-        test_types = []
-        for test_type in data.get('test_types', ['functional', 'ui']):
-            try:
-                test_types.append(TestCaseType(test_type))
-            except ValueError:
-                continue
-        
-        if not test_types:
-            test_types = [TestCaseType.FUNCTIONAL, TestCaseType.UI]
-        
-        # Initialize AI generator with local LLM fallback
-        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
-        provider = data.get('provider', 'openai')
-        
-        if not api_key:
-            # Try local LLM first as fallback
-            try:
-                print("No API key found, attempting to use local LLM...")
-                generator = AITestGenerator(provider='local', enterprise_mode=True)
-                test_cases = generator.generate_test_cases_from_story(
-                    user_story=user_story,
-                    test_types=test_types,
-                    num_cases=data.get('num_cases', 5),
-                    additional_prompts=data.get('additional_prompts', [])
-                )
-                
-                # Convert to JSON-serializable format
-                result = []
-                for tc in test_cases:
-                    result.append({
-                        'title': tc.title,
-                        'description': tc.description,
-                        'steps': tc.steps,
-                        'expected_result': tc.expected_result,
-                        'test_type': tc.test_type.value,
-                        'priority': tc.priority.value,
-                        'tags': tc.tags,
-                        'preconditions': tc.preconditions,
-                        'test_data': tc.test_data,
-                        'acceptance_criteria': tc.acceptance_criteria
-                    })
-                
-                return jsonify({
-                    'success': True,
-                    'test_cases': result,
-                    'count': len(result),
-                    'provider': 'local-llm',
-                    'note': 'Generated using local LLM'
-                })
-                
-            except Exception as e:
-                print(f"Local LLM failed: {e}, using mock fallback")
-                # Fallback to mock if local LLM fails
-                return jsonify({
-                    'success': True,
-                    'test_cases': [
-                        {
-                            'title': f'Test Case 1: {data.get("title", "User Story")}',
-                            'description': f'Verify that {data.get("description", "the feature works correctly")}',
-                            'steps': [
-                                '1. Navigate to the application',
-                                '2. Perform the required action',
-                                '3. Verify the expected result'
-                            ],
-                            'expected_result': 'The feature should work as expected',
-                            'test_type': 'functional',
-                            'priority': 'high',
-                            'tags': ['smoke', 'regression'],
-                            'preconditions': ['User is logged in', 'Application is accessible'],
-                            'test_data': 'Sample test data',
-                            'acceptance_criteria': data.get('acceptance_criteria', 'Feature works as specified')
-                        }
-                    ],
-                    'count': 1,
-                    'provider': 'mock-fallback',
-                    'note': 'Mock test case generated - local LLM and API keys not available'
-                })
-        
-        provider = data.get('provider', 'openai')
-        generator = AITestGenerator(api_key=api_key, provider=provider)
-        
-        # Generate test cases
-        test_cases = generator.generate_test_cases_from_story(
-            user_story=user_story,
-            test_types=test_types,
-            num_cases=data.get('num_cases', 5),
-            additional_prompts=data.get('additional_prompts', [])
-        )
-        
-        # Convert to JSON-serializable format
-        result = []
-        for tc in test_cases:
-            result.append({
-                'title': tc.title,
-                'description': tc.description,
-                'steps': tc.steps,
-                'expected_result': tc.expected_result,
-                'test_type': tc.test_type.value,
-                'priority': tc.priority.value,
-                'tags': tc.tags,
-                'preconditions': tc.preconditions,
-                'test_data': tc.test_data,
-                'acceptance_criteria': tc.acceptance_criteria
-            })
-        
-        return jsonify({
-            'success': True,
-            'test_cases': result,
-            'count': len(result)
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+"""
+AI endpoints moved to blueprint 'assertly.routes.ai'.
+This placeholder remains temporarily to avoid breaking imports while refactoring.
+"""
 
-@app.route('/api/ai/improve-test-case', methods=['POST'])
+# moved to blueprint 'ai': /api/ai/improve-test-case
 def ai_improve_test_case():
     """Improve an existing test case using AI"""
     try:
@@ -1658,7 +1529,7 @@ def ai_improve_test_case():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/ai/generate-bdd-scenarios', methods=['POST'])
+# moved to blueprint 'ai': /api/ai/generate-bdd-scenarios
 def ai_generate_bdd_scenarios():
     """Generate BDD scenarios from user story using AI"""
     try:
@@ -1752,7 +1623,7 @@ def ai_generate_bdd_scenarios():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/ai/generate-test-data', methods=['POST'])
+# moved to blueprint 'ai': /api/ai/generate-test-data
 def ai_generate_test_data():
     """Generate test data for a test case using AI"""
     try:
@@ -1859,7 +1730,7 @@ def ai_generate_test_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/ai/analyze-coverage', methods=['POST'])
+# moved to blueprint 'ai': /api/ai/analyze-coverage
 def ai_analyze_coverage():
     """Analyze test coverage for a user story using AI"""
     try:
@@ -2017,7 +1888,7 @@ def api_keys():
     return render_template('api-keys.html')
 
 # API Key Management Endpoints
-@app.route('/api/ai/keys', methods=['GET'])
+# TODO: move to blueprint: /api/ai/keys
 def get_api_keys():
     """Get all API keys"""
     try:
@@ -2046,7 +1917,7 @@ def get_api_keys():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/ai/keys', methods=['POST'])
+# TODO: move to blueprint: /api/ai/keys [POST]
 def add_api_key():
     """Add new API key"""
     try:
@@ -2078,7 +1949,7 @@ def add_api_key():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/ai/keys/<provider>', methods=['DELETE'])
+# TODO: move to blueprint: /api/ai/keys/<provider> [DELETE]
 def remove_api_key(provider):
     """Remove API key"""
     try:
@@ -2095,7 +1966,7 @@ def remove_api_key(provider):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/ai/keys/<provider>', methods=['PATCH'])
+# TODO: move to blueprint: /api/ai/keys/<provider> [PATCH]
 def update_api_key(provider):
     """Update API key settings"""
     try:
@@ -2116,7 +1987,7 @@ def update_api_key(provider):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/ai/keys/<provider>/test', methods=['POST'])
+# TODO: move to blueprint: /api/ai/keys/<provider>/test [POST]
 def test_api_key(provider):
     """Test API key connection"""
     try:
@@ -2130,7 +2001,7 @@ def test_api_key(provider):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/ai/usage-stats')
+# TODO: move to blueprint: /api/ai/usage-stats
 def get_usage_stats():
     """Get API usage statistics"""
     try:
@@ -2144,7 +2015,7 @@ def get_usage_stats():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/ai/providers')
+# TODO: move to blueprint: /api/ai/providers
 def get_available_providers():
     """Get available AI providers"""
     try:
@@ -2163,7 +2034,7 @@ def get_available_providers():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # Additional API endpoints for complete AI workflow coverage
-@app.route('/api/ai/test-data-validation', methods=['POST'])
+# TODO: move to blueprint: /api/ai/test-data-validation [POST]
 def ai_test_data_validation():
     """AI-powered test data validation"""
     try:
@@ -2198,7 +2069,7 @@ def ai_test_data_validation():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/ai/defect-analysis', methods=['POST'])
+# TODO: move to blueprint: /api/ai/defect-analysis [POST]
 def ai_defect_analysis():
     """AI-powered defect analysis"""
     try:
